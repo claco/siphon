@@ -53,6 +53,12 @@
     <Import Include="System.Diagnostics" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Monitors\DataMonitor.vb" />
+    <Compile Include="Monitors\IDataMonitor.vb" />
+    <Compile Include="Processors\IDataProcessor.vb" />
+    <Compile Include="Monitors\IDirectoryMonitor.vb" />
+    <Compile Include="Schedules\DailySchedule.vb" />
+    <Compile Include="Schedules\IMonitorSchedule.vb" />
     <Compile Include="My Project\AssemblyInfo.vb" />
     <Compile Include="My Project\Application.Designer.vb">
       <AutoGen>True</AutoGen>
@@ -68,6 +74,8 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
+    <Compile Include="Schedules\IntervalSchedule.vb" />
+    <Compile Include="Schedules\MonitorSchedule.vb" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="My Project\Resources.resx">
