@@ -1,7 +1,7 @@
 ﻿Imports NUnit.Framework
 Imports ChrisLaco.Siphon
 
-<TestFixture(Description:="ScheduleTests")> _
+<TestFixture(Description:="Schedule Tests")> _
 Public Class ScheduleTests
 
     <TestFixtureSetUp()> _
@@ -39,7 +39,7 @@ Public Class ScheduleTests
 
 #End Region
 
-#Region "Hourly Schedule Tests"
+#Region "Daily Schedule Tests"
 
     <Test(Description:="Test daily schedule")> _
     Public Sub DailySchedule()

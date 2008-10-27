@@ -1,23 +1,21 @@
 ﻿Imports log4net
 
 ''' <summary>
-''' Base class for monitoring schedules.
+''' Base class for data procesors.
 ''' </summary>
 ''' <remarks></remarks>
-Public MustInherit Class MonitorSchedule
-    Implements IMonitorSchedule
+Public MustInherit Class DataProcessor
+    Implements IDataProcessor
 
     Private Shared ReadOnly Log As ILog = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod.DeclaringType)
     Private _disposed As Boolean = False
 
     ''' <summary>
-    ''' Gets the next schedule event after the given start date/time.
+    ''' Processes new data found by the monitor.
     ''' </summary>
-    ''' <param name="start">DateTime. The schedules start date/time.</param>
-    ''' <value></value>
-    ''' <returns>DateTime</returns>
-    ''' <remarks></remarks>
-    Public MustOverride ReadOnly Property NextEvent(ByVal start As DateTime) As DateTime Implements IMonitorSchedule.NextEvent
+    ''' <param name="data">Object. New data to be processed.</param>
+    ''' <remarks>Returns True if the data was processed successfully. Returns False otherwise.</remarks>
+    Public MustOverride Function Process(ByVal data As Object) As Boolean Implements IDataProcessor.Process
 
     ''' <summary>
     ''' Disposes the current schedule instance.

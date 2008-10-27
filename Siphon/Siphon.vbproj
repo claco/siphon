@@ -54,7 +54,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Monitors\DataMonitor.vb" />
+    <Compile Include="Monitors\DirectoryMonitor.vb" />
     <Compile Include="Monitors\IDataMonitor.vb" />
+    <Compile Include="Processors\DataProcessor.vb" />
     <Compile Include="Processors\IDataProcessor.vb" />
     <Compile Include="Monitors\IDirectoryMonitor.vb" />
     <Compile Include="Schedules\DailySchedule.vb" />

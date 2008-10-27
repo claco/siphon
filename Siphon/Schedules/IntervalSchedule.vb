@@ -1,10 +1,13 @@
-﻿''' <summary>
+﻿Imports log4net
+
+''' <summary>
 ''' Class for schedules based on time intervals.
 ''' </summary>
 ''' <remarks></remarks>
 Public Class IntervalSchedule
     Inherits MonitorSchedule
 
+    Private Shared ReadOnly Log As ILog = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod.DeclaringType)
     Private _interval As New TimeSpan(0, 1, 0)
 
     ''' <summary>
@@ -13,6 +16,15 @@ Public Class IntervalSchedule
     ''' <remarks></remarks>
     Public Sub New()
 
+    End Sub
+
+    ''' <summary>
+    ''' Creates a new interval schedule instance.
+    ''' </summary>
+    ''' <param name="seconds">Integer. The number if seconds for this interval.</param>
+    ''' <remarks></remarks>
+    Public Sub New(ByVal seconds As Integer)
+        Me.Interval = New TimeSpan(0, 0, seconds)
     End Sub
 
     ''' <summary>

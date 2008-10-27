@@ -1,0 +1,2 @@
+- Add .Processing to DataMonitor when we're between Stop, Scan/Process, Start
+- Add Auto Create to DirectoryMonitor

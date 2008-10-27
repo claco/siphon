@@ -32,4 +32,10 @@ Public Interface IDataMonitor
     ''' <returns>IMonitorSchedule</returns>
     ''' <remarks></remarks>
     Property Schedule() As IMonitorSchedule
+
+    ''' <summary>
+    ''' Scans for new data and sends new data to the current processor.
+    ''' </summary>
+    ''' <remarks></remarks>
+    Sub Scan()
 End Interface
