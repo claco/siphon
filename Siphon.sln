@@ -11,6 +11,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		TODO = TODO
 	EndProjectSection
 EndProject
+Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "SiphonService", "SiphonService\SiphonService.vbproj", "{E50C8751-29F0-4194-9AF3-C0B8D151E995}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -25,6 +27,10 @@ Global
 		{CB1A8317-74C2-479F-B2E8-46470915F83B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CB1A8317-74C2-479F-B2E8-46470915F83B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CB1A8317-74C2-479F-B2E8-46470915F83B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E50C8751-29F0-4194-9AF3-C0B8D151E995}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E50C8751-29F0-4194-9AF3-C0B8D151E995}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E50C8751-29F0-4194-9AF3-C0B8D151E995}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E50C8751-29F0-4194-9AF3-C0B8D151E995}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
