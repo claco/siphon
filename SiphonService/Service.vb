@@ -1,8 +1,12 @@
+Imports log4net
+
 ''' <summary>
 ''' Class containing windows service code to run Siphon monitors.
 ''' </summary>
 ''' <remarks></remarks>
 Public Class SiphonService
+
+    Private Shared ReadOnly Log As ILog = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod.DeclaringType)
 
     ''' <summary>
     ''' Code run when the service starts.

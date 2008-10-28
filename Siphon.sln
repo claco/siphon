@@ -13,6 +13,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "SiphonService", "SiphonService\SiphonService.vbproj", "{E50C8751-29F0-4194-9AF3-C0B8D151E995}"
 EndProject
+Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "SiphonConsole", "SiphonConsole\SiphonConsole.vbproj", "{DFD27A39-C804-4589-9DDB-F2C0412B11A0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -31,6 +33,10 @@ Global
 		{E50C8751-29F0-4194-9AF3-C0B8D151E995}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E50C8751-29F0-4194-9AF3-C0B8D151E995}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E50C8751-29F0-4194-9AF3-C0B8D151E995}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DFD27A39-C804-4589-9DDB-F2C0412B11A0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DFD27A39-C804-4589-9DDB-F2C0412B11A0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DFD27A39-C804-4589-9DDB-F2C0412B11A0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DFD27A39-C804-4589-9DDB-F2C0412B11A0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
