@@ -6,6 +6,14 @@ Public Interface IDataMonitor
     Inherits IDisposable
 
     ''' <summary>
+    ''' Gets/sets the friendly name of the monitor.
+    ''' </summary>
+    ''' <value></value>
+    ''' <returns>String</returns>
+    ''' <remarks></remarks>
+    Property Name() As String
+
+    ''' <summary>
     ''' Starts the data monitoring instance.
     ''' </summary>
     ''' <remarks></remarks>

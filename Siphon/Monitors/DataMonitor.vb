@@ -10,6 +10,7 @@ Public MustInherit Class DataMonitor
 
     Private Shared ReadOnly Log As ILog = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod.DeclaringType)
     Private _disposed As Boolean = False
+    Private _name As String = String.Empty
     Private _processor As IDataProcessor = Nothing
     Private _schedule As IMonitorSchedule = Nothing
     Private WithEvents _timer As System.Timers.Timer
@@ -24,6 +25,21 @@ Public MustInherit Class DataMonitor
         Me.Schedule = schedule
         Me.Processor = processor
     End Sub
+
+    ''' <summary>
+    ''' Gets/sets the friendly name of the monitor.
+    ''' </summary>
+    ''' <value></value>
+    ''' <returns>String</returns>
+    ''' <remarks></remarks>
+    Public Property Name() As String Implements IDataMonitor.Name
+        Get
+            Return _name
+        End Get
+        Set(ByVal value As String)
+            _name = value.Trim
+        End Set
+    End Property
 
     ''' <summary>
     ''' Gets/sets the processor to handle newly found data.
@@ -51,13 +67,13 @@ Public MustInherit Class DataMonitor
     ''' </summary>
     ''' <remarks></remarks>
     Public Overridable Sub Start() Implements IDataMonitor.Start
-        Log.InfoFormat("Starting Monitor")
+        Log.InfoFormat("Starting Monitor {0}", Me.Name)
 
         Dim start As DateTime = DateTime.Now
         Dim nextEvent As DateTime = Me.Schedule.NextEvent(start)
 
-        Log.InfoFormat("Start: {0}", start)
-        Log.InfoFormat("Next data check at {0}", nextEvent)
+        Log.DebugFormat("Monitor Start Time {0}", start)
+        Log.DebugFormat("Next Monitor Scan {0}", nextEvent)
 
         Timer.Interval = (nextEvent - start).TotalMilliseconds
         Timer.Start()
@@ -68,7 +84,8 @@ Public MustInherit Class DataMonitor
     ''' </summary>
     ''' <remarks></remarks>
     Public Overridable Sub [Stop]() Implements IDataMonitor.Stop
-        Log.InfoFormat("Stopping Monitor")
+        Log.InfoFormat("Stopping Monitor {0}", Me.Name)
+
         Timer.Stop()
     End Sub
 
@@ -129,8 +146,6 @@ Public MustInherit Class DataMonitor
     End Sub
 
     Private Sub _timer_Elapsed(ByVal sender As Object, ByVal e As System.Timers.ElapsedEventArgs) Handles _timer.Elapsed
-        Log.Debug("Timer Elapsed")
-
         Me.Stop()
         Me.Scan()
         Me.Start()

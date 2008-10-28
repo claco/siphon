@@ -31,12 +31,13 @@ Public Class DirectoryMonitor
     ''' </summary>
     ''' <remarks></remarks>
     Public Overrides Sub Scan()
-        Log.DebugFormat("Scanning {0}", Me.Path)
+        Log.DebugFormat("Scanning {0} for {1}", Me.Path, Me.Filter)
 
         Dim files() As String = Directory.GetFiles(Me.Path, Me.Filter, SearchOption.TopDirectoryOnly)
         Log.DebugFormat("Found {0} files in {1}", files.Length, Me.Path)
 
         For Each file As String In files
+            Log.DebugFormat("Processing {0}", file)
             Me.Processor.Process(file)
         Next
     End Sub
