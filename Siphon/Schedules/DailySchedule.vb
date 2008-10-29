@@ -51,7 +51,10 @@ Public Class DailySchedule
                 If tp > max Then
                     Log.WarnFormat("Skipping TimeSpan greater than 24 hours {0}", tp)
                 Else
-                    If tp >= start.TimeOfDay Then
+                    Log.DebugFormat("Time Span {0}", tp.ToString)
+                    Log.DebugFormat("Start TimeOfDay {0}", start.TimeOfDay)
+
+                    If tp >= start.TimeOfDay And (tp - start.TimeOfDay).TotalSeconds >= 1 Then
                         Return New DateTime(start.Year, start.Month, start.Day, tp.Hours, tp.Minutes, tp.Seconds)
                     End If
                 End If

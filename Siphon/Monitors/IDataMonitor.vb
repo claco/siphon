@@ -1,4 +1,6 @@
-﻿''' <summary>
+﻿Imports System.Collections.ObjectModel
+
+''' <summary>
 ''' Interface that defines a data monitoring instance.
 ''' </summary>
 ''' <remarks></remarks>
@@ -26,6 +28,18 @@ Public Interface IDataMonitor
     Sub [Stop]()
 
     ''' <summary>
+    ''' Pauses data monitoring, usually while processing files.
+    ''' </summary>
+    ''' <remarks></remarks>
+    Sub Pause()
+
+    ''' <summary>
+    ''' Resumes data monitors, usually after processing new data.
+    ''' </summary>
+    ''' <remarks></remarks>
+    Sub [Resume]()
+
+    ''' <summary>
     ''' Gets/sets the data processor to use when new data is found.
     ''' </summary>
     ''' <value></value>
@@ -45,5 +59,5 @@ Public Interface IDataMonitor
     ''' Scans for new data and sends new data to the current processor.
     ''' </summary>
     ''' <remarks></remarks>
-    Sub Scan()
+    Function Scan() As Collection(Of Object)
 End Interface

@@ -1,46 +1,52 @@
-﻿Imports System.IO
-Imports log4net
+﻿Imports log4net
 
 ''' <summary>
 ''' Monitors a directory for new files.
 ''' </summary>
 ''' <remarks></remarks>
-Public Class DirectoryMonitor
+Public MustInherit Class DirectoryMonitor
     Inherits DataMonitor
     Implements IDirectoryMonitor
 
     Private Shared ReadOnly Log As ILog = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod.DeclaringType)
     Private Const DEFAULT_FILTER As String = "*"
+    Private _createMissingFolders As Boolean = False
     Private _filter As String = DEFAULT_FILTER
     Private _path As String = String.Empty
 
     ''' <summary>
     ''' Creates a new directory monitor.
     ''' </summary>
+    ''' <param name="name">String. The friendly name for the monitor.</param>
     ''' <param name="path">String. The full path to the directory to be monitored.</param>
     ''' <param name="schedule">IMonitorSchedule. The schedule used to monitor the directory.</param>
     ''' <param name="processor">IDataProcessor. The data processor to use to process new files.</param>
     ''' <remarks></remarks>
-    Public Sub New(ByVal path As String, ByVal schedule As IMonitorSchedule, ByVal processor As IDataProcessor)
-        MyBase.New(schedule, processor)
+    Public Sub New(ByVal name As String, ByVal path As String, ByVal schedule As IMonitorSchedule, ByVal processor As IDataProcessor)
+        MyBase.New(name, schedule, processor)
         Me.Path = path
     End Sub
 
     ''' <summary>
-    ''' Scans the specified directory for new files mathcing the specified filter.
+    ''' Creates missing folders before starting the timer.
     ''' </summary>
     ''' <remarks></remarks>
-    Public Overrides Sub Scan()
-        Log.DebugFormat("Scanning {0} for {1}", Me.Path, Me.Filter)
+    Public MustOverride Sub CreateFolders()
 
-        Dim files() As String = Directory.GetFiles(Me.Path, Me.Filter, SearchOption.TopDirectoryOnly)
-        Log.DebugFormat("Found {0} files in {1}", files.Length, Me.Path)
-
-        For Each file As String In files
-            Log.DebugFormat("Processing {0}", file)
-            Me.Processor.Process(file)
-        Next
-    End Sub
+    ''' <summary>
+    ''' Gets/sets flag determining whether to create any missing folders when starting the monitor.
+    ''' </summary>
+    ''' <value></value>
+    ''' <returns>Boolean</returns>
+    ''' <remarks></remarks>
+    Public Overridable Property CreateMissingFolders() As Boolean
+        Get
+            Return _createMissingFolders
+        End Get
+        Set(ByVal value As Boolean)
+            _createMissingFolders = value
+        End Set
+    End Property
 
     ''' <summary>
     ''' Gets/sets the file filter to apply to the directory.
@@ -75,4 +81,12 @@ Public Class DirectoryMonitor
             _path = value.Trim
         End Set
     End Property
+
+    Public Overrides Sub Start()
+        If Me.CreateMissingFolders Then
+            Me.CreateFolders()
+        End If
+
+        MyBase.Start()
+    End Sub
 End Class

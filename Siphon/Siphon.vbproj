@@ -55,7 +55,9 @@
   <ItemGroup>
     <Compile Include="Monitors\DataMonitor.vb" />
     <Compile Include="Monitors\DirectoryMonitor.vb" />
+    <Compile Include="Monitors\FtpDirectoryMonitor.vb" />
     <Compile Include="Monitors\IDataMonitor.vb" />
+    <Compile Include="Monitors\LocalDirectoryMonitor.vb" />
     <Compile Include="Processors\DataProcessor.vb" />
     <Compile Include="Processors\IDataProcessor.vb" />
     <Compile Include="Monitors\IDirectoryMonitor.vb" />

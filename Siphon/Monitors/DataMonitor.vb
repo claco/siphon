@@ -1,4 +1,5 @@
-﻿Imports System.Timers
+﻿Imports System.Collections.ObjectModel
+Imports System.Timers
 Imports log4net
 
 ''' <summary>
@@ -11,6 +12,7 @@ Public MustInherit Class DataMonitor
     Private Shared ReadOnly Log As ILog = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod.DeclaringType)
     Private _disposed As Boolean = False
     Private _name As String = String.Empty
+    Private _processing As Boolean = False
     Private _processor As IDataProcessor = Nothing
     Private _schedule As IMonitorSchedule = Nothing
     Private WithEvents _timer As System.Timers.Timer
@@ -18,10 +20,12 @@ Public MustInherit Class DataMonitor
     ''' <summary>
     ''' Creates a new DataMonitor instance.
     ''' </summary>
+    ''' <param name="name">String. The friendly name for the monitor.</param>
     ''' <param name="processor">IDataProcessor. The processor to use to handle newly found data.</param>
     ''' <param name="schedule">IMonitorSchedule. The schedule used to detemrin when to look for new data.</param>
     ''' <remarks></remarks>
-    Protected Sub New(ByVal schedule As IMonitorSchedule, ByVal processor As IDataProcessor)
+    Protected Sub New(ByVal name As String, ByVal schedule As IMonitorSchedule, ByVal processor As IDataProcessor)
+        Me.Name = name.Trim
         Me.Schedule = schedule
         Me.Processor = processor
     End Sub
@@ -32,13 +36,25 @@ Public MustInherit Class DataMonitor
     ''' <value></value>
     ''' <returns>String</returns>
     ''' <remarks></remarks>
-    Public Property Name() As String Implements IDataMonitor.Name
+    Public Overridable Property Name() As String Implements IDataMonitor.Name
         Get
             Return _name
         End Get
         Set(ByVal value As String)
             _name = value.Trim
         End Set
+    End Property
+
+    ''' <summary>
+    ''' Gets flag indicating if the current monitor is processing new data.
+    ''' </summary>
+    ''' <value></value>
+    ''' <returns>Boolean. True if the monitor is processing new data. False otherwise.</returns>
+    ''' <remarks></remarks>
+    Public Overridable ReadOnly Property Processing() As Boolean
+        Get
+            Return _processing
+        End Get
     End Property
 
     ''' <summary>
@@ -60,7 +76,7 @@ Public MustInherit Class DataMonitor
     ''' Scans for new data and sends new data to the current processor.
     ''' </summary>
     ''' <remarks></remarks>
-    Public MustOverride Sub Scan() Implements IDataMonitor.Scan
+    Public MustOverride Function Scan() As Collection(Of Object) Implements IDataMonitor.Scan
 
     ''' <summary>
     ''' Starts monitoring for new data.
@@ -69,13 +85,28 @@ Public MustInherit Class DataMonitor
     Public Overridable Sub Start() Implements IDataMonitor.Start
         Log.InfoFormat("Starting Monitor {0}", Me.Name)
 
-        Dim start As DateTime = DateTime.Now
-        Dim nextEvent As DateTime = Me.Schedule.NextEvent(start)
+        Timer.Interval = Me.NextInterval
+        Timer.Start()
+    End Sub
 
-        Log.DebugFormat("Monitor Start Time {0}", start)
-        Log.DebugFormat("Next Monitor Scan {0}", nextEvent)
+    ''' <summary>
+    ''' Pauses data monitoring, usually while processing files.
+    ''' </summary>
+    ''' <remarks></remarks>
+    Public Overridable Sub Pause() Implements IDataMonitor.Pause
+        Log.InfoFormat("Pausing Monitor {0}", Me.Name)
 
-        Timer.Interval = (nextEvent - start).TotalMilliseconds
+        Timer.Stop()
+    End Sub
+
+    ''' <summary>
+    ''' Resumes data monitors, usually after processing new data.
+    ''' </summary>
+    ''' <remarks></remarks>
+    Public Overridable Sub [Resume]() Implements IDataMonitor.Resume
+        Log.InfoFormat("Resuming Monitor {0}", Me.Name)
+
+        Timer.Interval = Me.NextInterval
         Timer.Start()
     End Sub
 
@@ -84,9 +115,15 @@ Public MustInherit Class DataMonitor
     ''' </summary>
     ''' <remarks></remarks>
     Public Overridable Sub [Stop]() Implements IDataMonitor.Stop
-        Log.InfoFormat("Stopping Monitor {0}", Me.Name)
+        If Timer.Enabled Then
+            Log.InfoFormat("Stopping Monitor {0}", Me.Name)
 
-        Timer.Stop()
+            If Me.Processing Then
+                Log.Debug("Waiting for processor to finish")
+            End If
+
+            Timer.Stop()
+        End If
     End Sub
 
     ''' <summary>
@@ -145,9 +182,42 @@ Public MustInherit Class DataMonitor
         GC.SuppressFinalize(Me)
     End Sub
 
+    ''' <summary>
+    ''' Gets the next event from the schedule and sets the timers interval.
+    ''' </summary>
+    ''' <returns></returns>
+    ''' <remarks></remarks>
+    Private Function NextInterval() As Integer
+        Dim start As DateTime = DateTime.Now
+        Dim nextEvent As DateTime = Me.Schedule.NextEvent(start)
+        Dim interval As Integer = (nextEvent - start).TotalMilliseconds
+
+        Log.DebugFormat("Monitor Start Time {0}", start)
+        Log.DebugFormat("Next Monitor Scan {0}", nextEvent)
+        Log.DebugFormat("Timer Interval {0}", interval)
+
+        Return interval
+    End Function
+
     Private Sub _timer_Elapsed(ByVal sender As Object, ByVal e As System.Timers.ElapsedEventArgs) Handles _timer.Elapsed
-        Me.Stop()
-        Me.Scan()
-        Me.Start()
+        Me.Pause()
+
+        Try
+            Dim items As Collection(Of Object) = Me.Scan
+            If items.Count > 0 Then
+                _processing = True
+                Log.DebugFormat("{0} {1}", Me.Name, _processing)
+                For Each item As Object In items
+                    Me.Processor.Process(item)
+                Next
+                Log.Debug("POST Process")
+
+                _processing = False
+            End If
+        Catch ex As Exception
+            'Log.Debug("BOOM", ex)
+        End Try
+
+        Me.Resume()
     End Sub
 End Class

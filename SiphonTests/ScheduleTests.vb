@@ -54,7 +54,7 @@ Public Class ScheduleTests
 
             start = DateTime.Parse("1/1/2001 4:00 AM")
             ndt = schedule.NextEvent(start)
-            Assert.AreEqual(4, ndt.Hour, "Got hour 4")
+            Assert.AreEqual(12, ndt.Hour, "Got hour 12")
             Assert.AreEqual(start.Date, ndt.Date, "Got same date")
 
             start = DateTime.Parse("1/1/2001 4:10 AM")
