@@ -1,4 +1,5 @@
 ﻿Imports System.Collections.ObjectModel
+Imports System.Threading
 Imports System.Timers
 Imports log4net
 
@@ -15,7 +16,8 @@ Public MustInherit Class DataMonitor
     Private _processing As Boolean = False
     Private _processor As IDataProcessor = Nothing
     Private _schedule As IMonitorSchedule = Nothing
-    Private WithEvents _timer As System.Timers.Timer
+    Private _eventWaitHandle As EventWaitHandle = New ManualResetEvent(False)
+    Private _timer As Threading.Timer = Nothing
 
     ''' <summary>
     ''' Creates a new DataMonitor instance.
@@ -85,8 +87,7 @@ Public MustInherit Class DataMonitor
     Public Overridable Sub Start() Implements IDataMonitor.Start
         Log.InfoFormat("Starting Monitor {0}", Me.Name)
 
-        Timer.Interval = Me.NextInterval
-        Timer.Start()
+        Me.Timer.Change(Me.GetNextInterval, Timeout.Infinite)
     End Sub
 
     ''' <summary>
@@ -96,7 +97,7 @@ Public MustInherit Class DataMonitor
     Public Overridable Sub Pause() Implements IDataMonitor.Pause
         Log.InfoFormat("Pausing Monitor {0}", Me.Name)
 
-        Timer.Stop()
+        Me.Timer.Change(Timeout.Infinite, Timeout.Infinite)
     End Sub
 
     ''' <summary>
@@ -106,8 +107,7 @@ Public MustInherit Class DataMonitor
     Public Overridable Sub [Resume]() Implements IDataMonitor.Resume
         Log.InfoFormat("Resuming Monitor {0}", Me.Name)
 
-        Timer.Interval = Me.NextInterval
-        Timer.Start()
+        Me.Timer.Change(Me.GetNextInterval, Timeout.Infinite)
     End Sub
 
     ''' <summary>
@@ -115,16 +115,26 @@ Public MustInherit Class DataMonitor
     ''' </summary>
     ''' <remarks></remarks>
     Public Overridable Sub [Stop]() Implements IDataMonitor.Stop
-        If Timer.Enabled Then
-            Log.InfoFormat("Stopping Monitor {0}", Me.Name)
+        Log.InfoFormat("Stopping Monitor {0}", Me.Name)
 
-            If Me.Processing Then
-                Log.Debug("Waiting for processor to finish")
-            End If
-
-            Timer.Stop()
+        If Me.Processing Then
+            Log.Debug("Waiting for processot to finish")
+            Me.EventWaitHandle.WaitOne()
+            Log.Debug("Done waiting for processor to finish")
         End If
     End Sub
+
+    ''' <summary>
+    ''' Returns the internal event wait handle used for timer thread sync.
+    ''' </summary>
+    ''' <value></value>
+    ''' <returns>EventWaitHandle</returns>
+    ''' <remarks></remarks>
+    Protected Overridable ReadOnly Property EventWaitHandle() As EventWaitHandle
+        Get
+            Return _eventWaitHandle
+        End Get
+    End Property
 
     ''' <summary>
     ''' Returns the internal timer used for the current monitor.
@@ -132,11 +142,10 @@ Public MustInherit Class DataMonitor
     ''' <value></value>
     ''' <returns>Timer</returns>
     ''' <remarks></remarks>
-    Protected Overridable ReadOnly Property Timer() As Timer
+    Protected Overridable ReadOnly Property Timer() As Threading.Timer
         Get
             If _timer Is Nothing Then
-                _timer = New Timer
-                _timer.AutoReset = False
+                _timer = New Threading.Timer(New TimerCallback(AddressOf Me.OnTimerElapsed), Me, Timeout.Infinite, Timeout.Infinite)
             End If
 
             Return _timer
@@ -183,11 +192,11 @@ Public MustInherit Class DataMonitor
     End Sub
 
     ''' <summary>
-    ''' Gets the next event from the schedule and sets the timers interval.
+    ''' Gets the next event from the schedule and returns the next interval in milliseconds to be sent to the timer.
     ''' </summary>
-    ''' <returns></returns>
+    ''' <returns>Integer. The number of milliseconds to wait until scanning for new data.</returns>
     ''' <remarks></remarks>
-    Private Function NextInterval() As Integer
+    Protected Overridable Function GetNextInterval() As Integer
         Dim start As DateTime = DateTime.Now
         Dim nextEvent As DateTime = Me.Schedule.NextEvent(start)
         Dim interval As Integer = (nextEvent - start).TotalMilliseconds
@@ -199,23 +208,36 @@ Public MustInherit Class DataMonitor
         Return interval
     End Function
 
-    Private Sub _timer_Elapsed(ByVal sender As Object, ByVal e As System.Timers.ElapsedEventArgs) Handles _timer.Elapsed
+    ''' <summary>
+    ''' Subroutine called when the timer time has elapsed.
+    ''' </summary>
+    ''' <param name="state"></param>
+    ''' <remarks></remarks>
+    Protected Overridable Sub OnTimerElapsed(ByVal state As Object)
+        Log.Debug("Timer Elapsed")
         Me.Pause()
 
         Try
             Dim items As Collection(Of Object) = Me.Scan
+            Log.DebugFormat("Scan returned {0} items", items.Count)
+
             If items.Count > 0 Then
+                Log.DebugFormat("Pre Process Processing {0}", _processing)
+
                 _processing = True
-                Log.DebugFormat("{0} {1}", Me.Name, _processing)
+
                 For Each item As Object In items
                     Me.Processor.Process(item)
                 Next
-                Log.Debug("POST Process")
 
                 _processing = False
+
+                Log.DebugFormat("Post Process Processing {0}", _processing)
             End If
         Catch ex As Exception
-            'Log.Debug("BOOM", ex)
+            Log.Error("Exception", ex)
+        Finally
+            _eventWaitHandle.Set()
         End Try
 
         Me.Resume()

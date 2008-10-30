@@ -16,9 +16,9 @@ Public Class MockProcessor
 
         Dim info As FileInfo = New FileInfo(data)
 
-        Log.DebugFormat("Delay process {0}", Me.DelayProcess)
-
-        Log.DebugFormat("Delay process {0}", Me.DelayProcess)
+        Log.DebugFormat("MockProccessor Process Start Delay {0}", Me.DelayProcess)
+        Threading.Thread.Sleep(Me.DelayProcess * 1000)
+        Log.DebugFormat("MockProccessor Process Finished Delay {0}", Me.DelayProcess)
 
         Select Case info.Name.ToUpper
             Case "SUCCESS"

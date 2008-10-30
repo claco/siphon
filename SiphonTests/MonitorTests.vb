@@ -28,8 +28,6 @@ Public Class MonitorTests
                 End Using
             End Using
         End Using
-
-        tempdir.Delete(True)
     End Sub
 
     <Test(Description:="Test directory monitor with processor failure")> _
@@ -48,8 +46,6 @@ Public Class MonitorTests
                 End Using
             End Using
         End Using
-
-        tempdir.Delete(True)
     End Sub
 
     <Test(Description:="Test directory monitor with processor exception")> _
@@ -68,8 +64,6 @@ Public Class MonitorTests
                 End Using
             End Using
         End Using
-
-        tempdir.Delete(True)
     End Sub
 
     <Test(Description:="Test directory monitor create missing root directory")> _
@@ -89,8 +83,6 @@ Public Class MonitorTests
                 End Using
             End Using
         End Using
-
-        Directory.Delete(tempdir, True)
     End Sub
 
     <Test(Description:="Test directory monitor with filter")> _
@@ -112,8 +104,6 @@ Public Class MonitorTests
                 End Using
             End Using
         End Using
-
-        tempdir.Delete(True)
     End Sub
 
 
@@ -122,20 +112,24 @@ Public Class MonitorTests
         Dim tempdir As DirectoryInfo = Directory.CreateDirectory(Path.Combine(Path.GetTempPath, Path.GetRandomFileName))
         File.Create(Path.Combine(tempdir.FullName, "SUCCESS"))
 
-        Using schedule = New DailySchedule(DateTime.Now.AddSeconds(2).TimeOfDay)
+        'Using schedule = New DailySchedule(DateTime.Now.AddSeconds(2).TimeOfDay)
+        Using schedule = New IntervalSchedule(2)
             Using processor = New MockProcessor
-                Using monitor As IDataMonitor = New LocalDirectoryMonitor("LocalMonitor", tempdir.FullName, schedule, processor)
+                Using monitor As LocalDirectoryMonitor = New LocalDirectoryMonitor("LocalMonitor", tempdir.FullName, schedule, processor)
                     processor.DelayProcess = 10
                     monitor.Start()
                     Threading.Thread.Sleep(3000)
+
+                    Assert.IsTrue(monitor.Processing, "Processing is true when a worker processor is still running")
+                    Dim pre As DateTime = DateTime.Now
                     monitor.Stop()
+                    Dim post As DateTime = DateTime.Now
 
                     Assert.AreEqual(1, processor.Count, "Has processed 1 files")
+                    Assert.GreaterOrEqual((post - pre).TotalSeconds, 5, "Waited for still running process to finish")
                 End Using
             End Using
         End Using
-
-        tempdir.Delete(True)
     End Sub
 #End Region
 
