@@ -11,9 +11,9 @@ Public MustInherit Class DataMonitor
     Implements IDataMonitor
 
     Private Shared ReadOnly Log As ILog = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod.DeclaringType)
-    Private _disposed As Boolean = False
+    Private _disposed As Boolean
     Private _name As String = String.Empty
-    Private _processing As Boolean = False
+    Private _processing As Boolean
     Private _processor As IDataProcessor = Nothing
     Private _schedule As IMonitorSchedule = Nothing
     Private _eventWaitHandle As EventWaitHandle = New ManualResetEvent(False)
@@ -176,6 +176,8 @@ Public MustInherit Class DataMonitor
         If Not _disposed Then
             If disposing Then
                 Me.Stop()
+
+                Me.Timer.Dispose()
             End If
         End If
 
@@ -227,7 +229,9 @@ Public MustInherit Class DataMonitor
                 _processing = True
 
                 For Each item As Object In items
-                    Me.Processor.Process(item)
+                    Dim processed As Boolean = Me.Processor.Process(item)
+
+                    Log.DebugFormat("Processed: {0}", processed)
                 Next
 
                 _processing = False

@@ -8,7 +8,15 @@ Public MustInherit Class MonitorSchedule
     Implements IMonitorSchedule
 
     Private Shared ReadOnly Log As ILog = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod.DeclaringType)
-    Private _disposed As Boolean = False
+    Private _disposed As Boolean
+
+    ''' <summary>
+    ''' Creates a new monitor schedule instance.
+    ''' </summary>
+    ''' <remarks></remarks>
+    Protected Sub New()
+
+    End Sub
 
     ''' <summary>
     ''' Gets the next schedule event after the given start date/time.

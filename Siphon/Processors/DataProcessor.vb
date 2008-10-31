@@ -8,7 +8,15 @@ Public MustInherit Class DataProcessor
     Implements IDataProcessor
 
     Private Shared ReadOnly Log As ILog = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod.DeclaringType)
-    Private _disposed As Boolean = False
+    Private _disposed As Boolean
+
+    ''' <summary>
+    ''' Creates a new DataProcessor instance.
+    ''' </summary>
+    ''' <remarks></remarks>
+    Protected Sub New()
+
+    End Sub
 
     ''' <summary>
     ''' Processes new data found by the monitor.

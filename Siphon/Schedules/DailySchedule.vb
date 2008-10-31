@@ -1,4 +1,5 @@
-﻿Imports log4net
+﻿Imports System.Collections.ObjectModel
+Imports log4net
 
 ''' <summary>
 ''' Class for schedules based on times of day.
@@ -8,7 +9,7 @@ Public Class DailySchedule
     Inherits MonitorSchedule
 
     Private Shared ReadOnly Log As ILog = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod.DeclaringType)
-    Private _times() As TimeSpan = {}
+    Private _times As Collection(Of TimeSpan)
 
     ''' <summary>
     ''' Creates a new daily schedule instance.
@@ -16,7 +17,9 @@ Public Class DailySchedule
     ''' <param name="times">TimePan. An array of times to run the events each day.</param>
     ''' <remarks></remarks>
     Public Sub New(ByVal ParamArray times() As TimeSpan)
-        Me.Times = times
+        Array.Sort(times)
+
+        Me.Times = New Collection(Of TimeSpan)(times)
     End Sub
 
     ''' <summary>
@@ -25,11 +28,11 @@ Public Class DailySchedule
     ''' <value></value>
     ''' <returns>TimeSpan</returns>
     ''' <remarks></remarks>
-    Public Overridable Property Times() As TimeSpan()
+    Public Overridable Property Times() As Collection(Of TimeSpan)
         Get
             Return _times
         End Get
-        Set(ByVal value() As TimeSpan)
+        Set(ByVal value As Collection(Of TimeSpan))
             _times = value
         End Set
     End Property
@@ -43,8 +46,6 @@ Public Class DailySchedule
     ''' <remarks></remarks>
     Public Overloads Overrides ReadOnly Property NextEvent(ByVal start As DateTime) As DateTime
         Get
-            Array.Sort(Me.Times)
-
             Dim max As New TimeSpan(0, 23, 59, 59, 999)
 
             For Each tp As TimeSpan In Me.Times

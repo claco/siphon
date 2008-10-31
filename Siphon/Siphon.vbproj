@@ -16,6 +16,8 @@
     <OptionCompare>Binary</OptionCompare>
     <OptionStrict>Off</OptionStrict>
     <OptionInfer>On</OptionInfer>
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>ChrisLaco.pfx</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -42,6 +44,7 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Messaging" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
@@ -58,6 +61,7 @@
     <Compile Include="Monitors\FtpDirectoryMonitor.vb" />
     <Compile Include="Monitors\IDataMonitor.vb" />
     <Compile Include="Monitors\LocalDirectoryMonitor.vb" />
+    <Compile Include="Monitors\MessageQueueMonitor.vb" />
     <Compile Include="Processors\DataProcessor.vb" />
     <Compile Include="Processors\IDataProcessor.vb" />
     <Compile Include="Monitors\IDirectoryMonitor.vb" />
@@ -90,6 +94,7 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
+    <None Include="ChrisLaco.pfx" />
     <None Include="My Project\Application.myapp">
       <Generator>MyApplicationCodeGenerator</Generator>
       <LastGenOutput>Application.Designer.vb</LastGenOutput>

@@ -1,4 +1,5 @@
 ﻿Imports System.IO
+Imports System.Messaging
 Imports NUnit.Framework
 Imports ChrisLaco.Siphon
 
@@ -19,7 +20,7 @@ Public Class MonitorTests
 
         Using schedule = New DailySchedule(DateTime.Now.AddSeconds(2).TimeOfDay)
             Using processor = New MockProcessor
-                Using monitor As IDataMonitor = New LocalDirectoryMonitor("LocalMonitor", tempdir.FullName, schedule, processor)
+                Using monitor As LocalDirectoryMonitor = New LocalDirectoryMonitor("LocalMonitor", tempdir.FullName, schedule, processor)
                     monitor.Start()
                     Threading.Thread.Sleep(3000)
                     monitor.Stop()
@@ -37,7 +38,7 @@ Public Class MonitorTests
 
         Using schedule = New DailySchedule(DateTime.Now.AddSeconds(2).TimeOfDay)
             Using processor = New MockProcessor
-                Using monitor As IDataMonitor = New LocalDirectoryMonitor("LocalMonitor", tempdir.FullName, schedule, processor)
+                Using monitor As LocalDirectoryMonitor = New LocalDirectoryMonitor("LocalMonitor", tempdir.FullName, schedule, processor)
                     monitor.Start()
                     Threading.Thread.Sleep(3000)
                     monitor.Stop()
@@ -55,7 +56,7 @@ Public Class MonitorTests
 
         Using schedule = New DailySchedule(DateTime.Now.AddSeconds(2).TimeOfDay)
             Using processor = New MockProcessor
-                Using monitor As IDataMonitor = New LocalDirectoryMonitor("LocalMonitor", tempdir.FullName, schedule, processor)
+                Using monitor As LocalDirectoryMonitor = New LocalDirectoryMonitor("LocalMonitor", tempdir.FullName, schedule, processor)
                     monitor.Start()
                     Threading.Thread.Sleep(3000)
                     monitor.Stop()
@@ -72,10 +73,10 @@ Public Class MonitorTests
 
         Using schedule = New DailySchedule(DateTime.Now.AddSeconds(1).TimeOfDay)
             Using processor = New MockProcessor
-                Using monitor As IDataMonitor = New LocalDirectoryMonitor("LocalMonitor", tempdir, schedule, processor)
+                Using monitor As LocalDirectoryMonitor = New LocalDirectoryMonitor("LocalMonitor", tempdir, schedule, processor)
                     Assert.IsFalse(Directory.Exists(tempdir), "Monitor path doesn't exist")
 
-                    DirectCast(monitor, LocalDirectoryMonitor).CreateMissingFolders = True
+                    monitor.CreateMissingFolders = True
                     monitor.Start()
                     monitor.Stop()
 
@@ -93,8 +94,8 @@ Public Class MonitorTests
 
         Using schedule = New DailySchedule(DateTime.Now.AddSeconds(2).TimeOfDay)
             Using processor = New MockProcessor
-                Using monitor As IDataMonitor = New LocalDirectoryMonitor("LocalMonitor", tempdir.FullName, schedule, processor)
-                    DirectCast(monitor, LocalDirectoryMonitor).Filter = "*.csv"
+                Using monitor As LocalDirectoryMonitor = New LocalDirectoryMonitor("LocalMonitor", tempdir.FullName, schedule, processor)
+                    monitor.Filter = "*.csv"
 
                     monitor.Start()
                     Threading.Thread.Sleep(3000)
@@ -131,6 +132,51 @@ Public Class MonitorTests
             End Using
         End Using
     End Sub
+#End Region
+
+#Region "Message Queue Monitor Tests"
+
+    <Test(Description:="Test successful message queue monitor")> _
+    Public Sub MessageQueueMonitor()
+        Dim queue As MessageQueue = MessageQueue.Create(".\Private$\MyNwQueue")
+        queue.Send("SUCCESS")
+
+        Using schedule = New DailySchedule(DateTime.Now.AddSeconds(2).TimeOfDay)
+            Using processor = New MockProcessor
+                Using monitor As MessageQueueMonitor = New MessageQueueMonitor("LocalMonitor", queue, schedule, processor)
+                    monitor.Start()
+                    Threading.Thread.Sleep(3000)
+                    monitor.Stop()
+
+                    MessageQueue.Delete(queue.Path)
+
+                    Assert.AreEqual(1, processor.Count, "Has processed 1 file")
+                End Using
+            End Using
+        End Using
+    End Sub
+
+    <Test(Description:="Test message queue monitor create missing root queue")> _
+    Public Sub MessageQueueMonitorCreateQueue()
+        Dim queue As String = ".\Private$\MyNewQueue"
+
+        Using schedule = New DailySchedule(DateTime.Now.AddSeconds(1).TimeOfDay)
+            Using processor = New MockProcessor
+                Using monitor As MessageQueueMonitor = New MessageQueueMonitor("LocalMonitor", queue, schedule, processor)
+                    Assert.IsFalse(MessageQueue.Exists(queue), "Monitor queue doesn't exist")
+
+                    monitor.CreateMissingQueues = True
+                    monitor.Start()
+                    monitor.Stop()
+
+                    Assert.IsTrue(MessageQueue.Exists(queue), "Monitor queue exista")
+
+                    MessageQueue.Delete(queue)
+                End Using
+            End Using
+        End Using
+    End Sub
+
 #End Region
 
 End Class

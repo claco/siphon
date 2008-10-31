@@ -10,7 +10,7 @@ Public MustInherit Class DirectoryMonitor
 
     Private Shared ReadOnly Log As ILog = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod.DeclaringType)
     Private Const DEFAULT_FILTER As String = "*"
-    Private _createMissingFolders As Boolean = False
+    Private _createMissingFolders As Boolean
     Private _filter As String = DEFAULT_FILTER
     Private _path As String = String.Empty
 
@@ -22,7 +22,7 @@ Public MustInherit Class DirectoryMonitor
     ''' <param name="schedule">IMonitorSchedule. The schedule used to monitor the directory.</param>
     ''' <param name="processor">IDataProcessor. The data processor to use to process new files.</param>
     ''' <remarks></remarks>
-    Public Sub New(ByVal name As String, ByVal path As String, ByVal schedule As IMonitorSchedule, ByVal processor As IDataProcessor)
+    Protected Sub New(ByVal name As String, ByVal path As String, ByVal schedule As IMonitorSchedule, ByVal processor As IDataProcessor)
         MyBase.New(name, schedule, processor)
         Me.Path = path
     End Sub
@@ -82,6 +82,10 @@ Public MustInherit Class DirectoryMonitor
         End Set
     End Property
 
+    ''' <summary>
+    ''' Starts the directory monitor, creating any missing directories if configured.
+    ''' </summary>
+    ''' <remarks></remarks>
     Public Overrides Sub Start()
         If Me.CreateMissingFolders Then
             Me.CreateFolders()

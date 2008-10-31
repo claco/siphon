@@ -1,4 +1,6 @@
 - Add service code/config classes
-- Add .Processing to DataMonitor when we're between Stop, Scan/Process, Start
-- Add Auto Create to DirectoryMonitor
+- Add console code/config classes
 - Add Succeed/Failed Processsing Actions (Move, Rename, Delete)
+- Add translators to mediate from Scan(Objects)->Processor(x)
+- Split apart tests/mock processors
+- Add IMAP/POP3 monitors

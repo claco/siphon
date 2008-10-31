@@ -34,7 +34,7 @@ Public Class LocalDirectoryMonitor
     End Sub
 
     ''' <summary>
-    ''' Scans the specified directory for new files mathcing the specified filter.
+    ''' Scans the specified directory for new files matching the specified filter.
     ''' </summary>
     ''' <remarks></remarks>
     Public Overrides Function Scan() As Collection(Of Object)

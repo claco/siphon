@@ -14,7 +14,7 @@ Public Class MockProcessor
         Log.DebugFormat("MockProcessor.Process {0}", data.ToString)
         _count += 1
 
-        Dim info As FileInfo = New FileInfo(data)
+        Dim info As FileInfo = New FileInfo(data.ToString)
 
         Log.DebugFormat("MockProccessor Process Start Delay {0}", Me.DelayProcess)
         Threading.Thread.Sleep(Me.DelayProcess * 1000)
