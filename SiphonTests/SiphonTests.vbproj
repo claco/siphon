@@ -74,7 +74,9 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
+    <Compile Include="Processors\MockFileProcessor.vb" />
     <Compile Include="Processors\MockProcessor.vb" />
+    <Compile Include="Processors\MockQueueMessageProcessor.vb" />
     <Compile Include="ScheduleTests.vb" />
   </ItemGroup>
   <ItemGroup>

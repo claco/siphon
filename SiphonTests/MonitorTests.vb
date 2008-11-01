@@ -19,8 +19,9 @@ Public Class MonitorTests
         File.Create(Path.Combine(tempdir.FullName, "SUCCESS"))
 
         Using schedule = New DailySchedule(DateTime.Now.AddSeconds(2).TimeOfDay)
-            Using processor = New MockProcessor
+            Using processor = New MockFileProcessor
                 Using monitor As LocalDirectoryMonitor = New LocalDirectoryMonitor("LocalMonitor", tempdir.FullName, schedule, processor)
+                    monitor.Filter = String.Empty
                     monitor.Start()
                     Threading.Thread.Sleep(3000)
                     monitor.Stop()
@@ -37,7 +38,7 @@ Public Class MonitorTests
         File.Create(Path.Combine(tempdir.FullName, "FAILURE"))
 
         Using schedule = New DailySchedule(DateTime.Now.AddSeconds(2).TimeOfDay)
-            Using processor = New MockProcessor
+            Using processor = New MockFileProcessor
                 Using monitor As LocalDirectoryMonitor = New LocalDirectoryMonitor("LocalMonitor", tempdir.FullName, schedule, processor)
                     monitor.Start()
                     Threading.Thread.Sleep(3000)
@@ -55,7 +56,7 @@ Public Class MonitorTests
         File.Create(Path.Combine(tempdir.FullName, "EXCEPTION"))
 
         Using schedule = New DailySchedule(DateTime.Now.AddSeconds(2).TimeOfDay)
-            Using processor = New MockProcessor
+            Using processor = New MockFileProcessor
                 Using monitor As LocalDirectoryMonitor = New LocalDirectoryMonitor("LocalMonitor", tempdir.FullName, schedule, processor)
                     monitor.Start()
                     Threading.Thread.Sleep(3000)
@@ -72,7 +73,7 @@ Public Class MonitorTests
         Dim tempdir As String = Path.Combine(Path.GetTempPath, Path.GetRandomFileName)
 
         Using schedule = New DailySchedule(DateTime.Now.AddSeconds(1).TimeOfDay)
-            Using processor = New MockProcessor
+            Using processor = New MockFileProcessor
                 Using monitor As LocalDirectoryMonitor = New LocalDirectoryMonitor("LocalMonitor", tempdir, schedule, processor)
                     Assert.IsFalse(Directory.Exists(tempdir), "Monitor path doesn't exist")
 
@@ -93,7 +94,7 @@ Public Class MonitorTests
         File.Create(Path.Combine(tempdir.FullName, "test.csv"))
 
         Using schedule = New DailySchedule(DateTime.Now.AddSeconds(2).TimeOfDay)
-            Using processor = New MockProcessor
+            Using processor = New MockFileProcessor
                 Using monitor As LocalDirectoryMonitor = New LocalDirectoryMonitor("LocalMonitor", tempdir.FullName, schedule, processor)
                     monitor.Filter = "*.csv"
 
@@ -115,9 +116,9 @@ Public Class MonitorTests
 
         'Using schedule = New DailySchedule(DateTime.Now.AddSeconds(2).TimeOfDay)
         Using schedule = New IntervalSchedule(2)
-            Using processor = New MockProcessor
+            Using processor = New MockFileProcessor
                 Using monitor As LocalDirectoryMonitor = New LocalDirectoryMonitor("LocalMonitor", tempdir.FullName, schedule, processor)
-                    processor.DelayProcess = 10
+                    processor.Delay = 10
                     monitor.Start()
                     Threading.Thread.Sleep(3000)
 
@@ -142,7 +143,7 @@ Public Class MonitorTests
         queue.Send("SUCCESS")
 
         Using schedule = New DailySchedule(DateTime.Now.AddSeconds(2).TimeOfDay)
-            Using processor = New MockProcessor
+            Using processor = New MockQueueMessageProcessor
                 Using monitor As MessageQueueMonitor = New MessageQueueMonitor("LocalMonitor", queue, schedule, processor)
                     monitor.Start()
                     Threading.Thread.Sleep(3000)
@@ -161,7 +162,7 @@ Public Class MonitorTests
         Dim queue As String = ".\Private$\MyNewQueue"
 
         Using schedule = New DailySchedule(DateTime.Now.AddSeconds(1).TimeOfDay)
-            Using processor = New MockProcessor
+            Using processor = New MockQueueMessageProcessor
                 Using monitor As MessageQueueMonitor = New MessageQueueMonitor("LocalMonitor", queue, schedule, processor)
                     Assert.IsFalse(MessageQueue.Exists(queue), "Monitor queue doesn't exist")
 

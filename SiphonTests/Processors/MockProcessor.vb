@@ -1,26 +1,26 @@
-﻿Imports System.IO
-Imports log4net
+﻿Imports log4net
 Imports ChrisLaco.Siphon
 
-Public Class MockProcessor
+Public MustInherit Class MockProcessor
     Inherits DataProcessor
 
     Private Shared ReadOnly Log As ILog = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod.DeclaringType)
+    Public Count As Integer
+    Public Delay As Integer
 
-    Private _count As Integer = 0
-    Private _delayProcess As Integer = 0
+    Public Sub Reset()
+        Me.Count = 0
+    End Sub
 
     Public Overrides Function Process(ByVal data As Object) As Boolean
-        Log.DebugFormat("MockProcessor.Process {0}", data.ToString)
-        _count += 1
+        Log.DebugFormat("Process {0}", data.ToString)
+        Me.Count += 1
 
-        Dim info As FileInfo = New FileInfo(data.ToString)
+        Log.DebugFormat("Process Start Delay {0}", Me.Delay)
+        Threading.Thread.Sleep(Me.Delay * 1000)
+        Log.DebugFormat("Process Finished Delay {0}", Me.Delay)
 
-        Log.DebugFormat("MockProccessor Process Start Delay {0}", Me.DelayProcess)
-        Threading.Thread.Sleep(Me.DelayProcess * 1000)
-        Log.DebugFormat("MockProccessor Process Finished Delay {0}", Me.DelayProcess)
-
-        Select Case info.Name.ToUpper
+        Select Case data.ToString.ToUpper
             Case "SUCCESS"
                 Return True
             Case "FAILURE"
@@ -29,23 +29,4 @@ Public Class MockProcessor
                 Throw New Exception
         End Select
     End Function
-
-    Public ReadOnly Property Count() As Integer
-        Get
-            Return _count
-        End Get
-    End Property
-
-    Public Property DelayProcess() As Integer
-        Get
-            Return _delayProcess
-        End Get
-        Set(ByVal value As Integer)
-            _delayProcess = value
-        End Set
-    End Property
-
-    Public Sub Reset()
-        _count = 0
-    End Sub
 End Class
