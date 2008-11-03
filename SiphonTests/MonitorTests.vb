@@ -1,7 +1,9 @@
 ﻿Imports System.IO
 Imports System.Messaging
 Imports NUnit.Framework
-Imports ChrisLaco.Siphon
+Imports ChrisLaco.Siphon.Monitors
+Imports ChrisLaco.Siphon.Schedules
+Imports ChrisLaco.Siphon.Processors
 
 <TestFixture(Description:="Monitor Tests")> _
 Public Class MonitorTests

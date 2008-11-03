@@ -1,5 +1,5 @@
 ﻿Imports NUnit.Framework
-Imports ChrisLaco.Siphon
+Imports ChrisLaco.Siphon.Schedules
 
 <TestFixture(Description:="Schedule Tests")> _
 Public Class ScheduleTests

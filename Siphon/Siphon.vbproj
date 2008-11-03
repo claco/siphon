@@ -43,6 +43,7 @@
       <HintPath>bin\log4net.dll</HintPath>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.configuration" />
     <Reference Include="System.Data" />
     <Reference Include="System.Messaging" />
     <Reference Include="System.Xml" />
@@ -56,6 +57,13 @@
     <Import Include="System.Diagnostics" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Configuration\ConfigurationSection.vb" />
+    <Compile Include="Configuration\IntervalElement.vb" />
+    <Compile Include="Configuration\MonitorElementCollection.vb" />
+    <Compile Include="Configuration\MonitorElement.vb" />
+    <Compile Include="Configuration\ScheduleElement.vb" />
+    <Compile Include="Configuration\TimeElement.vb" />
+    <Compile Include="Configuration\TimeElementCollection.vb" />
     <Compile Include="Monitors\DataMonitor.vb" />
     <Compile Include="Monitors\DirectoryMonitor.vb" />
     <Compile Include="Monitors\FtpDirectoryMonitor.vb" />

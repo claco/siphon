@@ -1,5 +1,5 @@
 ﻿Imports log4net
-Imports ChrisLaco.Siphon
+Imports ChrisLaco.Siphon.Processors
 
 Public MustInherit Class MockProcessor
     Inherits DataProcessor
