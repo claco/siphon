@@ -18,6 +18,14 @@ Namespace Monitors
         Private _queue As MessageQueue
 
         ''' <summary>
+        ''' Protected constructor for reflection.
+        ''' </summary>
+        ''' <remarks></remarks>
+        Protected Sub New()
+
+        End Sub
+
+        ''' <summary>
         ''' Creates a new message queue monitor.
         ''' </summary>
         ''' <param name="name">String. The friendly name for the monitor.</param>

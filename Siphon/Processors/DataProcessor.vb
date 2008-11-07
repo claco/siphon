@@ -1,4 +1,5 @@
 ﻿Imports log4net
+Imports ChrisLaco.Siphon.Configuration
 
 Namespace Processors
     ''' <summary>
@@ -12,12 +13,19 @@ Namespace Processors
         Private _disposed As Boolean
 
         ''' <summary>
-        ''' Creates a new DataProcessor instance.
+        ''' Creates a new monitor schedule instance.
         ''' </summary>
         ''' <remarks></remarks>
         Protected Sub New()
 
         End Sub
+
+        ''' <summary>
+        ''' Initializes the schedule with the specified configuration.
+        ''' </summary>
+        ''' <param name="config">ProcessorElement. The processor configuration containing processor settings.</param>
+        ''' <remarks></remarks>
+        Public MustOverride Sub Initialize(ByVal config As ProcessorElement) Implements IDataProcessor.Initialize
 
         ''' <summary>
         ''' Processes new data found by the monitor.

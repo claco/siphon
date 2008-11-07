@@ -12,6 +12,14 @@ Namespace Monitors
         Private Shared ReadOnly Log As ILog = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod.DeclaringType)
 
         ''' <summary>
+        ''' Protected constructor for reflection.
+        ''' </summary>
+        ''' <remarks></remarks>
+        Protected Sub New()
+
+        End Sub
+
+        ''' <summary>
         ''' Creates a new directory monitor.
         ''' </summary>
         ''' <param name="name">String. The friendly name for the monitor.</param>

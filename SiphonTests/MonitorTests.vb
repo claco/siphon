@@ -4,6 +4,7 @@ Imports NUnit.Framework
 Imports ChrisLaco.Siphon.Monitors
 Imports ChrisLaco.Siphon.Schedules
 Imports ChrisLaco.Siphon.Processors
+Imports ChrisLaco.Tests.Siphon.Processors
 
 <TestFixture(Description:="Monitor Tests")> _
 Public Class MonitorTests

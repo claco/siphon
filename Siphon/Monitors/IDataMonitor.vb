@@ -1,4 +1,5 @@
 ﻿Imports System.Collections.ObjectModel
+Imports ChrisLaco.Siphon.Configuration
 Imports ChrisLaco.Siphon.Monitors
 Imports ChrisLaco.Siphon.Schedules
 Imports ChrisLaco.Siphon.Processors
@@ -10,6 +11,13 @@ Namespace Monitors
     ''' <remarks></remarks>
     Public Interface IDataMonitor
         Inherits IDisposable
+
+        ''' <summary>
+        ''' Initializes the monitor using the supplied monitor configuration settings.
+        ''' </summary>
+        ''' <param name="config">MonitorElement. The configuraiton for the current monitor.</param>
+        ''' <remarks></remarks>
+        Sub Initialize(ByVal config As MonitorElement)
 
         ''' <summary>
         ''' Gets/sets the friendly name of the monitor.

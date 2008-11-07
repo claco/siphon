@@ -19,6 +19,14 @@ Namespace Monitors
         Private _path As String = String.Empty
 
         ''' <summary>
+        ''' Protected constructor for reflection.
+        ''' </summary>
+        ''' <remarks></remarks>
+        Protected Sub New()
+
+        End Sub
+
+        ''' <summary>
         ''' Creates a new directory monitor.
         ''' </summary>
         ''' <param name="name">String. The friendly name for the monitor.</param>

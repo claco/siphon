@@ -1,5 +1,6 @@
 ﻿Imports System.Collections.ObjectModel
 Imports log4net
+Imports ChrisLaco.Siphon.Configuration
 
 Namespace Schedules
     ''' <summary>
@@ -13,6 +14,14 @@ Namespace Schedules
         Private _times As Collection(Of TimeSpan)
 
         ''' <summary>
+        ''' Protected constructor for reflection.
+        ''' </summary>
+        ''' <remarks></remarks>
+        Protected Sub New()
+
+        End Sub
+
+        ''' <summary>
         ''' Creates a new daily schedule instance.
         ''' </summary>
         ''' <param name="times">TimePan. An array of times to run the events each day.</param>
@@ -21,6 +30,19 @@ Namespace Schedules
             Array.Sort(times)
 
             Me.Times = New Collection(Of TimeSpan)(times)
+        End Sub
+
+        ''' <summary>
+        ''' Initializes the schedule with the specified configuration.
+        ''' </summary>
+        ''' <param name="config">ScheduleElement. The schedule configuration containing schedule settings.</param>
+        ''' <remarks></remarks>
+        Public Overrides Sub Initialize(ByVal config As Configuration.ScheduleElement)
+            Me.Times = New Collection(Of TimeSpan)
+
+            For Each time As TimeElement In config.Daily
+                Me.Times.Add(time.Value)
+            Next
         End Sub
 
         ''' <summary>

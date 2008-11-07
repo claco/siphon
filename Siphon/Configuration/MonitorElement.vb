@@ -1,4 +1,5 @@
 ﻿Imports System.Configuration
+Imports ChrisLaco.Siphon.Monitors
 
 Namespace Configuration
     ''' <summary>
@@ -15,7 +16,7 @@ Namespace Configuration
         ''' <returns>String</returns>
         ''' <remarks></remarks>
         <ConfigurationProperty("name", IsKey:=True, IsRequired:=True)> _
-        Public ReadOnly Property Name() As String
+        Public Overridable ReadOnly Property Name() As String
             Get
                 Return Me.Item("name")
             End Get
@@ -28,7 +29,7 @@ Namespace Configuration
         ''' <returns>String</returns>
         ''' <remarks></remarks>
         <ConfigurationProperty("type", IsRequired:=True)> _
-        Public ReadOnly Property Type() As String
+        Public Overridable ReadOnly Property Type() As String
             Get
                 Return Me.Item("type")
             End Get
@@ -41,10 +42,35 @@ Namespace Configuration
         ''' <returns>ScheduleElement</returns>
         ''' <remarks></remarks>
         <ConfigurationProperty("schedule", IsRequired:=True)> _
-        Public ReadOnly Property Schedule() As ScheduleElement
+        Public Overridable ReadOnly Property Schedule() As ScheduleElement
             Get
                 Return Me.Item("schedule")
             End Get
         End Property
+
+        ''' <summary>
+        ''' Gets the processor to use for the current monitor.
+        ''' </summary>
+        ''' <value></value>
+        ''' <returns>ProcessorElement</returns>
+        ''' <remarks></remarks>
+        <ConfigurationProperty("processor", IsRequired:=True)> _
+        Public Overridable ReadOnly Property Processor() As ProcessorElement
+            Get
+                Return Me.Item("processor")
+            End Get
+        End Property
+
+        ''' <summary>
+        ''' Creates an instance of the currently configured monitor.
+        ''' </summary>
+        ''' <returns>IDataMonitor</returns>
+        ''' <remarks></remarks>
+        Public Overridable Function CreateInstance() As IDataMonitor
+            Dim monitor As IDataMonitor = ConfigurationSection.CreateInstance(Me.Type)
+            monitor.Initialize(Me)
+
+            Return monitor
+        End Function
     End Class
 End Namespace

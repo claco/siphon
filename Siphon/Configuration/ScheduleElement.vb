@@ -1,5 +1,7 @@
 ﻿Imports System.Configuration
 Imports System.ComponentModel
+Imports System.Reflection
+Imports ChrisLaco.Siphon.Schedules
 
 Namespace Configuration
     ''' <summary>
@@ -16,7 +18,7 @@ Namespace Configuration
         ''' <returns>String</returns>
         ''' <remarks></remarks>
         <ConfigurationProperty("type", IsRequired:=True)> _
-        Public ReadOnly Property Type() As String
+        Public Overridable ReadOnly Property Type() As String
             Get
                 Return Me.Item("type")
             End Get
@@ -29,7 +31,7 @@ Namespace Configuration
         ''' <returns>TimeSpan</returns>
         ''' <remarks></remarks>
         <ConfigurationProperty("interval")> _
-        Public ReadOnly Property Interval() As IntervalElement
+        Public Overridable ReadOnly Property Interval() As IntervalElement
             Get
                 Return Me.Item("interval")
             End Get
@@ -42,10 +44,22 @@ Namespace Configuration
         ''' <returns>TimeElementCollection</returns>
         ''' <remarks></remarks>
         <ConfigurationProperty("daily")> _
-        Public ReadOnly Property Daily() As TimeElementCollection
+        Public Overridable ReadOnly Property Daily() As TimeElementCollection
             Get
                 Return Me.Item("daily")
             End Get
         End Property
+
+        ''' <summary>
+        ''' Creates an instance of the currently configured schedule.
+        ''' </summary>
+        ''' <returns>IMonitorSchedule</returns>
+        ''' <remarks></remarks>
+        Public Overridable Function CreateInstance() As IMonitorSchedule
+            Dim schedule As IMonitorSchedule = ConfigurationSection.CreateInstance(Me.Type)
+            schedule.Initialize(Me)
+
+            Return schedule
+        End Function
     End Class
 End Namespace

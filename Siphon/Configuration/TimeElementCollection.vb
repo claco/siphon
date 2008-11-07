@@ -16,7 +16,7 @@ Namespace Configuration
         ''' <value></value>
         ''' <returns>MonitorElement</returns>
         ''' <remarks></remarks>
-        Default Public Overloads ReadOnly Property Item(ByVal i As Integer) As TimeElement
+        Default Public Overridable Overloads ReadOnly Property Item(ByVal i As Integer) As TimeElement
             Get
                 Return DirectCast(Me.BaseGet(i), TimeElement)
             End Get
@@ -29,7 +29,7 @@ Namespace Configuration
         ''' <value></value>
         ''' <returns>MonitorElement</returns>
         ''' <remarks></remarks>
-        Default Public Overloads ReadOnly Property Item(ByVal name As String) As TimeElement
+        Default Public Overridable Overloads ReadOnly Property Item(ByVal name As String) As TimeElement
             Get
                 Return DirectCast(Me.BaseGet(name), TimeElement)
             End Get

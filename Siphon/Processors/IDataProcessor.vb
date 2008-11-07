@@ -1,10 +1,19 @@
-﻿Namespace Processors
+﻿Imports ChrisLaco.Siphon.Configuration
+
+Namespace Processors
     ''' <summary>
     ''' Interface that defines a data processor instance.
     ''' </summary>
     ''' <remarks></remarks>
     Public Interface IDataProcessor
         Inherits IDisposable
+
+        ''' <summary>
+        ''' Initializes the processor with the specified config settings.
+        ''' </summary>
+        ''' <param name="config">ProcessorElement. The processor configuraton element contianing related settings.</param>
+        ''' <remarks></remarks>
+        Sub Initialize(ByVal config As ProcessorElement)
 
         ''' <summary>
         ''' Processes new data found by the monitor.

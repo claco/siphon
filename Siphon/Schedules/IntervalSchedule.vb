@@ -38,6 +38,15 @@ Namespace Schedules
         End Sub
 
         ''' <summary>
+        ''' Initializes the schedule with the specified configuration.
+        ''' </summary>
+        ''' <param name="config">ScheduleElement. The schedule configuration containing schedule settings.</param>
+        ''' <remarks></remarks>
+        Public Overrides Sub Initialize(ByVal config As Configuration.ScheduleElement)
+            Me.Interval = config.Interval.Value
+        End Sub
+
+        ''' <summary>
         ''' Gets/sets the interval to wait between schedule events.
         ''' </summary>
         ''' <value></value>

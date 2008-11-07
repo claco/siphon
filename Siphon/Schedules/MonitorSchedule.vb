@@ -1,4 +1,5 @@
 ﻿Imports log4net
+Imports ChrisLaco.Siphon.Configuration
 
 Namespace Schedules
     ''' <summary>
@@ -18,6 +19,13 @@ Namespace Schedules
         Protected Sub New()
 
         End Sub
+
+        ''' <summary>
+        ''' Initializes the schedule with the specified configuration.
+        ''' </summary>
+        ''' <param name="config">ScheduleElement. The schedule configuration containing schedule settings.</param>
+        ''' <remarks></remarks>
+        Public MustOverride Sub Initialize(ByVal config As ScheduleElement) Implements IMonitorSchedule.Initialize
 
         ''' <summary>
         ''' Gets the next schedule event after the given start date/time.

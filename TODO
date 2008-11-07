@@ -1,4 +1,5 @@
 - Add service code/config classes
+- Add settings collections to config elements
 - Add console code/config classes
 - Add Succeed/Failed Processsing Actions (Move, Rename, Delete)
 - Add translators to mediate from Scan(Objects)->Processor(x)

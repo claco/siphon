@@ -61,6 +61,7 @@
     <Compile Include="Configuration\IntervalElement.vb" />
     <Compile Include="Configuration\MonitorElementCollection.vb" />
     <Compile Include="Configuration\MonitorElement.vb" />
+    <Compile Include="Configuration\ProcessorElement.vb" />
     <Compile Include="Configuration\ScheduleElement.vb" />
     <Compile Include="Configuration\TimeElement.vb" />
     <Compile Include="Configuration\TimeElementCollection.vb" />

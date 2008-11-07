@@ -16,7 +16,7 @@ Namespace Configuration
         ''' <remarks></remarks>
         <ConfigurationProperty("value", DefaultValue:="00:00:00", IsRequired:=True, IsKey:=True)> _
         <TimeSpanValidator(MinValueString:="00:00:00", MaxValueString:="23:59:59")> _
-        Public ReadOnly Property Value() As TimeSpan
+        Public Overridable ReadOnly Property Value() As TimeSpan
             Get
                 Return Me.Item("value")
             End Get

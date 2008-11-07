@@ -2,6 +2,7 @@
 Imports System.Threading
 Imports System.Timers
 Imports log4net
+Imports ChrisLaco.Siphon.Configuration
 Imports ChrisLaco.Siphon.Monitors
 Imports ChrisLaco.Siphon.Schedules
 Imports ChrisLaco.Siphon.Processors
@@ -24,6 +25,14 @@ Namespace Monitors
         Private _timer As Threading.Timer = Nothing
 
         ''' <summary>
+        ''' Protected constructor for reflection.
+        ''' </summary>
+        ''' <remarks></remarks>
+        Protected Sub New()
+
+        End Sub
+
+        ''' <summary>
         ''' Creates a new DataMonitor instance.
         ''' </summary>
         ''' <param name="name">String. The friendly name for the monitor.</param>
@@ -34,6 +43,16 @@ Namespace Monitors
             Me.Name = name.Trim
             Me.Schedule = schedule
             Me.Processor = processor
+        End Sub
+
+        ''' <summary>
+        ''' Initializes the monitor using the supplied monitor configuration settings.
+        ''' </summary>
+        ''' <param name="config">MonitorElement. The configuraiton for the current monitor.</param>
+        ''' <remarks></remarks>
+        Public Overridable Sub Initialize(ByVal config As MonitorElement) Implements IDataMonitor.Initialize
+            Me.Schedule = config.Schedule.CreateInstance
+            Me.Processor = config.Processor.CreateInstance
         End Sub
 
         ''' <summary>
@@ -185,8 +204,6 @@ Namespace Monitors
                     Me.Timer.Dispose()
                 End If
             End If
-
-
         End Sub
 
         ''' <summary>
