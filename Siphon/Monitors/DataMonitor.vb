@@ -66,7 +66,11 @@ Namespace Monitors
                 Return _name
             End Get
             Set(ByVal value As String)
-                _name = value.Trim
+                If String.IsNullOrEmpty(value) Then
+                    Throw New ArgumentException("Name can not be null or empty")
+                Else
+                    _name = value.Trim
+                End If
             End Set
         End Property
 

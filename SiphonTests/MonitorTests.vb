@@ -16,6 +16,18 @@ Public Class MonitorTests
 
 #Region "Local Directory Monitor Tests"
 
+    <Test(Description:="Path throws exception when empty")> _
+    <ExpectedException(GetType(ArgumentException))> _
+    Public Sub DirectoryMonitorPathException()
+        Dim monitor As New LocalDirectoryMonitor("NewMonitor", String.Empty, New IntervalSchedule, New MockFileProcessor)
+    End Sub
+
+    <Test(Description:="Name throws exception when empty")> _
+    <ExpectedException(GetType(ArgumentException))> _
+    Public Sub DirectoryMonitorNameException()
+        Dim monitor As New LocalDirectoryMonitor(String.Empty, "C:\temp", New IntervalSchedule, New MockFileProcessor)
+    End Sub
+
     <Test(Description:="Test successful directory monitor")> _
     Public Sub DirectoryMonitor()
         Dim tempdir As DirectoryInfo = Directory.CreateDirectory(Path.Combine(Path.GetTempPath, Path.GetRandomFileName))

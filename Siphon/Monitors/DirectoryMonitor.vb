@@ -116,7 +116,7 @@ Namespace Monitors
             End Get
             Set(ByVal value As String)
                 If String.IsNullOrEmpty(value) Then
-                    Throw New ArgumentException("Path can not be empty or null")
+                    Throw New ArgumentException("Path can not be null or empty")
                 Else
                     _path = value.Trim
                 End If

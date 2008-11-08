@@ -61,6 +61,12 @@ Namespace Configuration
             End Get
         End Property
 
+        ''' <summary>
+        ''' Gets the settings collection for the current monitor.
+        ''' </summary>
+        ''' <value></value>
+        ''' <returns>NameValueConfigurationCollection</returns>
+        ''' <remarks></remarks>
         <ConfigurationProperty("settings")> _
         Public Overridable ReadOnly Property Settings() As NameValueConfigurationCollection
             Get

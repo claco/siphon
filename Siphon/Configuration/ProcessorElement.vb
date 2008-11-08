@@ -25,6 +25,19 @@ Namespace Configuration
         End Property
 
         ''' <summary>
+        ''' Gets the settings collection for the current processor.
+        ''' </summary>
+        ''' <value></value>
+        ''' <returns>NameValueConfigurationCollection</returns>
+        ''' <remarks></remarks>
+        <ConfigurationProperty("settings")> _
+        Public Overridable ReadOnly Property Settings() As NameValueConfigurationCollection
+            Get
+                Return Me.Item("settings")
+            End Get
+        End Property
+
+        ''' <summary>
         ''' Creates an instance of the currently configured processor.
         ''' </summary>
         ''' <returns>IDataProcessor</returns>
