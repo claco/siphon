@@ -1,4 +1,5 @@
-﻿Imports log4net
+﻿Imports System.Configuration
+Imports log4net
 Imports ChrisLaco.Siphon.Monitors
 Imports ChrisLaco.Siphon.Schedules
 Imports ChrisLaco.Siphon.Processors
@@ -14,6 +15,9 @@ Namespace Monitors
 
         Private Shared ReadOnly Log As ILog = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod.DeclaringType)
         Private Const DEFAULT_FILTER As String = "*"
+        Private Const CONFIG_SETTING_PATH As String = "Path"
+        Private Const CONFIG_SETTING_FILTER As String = "Filter"
+
         Private _createMissingFolders As Boolean
         Private _filter As String = DEFAULT_FILTER
         Private _path As String = String.Empty
@@ -61,6 +65,27 @@ Namespace Monitors
         End Property
 
         ''' <summary>
+        ''' Initializes the monitor using the supplied monitor configuration settings.
+        ''' </summary>
+        ''' <param name="config">MonitorElement. The configuraiton for the current monitor.</param>
+        ''' <remarks></remarks>
+        Public Overrides Sub Initialize(ByVal config As Configuration.MonitorElement)
+            MyBase.Initialize(config)
+
+            Dim path As NameValueConfigurationElement = config.Settings(CONFIG_SETTING_PATH)
+            If path Is Nothing OrElse String.IsNullOrEmpty(path.Value) Then
+                Throw New ConfigurationErrorsException(String.Format("The setting {0} is required", CONFIG_SETTING_PATH))
+            Else
+                Me.Path = path.Value
+            End If
+
+            Dim filter As NameValueConfigurationElement = config.Settings(CONFIG_SETTING_FILTER)
+            If Not filter Is Nothing Then
+                Me.Filter = filter.Value
+            End If
+        End Sub
+
+        ''' <summary>
         ''' Gets/sets the file filter to apply to the directory.
         ''' </summary>
         ''' <value></value>
@@ -90,7 +115,11 @@ Namespace Monitors
                 Return _path
             End Get
             Set(ByVal value As String)
-                _path = value.Trim
+                If String.IsNullOrEmpty(value) Then
+                    Throw New ArgumentException("Path can not be empty or null")
+                Else
+                    _path = value.Trim
+                End If
             End Set
         End Property
 

@@ -23,22 +23,20 @@ Namespace Configuration
         End Property
 
         ''' <summary>
-        ''' Returns a monitor element by name.
+        ''' Creates a new time element.
         ''' </summary>
-        ''' <param name="name">String. The name of the monitor element to return.</param>
-        ''' <value></value>
-        ''' <returns>MonitorElement</returns>
+        ''' <returns>TimeElement</returns>
         ''' <remarks></remarks>
-        Default Public Overridable Overloads ReadOnly Property Item(ByVal name As String) As TimeElement
-            Get
-                Return DirectCast(Me.BaseGet(name), TimeElement)
-            End Get
-        End Property
-
         Protected Overloads Overrides Function CreateNewElement() As System.Configuration.ConfigurationElement
             Return New TimeElement
         End Function
 
+        ''' <summary>
+        ''' Gets he key for a time element.
+        ''' </summary>
+        ''' <param name="element">TimeElement. The time element to get the key for.</param>
+        ''' <returns>TimeSpan</returns>
+        ''' <remarks></remarks>
         Protected Overrides Function GetElementKey(ByVal element As System.Configuration.ConfigurationElement) As Object
             Return DirectCast(element, TimeElement).Value
         End Function

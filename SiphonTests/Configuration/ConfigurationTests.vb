@@ -22,12 +22,17 @@ Namespace Configuration
             REM Test settingss
             Assert.AreEqual("IntervalMonitor", section.Monitors(0).Name)
             Assert.AreEqual("ChrisLaco.Siphon.Monitors.LocalDirectoryMonitor, Siphon", section.Monitors(0).Type)
+            Assert.AreEqual(2, section.Monitors(0).Settings.Count)
+            Assert.AreEqual("C:\Temp", section.Monitors(0).Settings("Path").Value)
+            Assert.AreEqual("*.tmp", section.Monitors(0).Settings("Filter").Value)
             Assert.AreEqual("ChrisLaco.Siphon.Schedules.IntervalSchedule, Siphon", section.Monitors(0).Schedule.Type)
             Assert.AreEqual("ChrisLaco.Tests.Siphon.Processors.MockFileProcessor, SiphonTests", section.Monitors(0).Processor.Type)
             Assert.AreEqual(New TimeSpan(1, 2, 3, 4), section.Monitors(0).Schedule.Interval.Value)
 
             Assert.AreEqual("DailyMonitor", section.Monitors(1).Name)
             Assert.AreEqual("ChrisLaco.Siphon.Monitors.FtpDirectoryMonitor, Siphon", section.Monitors(1).Type)
+            Assert.AreEqual(1, section.Monitors(1).Settings.Count)
+            Assert.AreEqual("ftp://foo.bar.baz/", section.Monitors(1).Settings("Path").Value)
             Assert.AreEqual("ChrisLaco.Siphon.Schedules.DailySchedule, Siphon", section.Monitors(1).Schedule.Type)
             Assert.AreEqual("ChrisLaco.Tests.Siphon.Processors.MockQueueMessageProcessor, SiphonTests", section.Monitors(1).Processor.Type)
             Assert.AreEqual(3, section.Monitors(1).Schedule.Daily.Count)
@@ -55,15 +60,18 @@ Namespace Configuration
             Assert.IsInstanceOfType(GetType(MockQueueMessageProcessor), processor)
 
             REM Test monitor create instances
-            Dim monitor As IDataMonitor = section.Monitors(0).CreateInstance
+            Dim monitor As IDataMonitor = section.Monitors("IntervalMonitor").CreateInstance
             Assert.IsInstanceOfType(GetType(LocalDirectoryMonitor), monitor)
             Assert.IsInstanceOfType(GetType(IntervalSchedule), monitor.Schedule)
+            Assert.AreEqual("C:\Temp", DirectCast(monitor, LocalDirectoryMonitor).Path)
+            Assert.AreEqual("*.tmp", DirectCast(monitor, LocalDirectoryMonitor).Filter)
             Assert.AreEqual(New TimeSpan(1, 2, 3, 4), DirectCast(monitor.Schedule, IntervalSchedule).Interval)
             Assert.IsInstanceOfType(GetType(MockFileProcessor), monitor.Processor)
 
             monitor = section.Monitors(1).CreateInstance
             Assert.IsInstanceOfType(GetType(FtpDirectoryMonitor), monitor)
             Assert.IsInstanceOfType(GetType(DailySchedule), monitor.Schedule)
+            Assert.AreEqual("ftp://foo.bar.baz/", DirectCast(monitor, FtpDirectoryMonitor).Path)
             Assert.AreEqual(3, DirectCast(monitor.Schedule, DailySchedule).Times.Count)
             Assert.AreEqual(New TimeSpan(1, 23, 0), DirectCast(monitor.Schedule, DailySchedule).Times(0))
             Assert.AreEqual(New TimeSpan(12, 23, 0), DirectCast(monitor.Schedule, DailySchedule).Times(1))

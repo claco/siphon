@@ -61,6 +61,13 @@ Namespace Configuration
             End Get
         End Property
 
+        <ConfigurationProperty("settings")> _
+        Public Overridable ReadOnly Property Settings() As NameValueConfigurationCollection
+            Get
+                Return Me.Item("settings")
+            End Get
+        End Property
+
         ''' <summary>
         ''' Creates an instance of the currently configured monitor.
         ''' </summary>
