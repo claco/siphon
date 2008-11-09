@@ -70,7 +70,7 @@ Namespace Configuration
         ''' <returns>IMonitorSchedule</returns>
         ''' <remarks></remarks>
         Public Overridable Function CreateInstance() As IMonitorSchedule
-            Dim schedule As IMonitorSchedule = ConfigurationSection.CreateInstance(Me.Type)
+            Dim schedule As IMonitorSchedule = SiphonConfigurationSection.CreateInstance(Me.Type)
             schedule.Initialize(Me)
 
             Return schedule

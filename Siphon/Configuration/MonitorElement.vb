@@ -80,7 +80,7 @@ Namespace Configuration
         ''' <returns>IDataMonitor</returns>
         ''' <remarks></remarks>
         Public Overridable Function CreateInstance() As IDataMonitor
-            Dim monitor As IDataMonitor = ConfigurationSection.CreateInstance(Me.Type)
+            Dim monitor As IDataMonitor = SiphonConfigurationSection.CreateInstance(Me.Type)
             monitor.Initialize(Me)
 
             Return monitor

@@ -60,7 +60,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Configuration\ConfigurationTests.vb" />
-    <Compile Include="MonitorTests.vb" />
+    <Compile Include="Monitors\MonitorTests.vb" />
     <Compile Include="My Project\AssemblyInfo.vb" />
     <Compile Include="My Project\Application.Designer.vb">
       <AutoGen>True</AutoGen>
@@ -79,7 +79,8 @@
     <Compile Include="Processors\MockFileProcessor.vb" />
     <Compile Include="Processors\MockProcessor.vb" />
     <Compile Include="Processors\MockQueueMessageProcessor.vb" />
-    <Compile Include="ScheduleTests.vb" />
+    <Compile Include="Schedules\ScheduleTests.vb" />
+    <Compile Include="Service\ServiceTests.vb" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="My Project\Resources.resx">
@@ -91,9 +92,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
-    <None Include="Configuration\test.exe.config">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
     <None Include="My Project\Application.myapp">
       <Generator>MyApplicationCodeGenerator</Generator>
       <LastGenOutput>Application.Designer.vb</LastGenOutput>
@@ -105,15 +103,14 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\SiphonService\SiphonService.vbproj">
+      <Project>{E50C8751-29F0-4194-9AF3-C0B8D151E995}</Project>
+      <Name>SiphonService</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Siphon\Siphon.vbproj">
       <Project>{10245550-B13F-4A23-9BF6-120FD5D3CDA1}</Project>
       <Name>Siphon</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="Configuration\test.exe">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -43,7 +43,7 @@ Namespace Configuration
         ''' <returns>IDataProcessor</returns>
         ''' <remarks></remarks>
         Public Overridable Function CreateInstance() As IDataProcessor
-            Dim processor As IDataProcessor = ConfigurationSection.CreateInstance(Me.Type)
+            Dim processor As IDataProcessor = SiphonConfigurationSection.CreateInstance(Me.Type)
             processor.Initialize(Me)
 
             Return processor

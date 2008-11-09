@@ -6,8 +6,29 @@ Namespace Configuration
     ''' Main Siphon configuration section information
     ''' </summary>
     ''' <remarks></remarks>
-    Public Class ConfigurationSection
+    Public Class SiphonConfigurationSection
         Inherits System.Configuration.ConfigurationSection
+
+        Private Const SECTION_NAME As String = "siphon"
+
+        ''' <summary>
+        ''' Returnz the Siphon configuration section from the current config.
+        ''' </summary>
+        ''' <returns>ConfigurationSection</returns>
+        ''' <remarks></remarks>
+        Public Shared Function GetSection() As SiphonConfigurationSection
+            Return SiphonConfigurationSection.GetSection(SECTION_NAME)
+        End Function
+
+        ''' <summary>
+        ''' Returns the Siphon configuration section from the current config using the given name.
+        ''' </summary>
+        ''' <param name="name">String. The section tag name.</param>
+        ''' <returns>ConfigurationSection</returns>
+        ''' <remarks></remarks>
+        Public Shared Function GetSection(ByVal name As String) As SiphonConfigurationSection
+            Return ConfigurationManager.GetSection(name)
+        End Function
 
         ''' <summary>
         ''' Returns a collection of monitor elements.

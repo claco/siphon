@@ -11,11 +11,16 @@ Namespace Configuration
     <TestFixture(Description:="Test configuration classes")> _
     Public Class ConfigurationTests
 
+        <TestFixtureSetUp()> _
+        Public Sub TestFixtureSetupUp()
+            log4net.Config.XmlConfigurator.Configure()
+        End Sub
+
         <Test(Description:="Test configuration classes")> _
         Public Sub Configuration()
-            Dim exePath As String = System.IO.Path.Combine(Environment.CurrentDirectory, "Configuration\test.exe")
+            Dim exePath As String = System.IO.Path.Combine(Environment.CurrentDirectory, "SiphonTests.dll")
             Dim config As System.Configuration.Configuration = ConfigurationManager.OpenExeConfiguration(exePath)
-            Dim section As ChrisLaco.Siphon.Configuration.ConfigurationSection = config.GetSection("siphon")
+            Dim section As SiphonConfigurationSection = config.GetSection("siphon")
 
             Assert.AreEqual(2, section.Monitors.Count, "Have monitor count")
 

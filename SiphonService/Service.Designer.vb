@@ -44,6 +44,7 @@ Partial Class SiphonService
         '
         'SiphonService
         '
+        Me.CanPauseAndContinue = True
         Me.ServiceName = "SiphonService"
 
     End Sub
