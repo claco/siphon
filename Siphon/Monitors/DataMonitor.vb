@@ -172,7 +172,7 @@ Namespace Monitors
         Protected Overridable ReadOnly Property Timer() As Threading.Timer
             Get
                 If _timer Is Nothing Then
-                    _timer = New Threading.Timer(New TimerCallback(AddressOf Me.OnTimerElapsed), Me, Timeout.Infinite, Timeout.Infinite)
+                    _timer = New Threading.Timer(New TimerCallback(AddressOf Me.OnScheduledEvent), Me, Timeout.Infinite, Timeout.Infinite)
                 End If
 
                 Return _timer
@@ -230,21 +230,17 @@ Namespace Monitors
             Dim interval As Integer = (nextEvent - start).TotalMilliseconds
 
             Log.DebugFormat("Monitor Start Time {0}", start)
-            Log.DebugFormat("Next Monitor Scan {0}", nextEvent)
+            Log.DebugFormat("Next Monitor Event {0}", nextEvent)
             Log.DebugFormat("Timer Interval {0}", interval)
 
             Return interval
         End Function
 
         ''' <summary>
-        ''' Subroutine called when the timer time has elapsed.
+        ''' Scans a for new data and sends that data to the processor.
         ''' </summary>
-        ''' <param name="state"></param>
         ''' <remarks></remarks>
-        Protected Overridable Sub OnTimerElapsed(ByVal state As Object)
-            Log.Debug("Timer Elapsed")
-            Me.Pause()
-
+        Sub Process() Implements IDataMonitor.Process
             Try
                 Dim items As Collection(Of Object) = Me.Scan
                 Log.DebugFormat("Scan returned {0} items", items.Count)
@@ -269,7 +265,21 @@ Namespace Monitors
             Finally
                 _eventWaitHandle.Set()
             End Try
+        End Sub
 
+        ''' <summary>
+        ''' Subroutine called when the timer time has elapsed, reaching the scheduled event.
+        ''' </summary>
+        ''' <param name="state"></param>
+        ''' <remarks></remarks>
+        Protected Overridable Sub OnScheduledEvent(ByVal state As Object)
+            If String.IsNullOrEmpty(Thread.CurrentThread.Name) Then
+                Thread.CurrentThread.Name = String.Format("{0}TimerThread", Me.Name)
+            End If
+
+            Log.Debug("Timer Elapsed")
+            Me.Pause()
+            Me.Process()
             Me.Resume()
         End Sub
     End Class

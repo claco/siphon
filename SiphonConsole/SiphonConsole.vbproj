@@ -7,7 +7,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{DFD27A39-C804-4589-9DDB-F2C0412B11A0}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <StartupObject>ChrisLaco.Siphon.Console.Main</StartupObject>
+    <StartupObject>Sub Main</StartupObject>
     <RootNamespace>ChrisLaco.Siphon.Console</RootNamespace>
     <AssemblyName>SiphonConsole</AssemblyName>
     <FileAlignment>512</FileAlignment>
@@ -44,6 +44,7 @@
       <HintPath>bin\log4net.dll</HintPath>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.configuration" />
     <Reference Include="System.Data" />
     <Reference Include="System.Deployment" />
     <Reference Include="System.Xml" />
@@ -57,7 +58,7 @@
     <Import Include="System.Diagnostics" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Main.vb" />
+    <Compile Include="Console.vb" />
     <Compile Include="My Project\AssemblyInfo.vb" />
     <Compile Include="My Project\Application.Designer.vb">
       <AutoGen>True</AutoGen>

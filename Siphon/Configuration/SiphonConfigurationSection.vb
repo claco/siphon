@@ -27,7 +27,12 @@ Namespace Configuration
         ''' <returns>ConfigurationSection</returns>
         ''' <remarks></remarks>
         Public Shared Function GetSection(ByVal name As String) As SiphonConfigurationSection
-            Return ConfigurationManager.GetSection(name)
+            Dim section As SiphonConfigurationSection = ConfigurationManager.GetSection(name)
+            If section Is Nothing Then
+                section = New SiphonConfigurationSection
+            End If
+
+            Return section
         End Function
 
         ''' <summary>

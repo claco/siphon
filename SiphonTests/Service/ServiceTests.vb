@@ -60,5 +60,53 @@ Namespace Service
                 Assert.AreEqual(1, processor.Count)
             End Using
         End Sub
+
+        <Test(Description:="Pause/Continue actual monitor")> _
+        Public Sub ServicePauseContinue()
+            Using service As New SiphonService
+                Dim tempdir As DirectoryInfo = Directory.CreateDirectory(Path.Combine(Path.GetTempPath, Path.GetRandomFileName))
+                File.Create(Path.Combine(tempdir.FullName, "SUCCESS"))
+
+                Dim processor As New MockFileProcessor
+                Dim monitor As New LocalDirectoryMonitor("TestLocalDirectoryMonitor", tempdir.FullName, New IntervalSchedule(2), processor)
+
+                service.Monitors.Clear()
+                service.Monitors.Add(monitor)
+
+                Dim args() As String = {}
+                Dim parameters() As Object = {args}
+                service.GetType.GetMethod("OnStart", Reflection.BindingFlags.NonPublic Or Reflection.BindingFlags.Instance).Invoke(service, parameters)
+                service.GetType.GetMethod("OnPause", Reflection.BindingFlags.NonPublic Or Reflection.BindingFlags.Instance).Invoke(service, Nothing)
+                Threading.Thread.Sleep(5000)
+                Assert.AreEqual(0, processor.Count)
+                service.GetType.GetMethod("OnContinue", Reflection.BindingFlags.NonPublic Or Reflection.BindingFlags.Instance).Invoke(service, Nothing)
+                Threading.Thread.Sleep(3000)
+                service.GetType.GetMethod("OnStop", Reflection.BindingFlags.NonPublic Or Reflection.BindingFlags.Instance).Invoke(service, Nothing)
+
+                Assert.AreEqual(1, processor.Count)
+            End Using
+        End Sub
+
+        <Test(Description:="Monitor exception does not kill service")> _
+        Public Sub ServiceMonitorException()
+            Using service As New SiphonService
+                Dim tempdir As DirectoryInfo = Directory.CreateDirectory(Path.Combine(Path.GetTempPath, Path.GetRandomFileName))
+                File.Create(Path.Combine(tempdir.FullName, "EXCEPTION"))
+
+                Dim processor As New MockFileProcessor
+                Dim monitor As New LocalDirectoryMonitor("TestLocalDirectoryMonitor", tempdir.FullName, New IntervalSchedule(2), processor)
+
+                service.Monitors.Clear()
+                service.Monitors.Add(monitor)
+
+                Dim args() As String = {}
+                Dim parameters() As Object = {args}
+                service.GetType.GetMethod("OnStart", Reflection.BindingFlags.NonPublic Or Reflection.BindingFlags.Instance).Invoke(service, parameters)
+                Threading.Thread.Sleep(3000)
+                service.GetType.GetMethod("OnStop", Reflection.BindingFlags.NonPublic Or Reflection.BindingFlags.Instance).Invoke(service, Nothing)
+
+                Assert.AreEqual(1, processor.Count)
+            End Using
+        End Sub
     End Class
 End Namespace

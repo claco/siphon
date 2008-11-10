@@ -52,6 +52,12 @@ Namespace Monitors
         Sub [Resume]()
 
         ''' <summary>
+        ''' Scans a for new data and sends that data to the processor.
+        ''' </summary>
+        ''' <remarks></remarks>
+        Sub Process()
+
+        ''' <summary>
         ''' Gets/sets the data processor to use when new data is found.
         ''' </summary>
         ''' <value></value>
@@ -68,7 +74,7 @@ Namespace Monitors
         Property Schedule() As IMonitorSchedule
 
         ''' <summary>
-        ''' Scans for new data and sends new data to the current processor.
+        ''' Scans for and returns a collection of new data.
         ''' </summary>
         ''' <remarks></remarks>
         Function Scan() As Collection(Of Object)
