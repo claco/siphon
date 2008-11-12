@@ -20,7 +20,7 @@ Public Class SiphonConsole
     ''' Gets the Siphon configuration section.
     ''' </summary>
     ''' <value></value>
-    ''' <returns>ConfigurationSection</returns>
+    ''' <returns>SiphonConfigurationSection</returns>
     ''' <remarks></remarks>
     Public ReadOnly Property Configuration() As SiphonConfigurationSection
         Get
@@ -44,6 +44,7 @@ Public Class SiphonConsole
         Get
             If _monitors Is Nothing Then
                 Log.Debug("Creating monitors")
+
                 _monitors = New Collection(Of IDataMonitor)
 
                 For Each monitor As MonitorElement In Me.Configuration.Monitors
@@ -79,8 +80,6 @@ Public Class SiphonConsole
 
                     If config Is Nothing Then
                         Log.ErrorFormat("Could not find monitor {0}", name)
-
-                        System.Console.WriteLine("Could not find monitor {0}", name)
                     Else
                         Dim monitor As IDataMonitor = config.CreateInstance
 
@@ -91,7 +90,7 @@ Public Class SiphonConsole
         Else
             Environment.ExitCode = 1
 
-            System.Console.WriteLine("No arguments were supplied")
+            Log.Error("No arguments were supplied")
         End If
     End Sub
 
