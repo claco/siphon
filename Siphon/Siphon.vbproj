@@ -65,6 +65,10 @@
     <Compile Include="Configuration\ScheduleElement.vb" />
     <Compile Include="Configuration\TimeElement.vb" />
     <Compile Include="Configuration\TimeElementCollection.vb" />
+    <Compile Include="Items\DataItem.vb" />
+    <Compile Include="Items\FileDataItem.vb" />
+    <Compile Include="Items\IDataItem.vb" />
+    <Compile Include="Items\QueueMessageDataItem.vb" />
     <Compile Include="Monitors\DataActions.vb" />
     <Compile Include="Monitors\DataMonitor.vb" />
     <Compile Include="Monitors\DirectoryMonitor.vb" />
@@ -72,6 +76,7 @@
     <Compile Include="Monitors\IDataMonitor.vb" />
     <Compile Include="Monitors\LocalDirectoryMonitor.vb" />
     <Compile Include="Monitors\MessageQueueMonitor.vb" />
+    <Compile Include="Monitors\ProcessEventArgs.vb" />
     <Compile Include="Processors\DataProcessor.vb" />
     <Compile Include="Processors\IDataProcessor.vb" />
     <Compile Include="Monitors\IDirectoryMonitor.vb" />

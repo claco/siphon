@@ -19,6 +19,8 @@ Namespace Monitors
         Private _disposed As Boolean
         Private _name As String = String.Empty
         Private _processing As Boolean
+        Private _processFailureActions As DataActions = DataActions.None
+        Private _processCompleteActions As DataActions = DataActions.None
         Private _processor As IDataProcessor = Nothing
         Private _schedule As IMonitorSchedule = Nothing
         Private _eventWaitHandle As EventWaitHandle = New ManualResetEvent(False)
@@ -105,7 +107,7 @@ Namespace Monitors
         ''' Scans for new data and sends new data to the current processor.
         ''' </summary>
         ''' <remarks></remarks>
-        Public MustOverride Function Scan() As Collection(Of Object) Implements IDataMonitor.Scan
+        Public MustOverride Function Scan() As Collection(Of IDataItem) Implements IDataMonitor.Scan
 
         ''' <summary>
         ''' Starts monitoring for new data.
@@ -242,7 +244,7 @@ Namespace Monitors
         ''' <remarks></remarks>
         Sub Process() Implements IDataMonitor.Process
             Try
-                Dim items As Collection(Of Object) = Me.Scan
+                Dim items As Collection(Of IDataItem) = Me.Scan
                 Log.DebugFormat("Scan returned {0} items", items.Count)
 
                 If items.Count > 0 Then
@@ -250,10 +252,20 @@ Namespace Monitors
 
                     _processing = True
 
-                    For Each item As Object In items
-                        Dim processed As Boolean = Me.Processor.Process(item)
-
+                    For Each item As IDataItem In items
+                        Dim processed As Boolean
+                        Try
+                            processed = Me.Processor.Process(item)
+                        Catch ex As Exception
+                            Log.Debug(String.Format("Processing {0} failed", item.Name), ex)
+                        End Try
                         Log.DebugFormat("Processed: {0}", processed)
+
+                        If processed Then
+                            Me.OnProcessComplete(New ProcessEventArgs(item))
+                        Else
+                            Me.OnProcessFailed(New ProcessEventArgs(item))
+                        End If
                     Next
 
                     _processing = False
@@ -282,5 +294,96 @@ Namespace Monitors
             Me.Process()
             Me.Resume()
         End Sub
+
+        ''' <summary>
+        ''' Gets/sets the actions to perform when data processing fails.
+        ''' </summary>
+        ''' <value></value>
+        ''' <returns>DataActions</returns>
+        ''' <remarks></remarks>
+        Public Overridable Property ProcessFailureActions() As DataActions Implements IDataMonitor.ProcessFailureActions
+            Get
+                Return _processFailureActions
+            End Get
+            Set(ByVal value As DataActions)
+                _processFailureActions = value
+            End Set
+        End Property
+
+        ''' <summary>
+        ''' Gets/sets the actions to perform when data processing succeeds.
+        ''' </summary>
+        ''' <value></value>
+        ''' <returns>DataActions</returns>
+        ''' <remarks></remarks>
+        Public Overridable Property ProcessCompleteActions() As DataActions Implements IDataMonitor.ProcessCompleteActions
+            Get
+                Return _processCompleteActions
+            End Get
+            Set(ByVal value As DataActions)
+                _processCompleteActions = value
+            End Set
+        End Property
+
+#Region "Events"
+
+        ''' <summary>
+        ''' Performs process failure actions when processing fails.
+        ''' </summary>
+        ''' <remarks></remarks>
+        Protected Overridable Sub OnProcessFailed(ByVal e As ProcessEventArgs)
+            If (Me.ProcessFailureActions And DataActions.Delete) <> DataActions.None Then
+                Log.InfoFormat("Deleting {0}", e.Data.Name)
+
+            Else
+                If (Me.ProcessFailureActions And DataActions.Rename) <> DataActions.None Then
+                    Log.InfoFormat("Renaming {0}", e.Data.Name)
+
+                End If
+                If (Me.ProcessFailureActions And DataActions.Move) <> DataActions.None Then
+                    Log.InfoFormat("Moving {0}", e.Data.Name)
+
+                End If
+            End If
+
+            RaiseEvent ProcessFailed(Me, e)
+        End Sub
+
+        ''' <summary>
+        ''' Performs process complete actions when processing succeeds.
+        ''' </summary>
+        ''' <remarks></remarks>
+        Protected Overridable Sub OnProcessComplete(ByVal e As ProcessEventArgs)
+            If (Me.ProcessCompleteActions And DataActions.Delete) <> DataActions.None Then
+                Log.InfoFormat("Deleting {0}", e.Data.Name)
+
+            Else
+                If (Me.ProcessCompleteActions And DataActions.Rename) <> DataActions.None Then
+                    Log.InfoFormat("Renaming {0}", e.Data.Name)
+
+                End If
+                If (Me.ProcessCompleteActions And DataActions.Move) <> DataActions.None Then
+                    Log.InfoFormat("Moving {0}", e.Data.Name)
+
+                End If
+            End If
+
+            RaiseEvent ProcessComplete(Me, e)
+        End Sub
+
+        ''' <summary>
+        ''' Event fires when data processing fails.
+        ''' </summary>
+        ''' <remarks></remarks>
+        Public Event ProcessFailed(ByVal sender As Object, ByVal e As ProcessEventArgs) Implements IDataMonitor.ProcessFailed
+
+        ''' <summary>
+        ''' Event fires when data processing completes successfully.
+        ''' </summary>
+        ''' <remarks></remarks>
+        Public Event ProcessComplete(ByVal sender As Object, ByVal e As ProcessEventArgs) Implements IDataMonitor.ProcessComplete
+
+#End Region
+
     End Class
 End Namespace

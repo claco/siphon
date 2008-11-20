@@ -32,7 +32,7 @@ Namespace Processors
         ''' </summary>
         ''' <param name="data">Object. New data to be processed.</param>
         ''' <remarks>Returns True if the data was processed successfully. Returns False otherwise.</remarks>
-        Public MustOverride Function Process(ByVal data As Object) As Boolean Implements IDataProcessor.Process
+        Public MustOverride Function Process(ByVal data As IDataItem) As Boolean Implements IDataProcessor.Process
 
         ''' <summary>
         ''' Disposes the current schedule instance.

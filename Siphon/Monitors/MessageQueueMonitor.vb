@@ -97,13 +97,18 @@ Namespace Monitors
         ''' Scans the specified directory for new files matching the specified filter.
         ''' </summary>
         ''' <remarks></remarks>
-        Public Overrides Function Scan() As System.Collections.ObjectModel.Collection(Of Object)
+        Public Overrides Function Scan() As System.Collections.ObjectModel.Collection(Of IDataItem)
             Log.DebugFormat("Scanning {0}", Me.Queue.Path)
 
             Dim messages() As Message = Me.Queue.GetAllMessages
+            Dim items As New Collection(Of IDataItem)
             Log.DebugFormat("Found {0} messages in {1}", messages.Length, Me.Queue.Path)
 
-            Return New System.Collections.ObjectModel.Collection(Of Object)(messages)
+            For Each message As Message In messages
+                items.Add(New QueueMessageDataItem(message))
+            Next
+
+            Return items
         End Function
 
         ''' <summary>

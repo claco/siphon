@@ -18,8 +18,8 @@ Namespace Processors
         ''' <summary>
         ''' Processes new data found by the monitor.
         ''' </summary>
-        ''' <param name="data">Object. New data to be processed.</param>
+        ''' <param name="data">IDataItem. New data to be processed.</param>
         ''' <remarks>Returns True if the data was processed successfully. Returns False otherwise.</remarks>
-        Function Process(ByVal data As Object) As Boolean
+        Function Process(ByVal data As IDataItem) As Boolean
     End Interface
 End Namespace

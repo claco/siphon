@@ -77,6 +77,34 @@ Namespace Monitors
         ''' Scans for and returns a collection of new data.
         ''' </summary>
         ''' <remarks></remarks>
-        Function Scan() As Collection(Of Object)
+        Function Scan() As Collection(Of IDataItem)
+
+        ''' <summary>
+        ''' Gets/sets the actions to perform when data processing fails.
+        ''' </summary>
+        ''' <value></value>
+        ''' <returns>DataActions</returns>
+        ''' <remarks></remarks>
+        Property ProcessFailureActions() As DataActions
+
+        ''' <summary>
+        ''' Gets/sets the actions to perform when data processing succeeds.
+        ''' </summary>
+        ''' <value></value>
+        ''' <returns>DataActions</returns>
+        ''' <remarks></remarks>
+        Property ProcessCompleteActions() As DataActions
+
+        ''' <summary>
+        ''' Event fires when data processing fails.
+        ''' </summary>
+        ''' <remarks></remarks>
+        Event ProcessFailed(ByVal sender As Object, ByVal e As ProcessEventArgs)
+
+        ''' <summary>
+        ''' Event fires when data processing completes successfully.
+        ''' </summary>
+        ''' <remarks></remarks>
+        Event ProcessComplete(ByVal sender As Object, ByVal e As ProcessEventArgs)
     End Interface
 End Namespace

@@ -31,7 +31,7 @@ Namespace Configuration
             Assert.AreEqual("C:\Temp", section.Monitors(0).Settings("Path").Value)
             Assert.AreEqual("*.tmp", section.Monitors(0).Settings("Filter").Value)
             Assert.AreEqual("ChrisLaco.Siphon.Schedules.IntervalSchedule, Siphon", section.Monitors(0).Schedule.Type)
-            Assert.AreEqual("ChrisLaco.Tests.Siphon.Processors.MockFileProcessor, SiphonTests", section.Monitors(0).Processor.Type)
+            Assert.AreEqual("ChrisLaco.Tests.Siphon.Processors.MockProcessor, SiphonTests", section.Monitors(0).Processor.Type)
             Assert.AreEqual(New TimeSpan(1, 2, 3, 4), section.Monitors(0).Schedule.Interval.Value)
 
             Assert.AreEqual("DailyMonitor", section.Monitors(1).Name)
@@ -39,7 +39,7 @@ Namespace Configuration
             Assert.AreEqual(1, section.Monitors(1).Settings.Count)
             Assert.AreEqual("ftp://foo.bar.baz/", section.Monitors(1).Settings("Path").Value)
             Assert.AreEqual("ChrisLaco.Siphon.Schedules.DailySchedule, Siphon", section.Monitors(1).Schedule.Type)
-            Assert.AreEqual("ChrisLaco.Tests.Siphon.Processors.MockQueueMessageProcessor, SiphonTests", section.Monitors(1).Processor.Type)
+            Assert.AreEqual("ChrisLaco.Tests.Siphon.Processors.MockProcessor, SiphonTests", section.Monitors(1).Processor.Type)
             Assert.AreEqual(3, section.Monitors(1).Schedule.Daily.Count)
             Assert.AreEqual(New TimeSpan(1, 23, 0), section.Monitors(1).Schedule.Daily(0).Value)
             Assert.AreEqual(New TimeSpan(12, 23, 0), section.Monitors(1).Schedule.Daily(1).Value)
@@ -59,10 +59,10 @@ Namespace Configuration
 
             REM Test processor create instancess
             Dim processor As IDataProcessor = section.Monitors(0).Processor.CreateInstance
-            Assert.IsInstanceOfType(GetType(MockFileProcessor), processor)
+            Assert.IsInstanceOfType(GetType(MockProcessor), processor)
 
             processor = section.Monitors(1).Processor.CreateInstance
-            Assert.IsInstanceOfType(GetType(MockQueueMessageProcessor), processor)
+            Assert.IsInstanceOfType(GetType(MockProcessor), processor)
 
             REM Test monitor create instances
             Dim monitor As IDataMonitor = section.Monitors("IntervalMonitor").CreateInstance
@@ -71,7 +71,7 @@ Namespace Configuration
             Assert.AreEqual("C:\Temp", DirectCast(monitor, LocalDirectoryMonitor).Path)
             Assert.AreEqual("*.tmp", DirectCast(monitor, LocalDirectoryMonitor).Filter)
             Assert.AreEqual(New TimeSpan(1, 2, 3, 4), DirectCast(monitor.Schedule, IntervalSchedule).Interval)
-            Assert.IsInstanceOfType(GetType(MockFileProcessor), monitor.Processor)
+            Assert.IsInstanceOfType(GetType(MockProcessor), monitor.Processor)
 
             monitor = section.Monitors(1).CreateInstance
             Assert.IsInstanceOfType(GetType(FtpDirectoryMonitor), monitor)
@@ -81,7 +81,7 @@ Namespace Configuration
             Assert.AreEqual(New TimeSpan(1, 23, 0), DirectCast(monitor.Schedule, DailySchedule).Times(0))
             Assert.AreEqual(New TimeSpan(12, 23, 0), DirectCast(monitor.Schedule, DailySchedule).Times(1))
             Assert.AreEqual(New TimeSpan(2, 34, 56), DirectCast(monitor.Schedule, DailySchedule).Times(2))
-            Assert.IsInstanceOfType(GetType(MockQueueMessageProcessor), monitor.Processor)
+            Assert.IsInstanceOfType(GetType(MockProcessor), monitor.Processor)
 
         End Sub
     End Class

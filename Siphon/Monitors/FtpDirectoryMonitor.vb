@@ -43,13 +43,10 @@ Namespace Monitors
         ''' Scans the specified directory for new files mathcing the specified filter.
         ''' </summary>
         ''' <remarks></remarks>
-        Public Overrides Function Scan() As Collection(Of Object)
+        Public Overrides Function Scan() As Collection(Of IDataItem)
             Log.DebugFormat("Scanning {0} for {1}", Me.Path, Me.Filter)
 
-            Dim files() As String = Directory.GetFiles(Me.Path, Me.Filter, SearchOption.TopDirectoryOnly)
-            Log.DebugFormat("Found {0} files in {1}", files.Length, Me.Path)
-
-            Return New System.Collections.ObjectModel.Collection(Of Object)(files)
+            Return New System.Collections.ObjectModel.Collection(Of IDataItem)
         End Function
     End Class
 End Namespace

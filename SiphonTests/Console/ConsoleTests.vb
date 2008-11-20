@@ -25,7 +25,7 @@ Namespace Console
                 Assert.AreEqual("C:\Temp", DirectCast(monitor, LocalDirectoryMonitor).Path)
                 Assert.AreEqual("*.tmp", DirectCast(monitor, LocalDirectoryMonitor).Filter)
                 Assert.AreEqual(New TimeSpan(1, 2, 3, 4), DirectCast(monitor.Schedule, IntervalSchedule).Interval)
-                Assert.IsInstanceOfType(GetType(MockFileProcessor), monitor.Processor)
+                Assert.IsInstanceOfType(GetType(MockProcessor), monitor.Processor)
 
                 monitor = console.Monitors(1)
                 Assert.IsInstanceOfType(GetType(FtpDirectoryMonitor), monitor)
@@ -35,7 +35,7 @@ Namespace Console
                 Assert.AreEqual(New TimeSpan(1, 23, 0), DirectCast(monitor.Schedule, DailySchedule).Times(0))
                 Assert.AreEqual(New TimeSpan(12, 23, 0), DirectCast(monitor.Schedule, DailySchedule).Times(1))
                 Assert.AreEqual(New TimeSpan(2, 34, 56), DirectCast(monitor.Schedule, DailySchedule).Times(2))
-                Assert.IsInstanceOfType(GetType(MockQueueMessageProcessor), monitor.Processor)
+                Assert.IsInstanceOfType(GetType(MockProcessor), monitor.Processor)
             End Using
         End Sub
 
@@ -45,7 +45,7 @@ Namespace Console
                 Dim tempdir As DirectoryInfo = Directory.CreateDirectory(Path.Combine(Path.GetTempPath, Path.GetRandomFileName))
                 File.Create(Path.Combine(tempdir.FullName, "SUCCESS"))
 
-                Dim processor As New MockFileProcessor
+                Dim processor As New MockProcessor
                 Dim monitor As New LocalDirectoryMonitor("TestLocalDirectoryMonitor", tempdir.FullName, New IntervalSchedule(2), processor)
 
                 console.Monitors.Clear()
@@ -64,7 +64,7 @@ Namespace Console
                 Dim tempdir As DirectoryInfo = Directory.CreateDirectory(Path.Combine(Path.GetTempPath, Path.GetRandomFileName))
                 File.Create(Path.Combine(tempdir.FullName, "EXCEPTION"))
 
-                Dim processor As New MockFileProcessor
+                Dim processor As New MockProcessor
                 Dim monitor As New LocalDirectoryMonitor("TestLocalDirectoryMonitor", tempdir.FullName, New IntervalSchedule(2), processor)
 
                 console.Monitors.Clear()
