@@ -1,110 +1,104 @@
 ﻿Imports System.Collections.ObjectModel
-Imports ChrisLaco.Siphon.Configuration
-Imports ChrisLaco.Siphon.Monitors
-Imports ChrisLaco.Siphon.Schedules
-Imports ChrisLaco.Siphon.Processors
 
-Namespace Monitors
+''' <summary>
+''' Interface that defines a data monitoring instance.
+''' </summary>
+''' <remarks></remarks>
+Public Interface IDataMonitor
+    Inherits IDisposable
+
     ''' <summary>
-    ''' Interface that defines a data monitoring instance.
+    ''' Initializes the monitor using the supplied monitor configuration settings.
+    ''' </summary>
+    ''' <param name="config">MonitorElement. The configuraiton for the current monitor.</param>
+    ''' <remarks></remarks>
+    Sub Initialize(ByVal config As MonitorElement)
+
+    ''' <summary>
+    ''' Gets/sets the friendly name of the monitor.
+    ''' </summary>
+    ''' <value></value>
+    ''' <returns>String</returns>
+    ''' <remarks></remarks>
+    Property Name() As String
+
+    ''' <summary>
+    ''' Starts the data monitoring instance.
     ''' </summary>
     ''' <remarks></remarks>
-    Public Interface IDataMonitor
-        Inherits IDisposable
+    Sub Start()
 
-        ''' <summary>
-        ''' Initializes the monitor using the supplied monitor configuration settings.
-        ''' </summary>
-        ''' <param name="config">MonitorElement. The configuraiton for the current monitor.</param>
-        ''' <remarks></remarks>
-        Sub Initialize(ByVal config As MonitorElement)
+    ''' <summary>
+    ''' Stops the data monitoring instance.
+    ''' </summary>
+    ''' <remarks></remarks>
+    Sub [Stop]()
 
-        ''' <summary>
-        ''' Gets/sets the friendly name of the monitor.
-        ''' </summary>
-        ''' <value></value>
-        ''' <returns>String</returns>
-        ''' <remarks></remarks>
-        Property Name() As String
+    ''' <summary>
+    ''' Pauses data monitoring, usually while processing files.
+    ''' </summary>
+    ''' <remarks></remarks>
+    Sub Pause()
 
-        ''' <summary>
-        ''' Starts the data monitoring instance.
-        ''' </summary>
-        ''' <remarks></remarks>
-        Sub Start()
+    ''' <summary>
+    ''' Resumes data monitors, usually after processing new data.
+    ''' </summary>
+    ''' <remarks></remarks>
+    Sub [Resume]()
 
-        ''' <summary>
-        ''' Stops the data monitoring instance.
-        ''' </summary>
-        ''' <remarks></remarks>
-        Sub [Stop]()
+    ''' <summary>
+    ''' Scans a for new data and sends that data to the processor.
+    ''' </summary>
+    ''' <remarks></remarks>
+    Sub Process()
 
-        ''' <summary>
-        ''' Pauses data monitoring, usually while processing files.
-        ''' </summary>
-        ''' <remarks></remarks>
-        Sub Pause()
+    ''' <summary>
+    ''' Gets/sets the data processor to use when new data is found.
+    ''' </summary>
+    ''' <value></value>
+    ''' <returns>IDataProcessor</returns>
+    ''' <remarks></remarks>
+    Property Processor() As IDataProcessor
 
-        ''' <summary>
-        ''' Resumes data monitors, usually after processing new data.
-        ''' </summary>
-        ''' <remarks></remarks>
-        Sub [Resume]()
+    ''' <summary>
+    ''' Gets/sets the data monitor schedule to be used.
+    ''' </summary>
+    ''' <value></value>
+    ''' <returns>IMonitorSchedule</returns>
+    ''' <remarks></remarks>
+    Property Schedule() As IMonitorSchedule
 
-        ''' <summary>
-        ''' Scans a for new data and sends that data to the processor.
-        ''' </summary>
-        ''' <remarks></remarks>
-        Sub Process()
+    ''' <summary>
+    ''' Scans for and returns a collection of new data.
+    ''' </summary>
+    ''' <remarks></remarks>
+    Function Scan() As Collection(Of IDataItem)
 
-        ''' <summary>
-        ''' Gets/sets the data processor to use when new data is found.
-        ''' </summary>
-        ''' <value></value>
-        ''' <returns>IDataProcessor</returns>
-        ''' <remarks></remarks>
-        Property Processor() As IDataProcessor
+    ''' <summary>
+    ''' Gets/sets the actions to perform when data processing fails.
+    ''' </summary>
+    ''' <value></value>
+    ''' <returns>DataActions</returns>
+    ''' <remarks></remarks>
+    Property ProcessFailureActions() As DataActions
 
-        ''' <summary>
-        ''' Gets/sets the data monitor schedule to be used.
-        ''' </summary>
-        ''' <value></value>
-        ''' <returns>IMonitorSchedule</returns>
-        ''' <remarks></remarks>
-        Property Schedule() As IMonitorSchedule
+    ''' <summary>
+    ''' Gets/sets the actions to perform when data processing succeeds.
+    ''' </summary>
+    ''' <value></value>
+    ''' <returns>DataActions</returns>
+    ''' <remarks></remarks>
+    Property ProcessCompleteActions() As DataActions
 
-        ''' <summary>
-        ''' Scans for and returns a collection of new data.
-        ''' </summary>
-        ''' <remarks></remarks>
-        Function Scan() As Collection(Of IDataItem)
+    ''' <summary>
+    ''' Event fires when data processing fails.
+    ''' </summary>
+    ''' <remarks></remarks>
+    Event ProcessFailure(ByVal sender As Object, ByVal e As ProcessEventArgs)
 
-        ''' <summary>
-        ''' Gets/sets the actions to perform when data processing fails.
-        ''' </summary>
-        ''' <value></value>
-        ''' <returns>DataActions</returns>
-        ''' <remarks></remarks>
-        Property ProcessFailureActions() As DataActions
-
-        ''' <summary>
-        ''' Gets/sets the actions to perform when data processing succeeds.
-        ''' </summary>
-        ''' <value></value>
-        ''' <returns>DataActions</returns>
-        ''' <remarks></remarks>
-        Property ProcessCompleteActions() As DataActions
-
-        ''' <summary>
-        ''' Event fires when data processing fails.
-        ''' </summary>
-        ''' <remarks></remarks>
-        Event ProcessFailed(ByVal sender As Object, ByVal e As ProcessEventArgs)
-
-        ''' <summary>
-        ''' Event fires when data processing completes successfully.
-        ''' </summary>
-        ''' <remarks></remarks>
-        Event ProcessComplete(ByVal sender As Object, ByVal e As ProcessEventArgs)
-    End Interface
-End Namespace
+    ''' <summary>
+    ''' Event fires when data processing completes successfully.
+    ''' </summary>
+    ''' <remarks></remarks>
+    Event ProcessComplete(ByVal sender As Object, ByVal e As ProcessEventArgs)
+End Interface

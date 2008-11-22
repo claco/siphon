@@ -8,7 +8,7 @@
     <ProjectGuid>{DFD27A39-C804-4589-9DDB-F2C0412B11A0}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <StartupObject>Sub Main</StartupObject>
-    <RootNamespace>ChrisLaco.Siphon.Console</RootNamespace>
+    <RootNamespace>ChrisLaco.Siphon</RootNamespace>
     <AssemblyName>SiphonConsole</AssemblyName>
     <FileAlignment>512</FileAlignment>
     <MyType>Console</MyType>

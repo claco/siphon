@@ -8,7 +8,7 @@ Public Class FileDataItem
     Inherits DataItem
 
     ''' <summary>
-    ''' Creates a new FileDataItem
+    ''' Creates a new FileDataItem instance.
     ''' </summary>
     ''' <param name="path">String. The full path including file name to the file being processed.</param>
     ''' <remarks></remarks>

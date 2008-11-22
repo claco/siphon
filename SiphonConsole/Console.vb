@@ -1,8 +1,6 @@
 ﻿Imports System.Collections.ObjectModel
 Imports System.Configuration
 Imports log4net
-Imports ChrisLaco.Siphon.Configuration
-Imports ChrisLaco.Siphon.Monitors
 
 ''' <summary>
 ''' Class containing windows console app code to run Siphon monitors manually.

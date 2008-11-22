@@ -1,5 +1,5 @@
 ﻿''' <summary>
-''' Class contianing the data item to be processed.
+''' Class containing a data item to be processed.
 ''' </summary>
 ''' <remarks></remarks>
 Public Class DataItem
@@ -9,6 +9,10 @@ Public Class DataItem
     Private _contents As Object = Nothing
     Private _name As String = String.Empty
 
+    ''' <summary>
+    ''' Creates a new DataItem instance.
+    ''' </summary>
+    ''' <remarks></remarks>
     Protected Sub New()
 
     End Sub
@@ -17,8 +21,8 @@ Public Class DataItem
     ''' Creates a new DataItem instance.
     ''' </summary>
     ''' <param name="contents">Object. The contents of the item being processed.</param>
-    ''' <param name="item">Object. The object being processed.</param>
-    ''' <param name="name">String. The name of the item being processed.</param>
+    ''' <param name="item">Object. The item being processed.</param>
+    ''' <param name="name">String. The friendly name of the item being processed.</param>
     ''' <remarks></remarks>
     Public Sub New(ByVal item As Object, ByVal contents As Object, ByVal name As String)
         _contents = contents
@@ -51,7 +55,7 @@ Public Class DataItem
     End Property
 
     ''' <summary>
-    ''' Gets the name of the item being processed.
+    ''' Gets the friendly name of the item being processed.
     ''' </summary>
     ''' <value></value>
     ''' <returns>String</returns>
@@ -61,5 +65,4 @@ Public Class DataItem
             Return _name
         End Get
     End Property
-
 End Class

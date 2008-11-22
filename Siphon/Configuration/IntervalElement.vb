@@ -1,6 +1,5 @@
 ﻿Imports System.Configuration
 
-Namespace Configuration
     ''' <summary>
     ''' An interval of time to wait.
     ''' </summary>
@@ -21,6 +20,4 @@ Namespace Configuration
                 Return Me.Item("value")
             End Get
         End Property
-    End Class
-End Namespace
-
+End Class

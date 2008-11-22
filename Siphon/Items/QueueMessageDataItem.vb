@@ -8,7 +8,7 @@ Public Class QueueMessageDataItem
     Inherits DataItem
 
     ''' <summary>
-    ''' Creates a new FileDataItem
+    ''' Creates a new QueueMessageDataItem instance.
     ''' </summary>
     ''' <param name="message">Message. The queue message being processed.</param>
     ''' <remarks></remarks>

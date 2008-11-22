@@ -84,6 +84,7 @@
     <Compile Include="Processors\MockProcessor.vb" />
     <Compile Include="Schedules\ScheduleTests.vb" />
     <Compile Include="Service\ServiceTests.vb" />
+    <Compile Include="TestBase.vb" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="My Project\Resources.resx">
