@@ -44,4 +44,22 @@ Public Class FtpDirectoryMonitor
 
         Return New System.Collections.ObjectModel.Collection(Of IDataItem)
     End Function
+
+    ''' <summary>
+    ''' Deletes the data item after processing.
+    ''' </summary>
+    ''' <param name="data">IDataItem. The item to delete.</param>
+    ''' <remarks></remarks>
+    Public Overrides Sub Delete(ByVal data As IDataItem)
+        Throw New NotImplementedException
+    End Sub
+
+    ''' <summary>
+    ''' Renames the data item after processing.
+    ''' </summary>
+    ''' <param name="data">IDataItem. The item to renamed.</param>
+    ''' <remarks></remarks>
+    Public Overrides Sub Rename(ByVal data As IDataItem)
+        Throw New NotImplementedException
+    End Sub
 End Class

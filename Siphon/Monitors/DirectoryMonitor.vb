@@ -46,7 +46,7 @@ Public MustInherit Class DirectoryMonitor
     ''' Creates missing folders before starting the timer.
     ''' </summary>
     ''' <remarks></remarks>
-    Public MustOverride Sub CreateFolders()
+    Public MustOverride Sub CreateFolders() Implements IDirectoryMonitor.CreateFolders
 
     ''' <summary>
     ''' Gets/sets flag determining whether to create any missing folders when starting the monitor.
@@ -54,7 +54,7 @@ Public MustInherit Class DirectoryMonitor
     ''' <value></value>
     ''' <returns>Boolean</returns>
     ''' <remarks></remarks>
-    Public Overridable Property CreateMissingFolders() As Boolean
+    Public Overridable Property CreateMissingFolders() As Boolean Implements IDirectoryMonitor.CreateMissingFolders
         Get
             Return _createMissingFolders
         End Get
@@ -271,6 +271,16 @@ Public MustInherit Class DirectoryMonitor
     End Property
 
     ''' <summary>
+    ''' Returns a new file name for processed files that are being renamed.
+    ''' </summary>
+    ''' <param name="name">String. The original file being renamed</param>
+    ''' <returns></returns>
+    ''' <remarks></remarks>
+    Protected Overridable Function GetNewFileName(ByVal name As String) As String
+        Return String.Format("{0}.{1}", name, Guid.NewGuid.ToString)
+    End Function
+
+    ''' <summary>
     ''' Returns value indicating if the given uri scheme is supported or not.
     ''' </summary>
     ''' <param name="uri">Uri. The uri to validate.</param>
@@ -292,7 +302,7 @@ Public MustInherit Class DirectoryMonitor
     ''' <returns>Uri</returns>
     ''' <remarks></remarks>
     Private Function VerifyDriveLEtter(ByVal value As Uri) As Uri
-        If value.Scheme = uri.UriSchemeFile Then
+        If value.Scheme = Uri.UriSchemeFile Then
             If Not Regex.IsMatch(value.Segments(1), "(\:|\$)") Then
                 REM this will fix absolute file uris without drive letters
                 REM assume drive from main Path/Uri

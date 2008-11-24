@@ -6,6 +6,20 @@ Public Interface IDirectoryMonitor
     Inherits IDataMonitor
 
     ''' <summary>
+    ''' Gets/sets flag determining whether to create any missing folders when starting the monitor.
+    ''' </summary>
+    ''' <value></value>
+    ''' <returns>Boolean</returns>
+    ''' <remarks></remarks>
+    Property CreateMissingFolders() As Boolean
+
+    ''' <summary>
+    ''' Creates missing folders before starting the timer.
+    ''' </summary>
+    ''' <remarks></remarks>
+    Sub CreateFolders()
+
+    ''' <summary>
     ''' Gets/sets the file name filter to apply to the directorys contents
     ''' </summary>
     ''' <value></value>

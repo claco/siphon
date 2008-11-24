@@ -1,5 +1,6 @@
 ﻿Imports System.IO
 Imports System.Messaging
+Imports System.Text.RegularExpressions
 Imports NUnit.Framework
 Imports ChrisLaco.Siphon
 
@@ -43,15 +44,71 @@ Imports ChrisLaco.Siphon
         End Using
     End Sub
 
-    <Test(Description:="Test directory monitor with processor failure")> _
-    Public Sub DirectoryMonitorProcessorFailure()
-        CreateFailureFile()
+    <Test(Description:="Test successful directory monitor process complete deletes file")> _
+    Public Sub DirectoryMonitorProcessorCompleteDeleteFile()
+        CreateSuccessFile("SUCCESS")
 
         Using schedule = New DailySchedule(DateTime.Now.AddSeconds(2).TimeOfDay)
             Using processor = New MockProcessor
                 Using monitor As LocalDirectoryMonitor = New LocalDirectoryMonitor("LocalMonitor", TestDirectory.FullName, schedule, processor)
                     AddHandler monitor.ProcessComplete, AddressOf Monitor_ProcessComplete
                     AddHandler monitor.ProcessFailure, AddressOf Monitor_ProcessFailure
+
+                    Assert.IsTrue(File.Exists(Path.Combine(TestDirectory.FullName, "SUCCESS")))
+                    monitor.ProcessCompleteActions = DataActions.Delete
+                    monitor.Start()
+                    Threading.Thread.Sleep(3000)
+                    monitor.Stop()
+
+                    Assert.AreEqual(1, processor.Count, "Has processed 1 file")
+                    Assert.IsTrue(Me.ProcessComplete)
+                    Assert.IsFalse(Me.ProcessFailure)
+                    Assert.IsFalse(File.Exists(Path.Combine(TestDirectory.FullName, "SUCCESS")))
+                End Using
+            End Using
+        End Using
+    End Sub
+
+    <Test(Description:="Test successful directory monitor process complete renames file")> _
+    Public Sub DirectoryMonitorProcessorCompleteRenameFile()
+        CreateSuccessFile("SUCCESS")
+
+        Using schedule = New DailySchedule(DateTime.Now.AddSeconds(2).TimeOfDay)
+            Using processor = New MockProcessor
+                Using monitor As LocalDirectoryMonitor = New LocalDirectoryMonitor("LocalMonitor", TestDirectory.FullName, schedule, processor)
+                    AddHandler monitor.ProcessComplete, AddressOf Monitor_ProcessComplete
+                    AddHandler monitor.ProcessFailure, AddressOf Monitor_ProcessFailure
+
+                    Assert.IsTrue(File.Exists(Path.Combine(TestDirectory.FullName, "SUCCESS")))
+                    monitor.ProcessCompleteActions = DataActions.Rename
+                    monitor.Start()
+                    Threading.Thread.Sleep(3000)
+                    monitor.Stop()
+
+                    Assert.AreEqual(1, processor.Count, "Has processed 1 file")
+                    Assert.IsTrue(Me.ProcessComplete)
+                    Assert.IsFalse(Me.ProcessFailure)
+                    Assert.IsFalse(File.Exists(Path.Combine(TestDirectory.FullName, "SUCCESS")))
+                    Assert.AreEqual(1, TestDirectory.GetFiles.Count)
+
+                    Dim files() As FileInfo = TestDirectory.GetFiles
+                    Assert.IsTrue(Regex.IsMatch(files(0).Name, "SUCCESS\.{?([0-9a-fA-F]){8}(-([0-9a-fA-F]){4}){3}-([0-9a-fA-F]){12}}?", RegexOptions.IgnoreCase))
+                End Using
+            End Using
+        End Using
+    End Sub
+
+    <Test(Description:="Test directory monitor with processor failure")> _
+    Public Sub DirectoryMonitorProcessorFailure()
+        CreateFailureFile("FAILURE")
+
+        Using schedule = New DailySchedule(DateTime.Now.AddSeconds(2).TimeOfDay)
+            Using processor = New MockProcessor
+                Using monitor As LocalDirectoryMonitor = New LocalDirectoryMonitor("LocalMonitor", TestDirectory.FullName, schedule, processor)
+                    AddHandler monitor.ProcessComplete, AddressOf Monitor_ProcessComplete
+                    AddHandler monitor.ProcessFailure, AddressOf Monitor_ProcessFailure
+
+                    Assert.IsTrue(File.Exists(Path.Combine(TestDirectory.FullName, "FAILURE")))
                     monitor.Start()
                     Threading.Thread.Sleep(3000)
                     monitor.Stop()
@@ -59,6 +116,61 @@ Imports ChrisLaco.Siphon
                     Assert.AreEqual(1, processor.Count, "Has processed 1 file")
                     Assert.IsFalse(Me.ProcessComplete)
                     Assert.IsTrue(Me.ProcessFailure)
+                    Assert.IsTrue(File.Exists(Path.Combine(TestDirectory.FullName, "FAILURE")))
+                End Using
+            End Using
+        End Using
+    End Sub
+
+    <Test(Description:="Test directory monitor with processor failure deletes file")> _
+    Public Sub DirectoryMonitorProcessorFailureDeleteFile()
+        CreateFailureFile("FAILURE")
+
+        Using schedule = New DailySchedule(DateTime.Now.AddSeconds(2).TimeOfDay)
+            Using processor = New MockProcessor
+                Using monitor As IDirectoryMonitor = New LocalDirectoryMonitor("LocalMonitor", TestDirectory.FullName, schedule, processor)
+                    AddHandler monitor.ProcessComplete, AddressOf Monitor_ProcessComplete
+                    AddHandler monitor.ProcessFailure, AddressOf Monitor_ProcessFailure
+
+                    Assert.IsTrue(File.Exists(Path.Combine(TestDirectory.FullName, "FAILURE")))
+                    monitor.ProcessFailureActions = DataActions.Delete
+                    monitor.Start()
+                    Threading.Thread.Sleep(3000)
+                    monitor.Stop()
+
+                    Assert.AreEqual(1, processor.Count, "Has processed 1 file")
+                    Assert.IsFalse(Me.ProcessComplete)
+                    Assert.IsTrue(Me.ProcessFailure)
+                    Assert.IsFalse(File.Exists(Path.Combine(TestDirectory.FullName, "FAILURE")))
+                End Using
+            End Using
+        End Using
+    End Sub
+
+    <Test(Description:="Test directory monitor with processor failure renames file")> _
+    Public Sub DirectoryMonitorProcessorFailureRenameFile()
+        CreateFailureFile("FAILURE")
+
+        Using schedule = New DailySchedule(DateTime.Now.AddSeconds(2).TimeOfDay)
+            Using processor = New MockProcessor
+                Using monitor As IDirectoryMonitor = New LocalDirectoryMonitor("LocalMonitor", TestDirectory.FullName, schedule, processor)
+                    AddHandler monitor.ProcessComplete, AddressOf Monitor_ProcessComplete
+                    AddHandler monitor.ProcessFailure, AddressOf Monitor_ProcessFailure
+
+                    Assert.IsTrue(File.Exists(Path.Combine(TestDirectory.FullName, "FAILURE")))
+                    monitor.ProcessFailureActions = DataActions.Rename
+                    monitor.Start()
+                    Threading.Thread.Sleep(3000)
+                    monitor.Stop()
+
+                    Assert.AreEqual(1, processor.Count, "Has processed 1 file")
+                    Assert.IsFalse(Me.ProcessComplete)
+                    Assert.IsTrue(Me.ProcessFailure)
+                    Assert.IsFalse(File.Exists(Path.Combine(TestDirectory.FullName, "FAILURE")))
+                    Assert.AreEqual(1, TestDirectory.GetFiles.Count)
+
+                    Dim files() As FileInfo = TestDirectory.GetFiles
+                    Assert.IsTrue(Regex.IsMatch(files(0).Name, "FAILURE\.{?([0-9a-fA-F]){8}(-([0-9a-fA-F]){4}){3}-([0-9a-fA-F]){12}}?", RegexOptions.IgnoreCase))
                 End Using
             End Using
         End Using

@@ -91,6 +91,20 @@ Public Interface IDataMonitor
     Property ProcessCompleteActions() As DataActions
 
     ''' <summary>
+    ''' Deletes the data item after processing.
+    ''' </summary>
+    ''' <param name="data">IDataItem. The item to delete.</param>
+    ''' <remarks></remarks>
+    Sub Delete(ByVal data As IDataItem)
+
+    ''' <summary>
+    ''' Renames the data item after processing.
+    ''' </summary>
+    ''' <param name="data">IDataItem. The item to renamed.</param>
+    ''' <remarks></remarks>
+    Sub Rename(ByVal data As IDataItem)
+
+    ''' <summary>
     ''' Event fires when data processing fails.
     ''' </summary>
     ''' <remarks></remarks>

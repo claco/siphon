@@ -80,4 +80,28 @@ Public Class LocalDirectoryMonitor
 
         Return items
     End Function
+
+    ''' <summary>
+    ''' Deletes the data item after processing.
+    ''' </summary>
+    ''' <param name="data">IDataItem. The item to delete.</param>
+    ''' <remarks></remarks>
+    Public Overrides Sub Delete(ByVal data As IDataItem)
+        DirectCast(data, FileDataItem).File.Delete()
+    End Sub
+
+    ''' <summary>
+    ''' Renames the data item after processing.
+    ''' </summary>
+    ''' <param name="data">IDataItem. The item to renamed.</param>
+    ''' <remarks></remarks>
+    Public Overrides Sub Rename(ByVal data As IDataItem)
+        Dim item As FileDataItem = data
+        Dim original As String = item.File.Name
+        Dim name As String = Me.GetNewFileName(original)
+
+        item.File.MoveTo(IO.Path.Combine(item.File.Directory.FullName, name))
+
+        Log.DebugFormat("Renaming {0} to {1}", original, name)
+    End Sub
 End Class

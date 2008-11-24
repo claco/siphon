@@ -24,7 +24,21 @@ Public Class FileDataItem
     ''' <remarks></remarks>
     Public Overrides ReadOnly Property Contents() As Object
         Get
-            Return DirectCast(Me.Item, FileInfo).OpenText.ReadToEnd
+            Using reader As StreamReader = DirectCast(Me.Item, FileInfo).OpenText
+                Contents = reader.ReadToEnd
+            End Using
+        End Get
+    End Property
+
+    ''' <summary>
+    ''' Gets the file info for the current item being processed.
+    ''' </summary>
+    ''' <value></value>
+    ''' <returns>FileInfo</returns>
+    ''' <remarks></remarks>
+    Public Overridable ReadOnly Property File() As FileInfo
+        Get
+            Return Me.Item
         End Get
     End Property
 End Class
