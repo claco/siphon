@@ -85,8 +85,8 @@ Imports ChrisLaco.Siphon
         End Using
     End Sub
 
-    <Test(Description:="Test directory monitor create missing root directory")> _
-    Public Sub DirectoryMonitorCreateDirectory()
+    <Test(Description:="Test directory monitor create missing directories")> _
+    Public Sub DirectoryMonitorCreateDirectoriesNested()
         Dim tempdir As String = Path.Combine(Path.GetTempPath, Path.GetRandomFileName)
 
         Using schedule = New DailySchedule(DateTime.Now.AddSeconds(1).TimeOfDay)
@@ -94,12 +94,46 @@ Imports ChrisLaco.Siphon
                 Using monitor As LocalDirectoryMonitor = New LocalDirectoryMonitor("LocalMonitor", tempdir, schedule, processor)
                     AddHandler monitor.ProcessComplete, AddressOf Monitor_ProcessComplete
                     AddHandler monitor.ProcessFailure, AddressOf Monitor_ProcessFailure
-                    Assert.IsFalse(Directory.Exists(tempdir), "Monitor path doesn't exist")
 
                     monitor.CreateMissingFolders = True
+                    monitor.CompletePath = "Processed"
+                    monitor.FailurePath = "Failed"
+
                     monitor.Start()
                     monitor.Stop()
 
+                    Assert.IsTrue(Directory.Exists(tempdir), "Monitor path exista")
+                    Assert.IsTrue(Directory.Exists(Path.Combine(tempdir, "Processed")), "Processed child path exists")
+                    Assert.IsTrue(Directory.Exists(Path.Combine(tempdir, "Failed")), "Failed child path exists")
+                    Assert.IsTrue(Directory.Exists(tempdir), "Monitor path exista")
+                    Assert.IsFalse(Me.ProcessComplete)
+                    Assert.IsFalse(Me.ProcessFailure)
+                End Using
+            End Using
+        End Using
+    End Sub
+
+    <Test(Description:="Test directory monitor create missing directories")> _
+    Public Sub DirectoryMonitorCreateDirectories()
+        Dim tempdir As String = Path.Combine(Path.Combine(Path.GetTempPath, Path.GetRandomFileName), "New")
+
+        Using schedule = New DailySchedule(DateTime.Now.AddSeconds(1).TimeOfDay)
+            Using processor = New MockProcessor
+                Using monitor As LocalDirectoryMonitor = New LocalDirectoryMonitor("LocalMonitor", tempdir, schedule, processor)
+                    AddHandler monitor.ProcessComplete, AddressOf Monitor_ProcessComplete
+                    AddHandler monitor.ProcessFailure, AddressOf Monitor_ProcessFailure
+
+                    monitor.CreateMissingFolders = True
+                    monitor.CompletePath = "../Processed"
+                    monitor.FailurePath = "../Failed"
+
+                    monitor.Start()
+                    monitor.Stop()
+
+                    Dim temp As New DirectoryInfo(tempdir)
+                    Assert.IsTrue(Directory.Exists(tempdir), "Monitor path exista")
+                    Assert.IsTrue(Directory.Exists(Path.Combine(temp.Parent.FullName, "Processed")), "Processed child path exists")
+                    Assert.IsTrue(Directory.Exists(Path.Combine(temp.Parent.FullName, "Failed")), "Failed child path exists")
                     Assert.IsTrue(Directory.Exists(tempdir), "Monitor path exista")
                     Assert.IsFalse(Me.ProcessComplete)
                     Assert.IsFalse(Me.ProcessFailure)
@@ -132,7 +166,6 @@ Imports ChrisLaco.Siphon
         End Using
     End Sub
 
-
     <Test(Description:="Test directory monitor with slow processor on stop")> _
     Public Sub DirectoryMonitorStillProcessing()
         CreateSuccessFile()
@@ -157,6 +190,88 @@ Imports ChrisLaco.Siphon
                     Assert.IsFalse(Me.ProcessFailure)
                 End Using
             End Using
+        End Using
+    End Sub
+
+    <Test(Description:="DirectoryMonitor path tests")> _
+    Public Sub LocalDirectoryPaths()
+        Using monitor As New LocalDirectoryMonitor("LocalDirectoryMonitor", "C:\", New IntervalSchedule, New MockProcessor)
+            Assert.AreEqual("C:\", monitor.Path)
+            Assert.AreEqual("file:///C:/", monitor.Uri.ToString)
+
+            REM path gets uri
+            monitor.Path = "file:///D:/"
+            Assert.AreEqual("D:\", monitor.Path)
+            Assert.AreEqual("file:///D:/", monitor.Uri.ToString)
+
+            REM uri gets uri
+            monitor.Uri = New Uri("file:///C:/")
+            Assert.AreEqual("C:\", monitor.Path)
+            Assert.AreEqual("file:///C:/", monitor.Uri.ToString)
+
+            REM blank defaults
+            Assert.IsNull(monitor.CompleteUri)
+            Assert.IsNull(monitor.FailureUri)
+            Assert.IsTrue(String.IsNullOrEmpty(monitor.CompletePath))
+            Assert.IsTrue(String.IsNullOrEmpty(monitor.FailurePath))
+
+            REM Relative paths
+            monitor.Path = "C:\"
+            monitor.CompletePath = "Processed"
+            Assert.AreEqual("C:\Processed", monitor.CompletePath)
+            Assert.AreEqual("file:///C:/Processed", monitor.CompleteUri.ToString)
+            monitor.FailurePath = "Failed"
+            Assert.AreEqual("C:\Failed", monitor.FailurePath)
+            Assert.AreEqual("file:///C:/Failed", monitor.FailureUri.ToString)
+
+            REM Drive paths
+            monitor.CompletePath = "D:\Processed"
+            Assert.AreEqual("D:\Processed", monitor.CompletePath)
+            Assert.AreEqual("file:///D:/Processed", monitor.CompleteUri.ToString)
+            monitor.FailurePath = "D:\Failed"
+            Assert.AreEqual("D:\Failed", monitor.FailurePath)
+            Assert.AreEqual("file:///D:/Failed", monitor.FailureUri.ToString)
+
+            REM Parent Paths
+            monitor.Path = "C:\Parent"
+            monitor.CompletePath = "../Processed"
+            Assert.AreEqual("C:\Processed", monitor.CompletePath)
+            Assert.AreEqual("file:///C:/Processed", monitor.CompleteUri.ToString)
+            monitor.FailurePath = "../Failed"
+            Assert.AreEqual("C:\Failed", monitor.FailurePath)
+            Assert.AreEqual("file:///C:/Failed", monitor.FailureUri.ToString)
+            monitor.CompletePath = "..\Processed"
+            Assert.AreEqual("C:\Processed", monitor.CompletePath)
+            Assert.AreEqual("file:///C:/Processed", monitor.CompleteUri.ToString)
+            monitor.FailurePath = "..\Failed"
+            Assert.AreEqual("C:\Failed", monitor.FailurePath)
+            Assert.AreEqual("file:///C:/Failed", monitor.FailureUri.ToString)
+
+            REM Absolute Paths: Drive letter retained from main Path/Uri
+            monitor.Path = "C:\Top"
+            monitor.CompletePath = "/Processed"
+            Assert.AreEqual("C:\Processed", monitor.CompletePath)
+            Assert.AreEqual("file:///C:/Processed", monitor.CompleteUri.ToString)
+            monitor.FailurePath = "/Failed"
+            Assert.AreEqual("C:\Failed", monitor.FailurePath)
+            Assert.AreEqual("file:///C:/Failed", monitor.FailureUri.ToString)
+
+            REM complete/failure uri paths
+            monitor.CompleteUri = New Uri("file:///D:/Foo")
+            Assert.AreEqual("D:\Foo", monitor.CompletePath)
+            Assert.AreEqual("file:///D:/Foo", monitor.CompleteUri.ToString)
+            monitor.FailureUri = New Uri("file:///D:/Foo")
+            Assert.AreEqual("D:\Foo", monitor.FailurePath)
+            Assert.AreEqual("file:///D:/Foo", monitor.FailureUri.ToString)
+
+            REM rooted uri
+            monitor.CompleteUri = New Uri("file:///Foo")
+            Assert.AreEqual("C:\Foo", monitor.CompletePath)
+            Assert.AreEqual("file:///C:/Foo", monitor.CompleteUri.ToString)
+            monitor.FailureUri = New Uri("file:///Foo")
+            Assert.AreEqual("C:\Foo", monitor.FailurePath)
+            Assert.AreEqual("file:///C:/Foo", monitor.FailureUri.ToString)
+
         End Using
     End Sub
 #End Region

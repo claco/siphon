@@ -1,4 +1,5 @@
 ﻿Imports System.Configuration
+Imports System.Text.RegularExpressions
 Imports log4net
 
 ''' <summary>
@@ -16,7 +17,9 @@ Public MustInherit Class DirectoryMonitor
 
     Private _createMissingFolders As Boolean
     Private _filter As String = DEFAULT_FILTER
-    Private _path As String = String.Empty
+    Private _uri As Uri = Nothing
+    Private _completeUri As Uri = Nothing
+    Private _failureUri As Uri = Nothing
 
     ''' <summary>
     ''' Protected constructor for reflection.
@@ -105,16 +108,48 @@ Public MustInherit Class DirectoryMonitor
     ''' </summary>
     ''' <value></value>
     ''' <returns>String</returns>
-    ''' <remarks></remarks>
+    ''' <remarks>The path can be a local file system path, or a file uri path.</remarks>
     Public Overridable Property Path() As String Implements IDirectoryMonitor.Path
         Get
-            Return _path
+            If Me.Uri Is Nothing Then
+                Return String.Empty
+            Else
+                Return Me.Uri.LocalPath
+            End If
         End Get
         Set(ByVal value As String)
             If String.IsNullOrEmpty(value) Then
                 Throw New ArgumentException("Path can not be null or empty")
             Else
-                _path = value.Trim
+                Dim parsedUri As Uri = Nothing
+
+                If Uri.TryCreate(value, UriKind.RelativeOrAbsolute, parsedUri) Then
+                    Log.DebugFormat("Path: {0} converted to {1}", value, parsedUri.AbsoluteUri)
+
+                    Me.Uri = parsedUri
+                Else
+                    Me.Uri = New Uri(value)
+                End If
+            End If
+        End Set
+    End Property
+
+    ''' <summary>
+    ''' Gets/sets the full path as a uri of the directory to monitor.
+    ''' </summary>
+    ''' <value></value>
+    ''' <returns>Uri</returns>
+    ''' <remarks></remarks>
+    Public Property Uri() As Uri Implements IDirectoryMonitor.Uri
+        Get
+            Return _uri
+
+        End Get
+        Set(ByVal value As Uri)
+            If IsSchemeSupported(value) Then
+                _uri = value
+            Else
+                Throw New UriFormatException("Scheme not supported")
             End If
         End Set
     End Property
@@ -130,4 +165,146 @@ Public MustInherit Class DirectoryMonitor
 
         MyBase.Start()
     End Sub
+
+    ''' <summary>
+    ''' Gets/sets the path where files that fail processing should be moved to if the DataActions.Move action is set. 
+    ''' </summary>
+    ''' <value></value>
+    ''' <returns>String</returns>
+    ''' <remarks></remarks>
+    Public Property CompletePath() As String Implements IDirectoryMonitor.CompletePath
+        Get
+            Dim uri As Uri = Me.CompleteUri
+            If uri Is Nothing Then
+                Return Nothing
+            Else
+                Return uri.LocalPath
+            End If
+        End Get
+        Set(ByVal value As String)
+            If Regex.IsMatch(value, Uri.SchemeDelimiter) Then
+                Dim uri As New Uri(value)
+
+                Log.DebugFormat("CompletePath: {0} converted to {1}", value, uri.ToString)
+
+                Me.CompleteUri = uri
+            Else
+                Dim builder As New UriBuilder(Me.Uri)
+                builder.Path = IO.Path.Combine(builder.Path, value)
+
+                Log.DebugFormat("CompletePath: {0} converted to {1}", value, builder.Uri.ToString)
+
+                Me.CompleteUri = builder.Uri
+            End If
+        End Set
+    End Property
+
+    ''' <summary>
+    ''' Gets the uri where files that process successfully should be moved to if the DataActions.Move aciton is set.
+    ''' </summary>
+    ''' <value></value>
+    ''' <returns>Uri</returns>
+    ''' <remarks></remarks>
+    Public Property CompleteUri() As Uri Implements IDirectoryMonitor.CompleteUri
+        Get
+            Return _completeUri
+        End Get
+        Set(ByVal value As Uri)
+            If IsSchemeSupported(value) Then
+                _completeUri = Me.VerifyDriveLEtter(value)
+            Else
+                Throw New UriFormatException("Scheme not supported")
+            End If
+        End Set
+    End Property
+
+    ''' <summary>
+    ''' Gets/sets the path where files that process successfully should be moved to if the DataActions.Move aciton is set.
+    ''' </summary>
+    ''' <value></value>
+    ''' <returns></returns>
+    ''' <remarks></remarks>
+    Public Property FailurePath() As String Implements IDirectoryMonitor.FailurePath
+        Get
+            Dim uri As Uri = Me.FailureUri
+            If uri Is Nothing Then
+                Return Nothing
+            Else
+                Return uri.LocalPath
+            End If
+        End Get
+        Set(ByVal value As String)
+            If Regex.IsMatch(value, Uri.SchemeDelimiter) Then
+                Dim uri As New Uri(value)
+
+                Log.DebugFormat("FailurePath: {0} converted to {1}", value, uri.ToString)
+
+                Me.CompleteUri = uri
+            Else
+                Dim builder As New UriBuilder(Me.Uri)
+                builder.Path = IO.Path.Combine(builder.Path, value)
+
+                Log.DebugFormat("FailurePath: {0} converted to {1}", value, builder.Uri.ToString)
+
+                Me.FailureUri = builder.Uri
+            End If
+        End Set
+    End Property
+
+    ''' <summary>
+    ''' Gets/sets the uri where files that fail processing should be moved to if the DataActions.Move action is set. 
+    ''' </summary>
+    ''' <value></value>
+    ''' <returns>Uri</returns>
+    ''' <remarks></remarks>
+    Public Property FailureUri() As Uri Implements IDirectoryMonitor.FailureUri
+        Get
+            Return _failureUri
+        End Get
+        Set(ByVal value As Uri)
+            If IsSchemeSupported(value) Then
+                _failureUri = Me.VerifyDriveLEtter(value)
+            Else
+                Throw New UriFormatException("Scheme not supported")
+            End If
+        End Set
+    End Property
+
+    ''' <summary>
+    ''' Returns value indicating if the given uri scheme is supported or not.
+    ''' </summary>
+    ''' <param name="uri">Uri. The uri to validate.</param>
+    ''' <returns>Boolean. True of the uri scheme is supported. False otherwise.</returns>
+    ''' <remarks>Currently, only the file, ftp, http and https schemes are supported.</remarks>
+    Protected Function IsSchemeSupported(ByVal uri As Uri) As Boolean
+        Select Case uri.Scheme
+            Case uri.UriSchemeFile, uri.UriSchemeFtp, uri.UriSchemeHttp, uri.UriSchemeHttps
+                Return True
+            Case Else
+                Return False
+        End Select
+    End Function
+
+    ''' <summary>
+    ''' Verifies that a file uri is rooted to a drive and assigns it to the main Path/Uris drive if it isn't.
+    ''' </summary>
+    ''' <param name="value">Uri. The file uri being verified.</param>
+    ''' <returns>Uri</returns>
+    ''' <remarks></remarks>
+    Private Function VerifyDriveLEtter(ByVal value As Uri) As Uri
+        If value.Scheme = uri.UriSchemeFile Then
+            If Not Regex.IsMatch(value.Segments(1), "(\:|\$)") Then
+                REM this will fix absolute file uris without drive letters
+                REM assume drive from main Path/Uri
+                Dim builder As New UriBuilder(value)
+                builder.Path = IO.Path.Combine(Me.Uri.Segments(1), Regex.Replace(value.LocalPath, "\A(\\|\/)", ""))
+
+                Log.DebugFormat("CompleteUri: Rooting file uri from {0} to {1}", value.ToString, builder.Uri.ToString)
+                value = builder.Uri
+            End If
+        End If
+
+        Return value
+    End Function
+
 End Class

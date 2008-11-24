@@ -1,5 +1,4 @@
-- Add service code/config classes
-- Add console code/config classes
 - Add Succeed/Failed Processsing Actions (Move, Rename, Delete)
 - Add translators to mediate from Scan(Objects)->Processor(x)
 - Add IMAP/POP3 monitors
+- Add UriDataItem for ftp, ttp, https type data items

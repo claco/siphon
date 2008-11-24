@@ -70,7 +70,8 @@ Public Class ConfigurationTests
         monitor = section.Monitors(1).CreateInstance
         Assert.IsInstanceOfType(GetType(FtpDirectoryMonitor), monitor)
         Assert.IsInstanceOfType(GetType(DailySchedule), monitor.Schedule)
-        Assert.AreEqual("ftp://foo.bar.baz/", DirectCast(monitor, FtpDirectoryMonitor).Path)
+        Assert.AreEqual("/", DirectCast(monitor, FtpDirectoryMonitor).Path)
+        Assert.AreEqual("ftp://foo.bar.baz/", DirectCast(monitor, FtpDirectoryMonitor).Uri.ToString)
         Assert.AreEqual(3, DirectCast(monitor.Schedule, DailySchedule).Times.Count)
         Assert.AreEqual(New TimeSpan(1, 23, 0), DirectCast(monitor.Schedule, DailySchedule).Times(0))
         Assert.AreEqual(New TimeSpan(12, 23, 0), DirectCast(monitor.Schedule, DailySchedule).Times(1))

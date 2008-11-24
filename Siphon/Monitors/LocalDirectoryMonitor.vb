@@ -34,9 +34,31 @@ Public Class LocalDirectoryMonitor
     Public Overrides Sub CreateFolders()
         If Me.CreateMissingFolders Then
             If Not Directory.Exists(Me.Path) Then
-                Log.DebugFormat("Creating directory {0}", Me.Path)
+                Dim root As String = Me.Path
 
-                Directory.CreateDirectory(Me.Path)
+                Log.DebugFormat("Creating directory {0}", root)
+
+                Directory.CreateDirectory(root)
+            End If
+
+            If Not String.IsNullOrEmpty(Me.CompletePath) Then
+                Dim complete As String = Me.CompleteUri.LocalPath
+
+                If Not Directory.Exists(complete) Then
+                    Log.DebugFormat("Creating directory {0}", complete)
+
+                    Directory.CreateDirectory(complete)
+                End If
+            End If
+
+            If Not String.IsNullOrEmpty(Me.FailurePath) Then
+                Dim failure As String = Me.FailureUri.LocalPath
+
+                If Not Directory.Exists(failure) Then
+                    Log.DebugFormat("Creating directory {0}", failure)
+
+                    Directory.CreateDirectory(failure)
+                End If
             End If
         End If
     End Sub
