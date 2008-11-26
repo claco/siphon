@@ -20,7 +20,7 @@ Public Class MockProcessor
         Threading.Thread.Sleep(Me.Delay * 1000)
         Log.DebugFormat("Process Finished Delay {0}", Me.Delay)
 
-        Select Case data.Contents.ToString.ToUpper
+        Select Case data.GetString.ToUpper
             Case "SUCCESS"
                 Return True
             Case "FAILURE"

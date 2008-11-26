@@ -2,11 +2,10 @@
 ''' Class containing a data item to be processed.
 ''' </summary>
 ''' <remarks></remarks>
-Public Class DataItem
-    Implements IDataItem
+Public Class DataItem(Of T)
+    Implements IDataItem(Of T)
 
-    Private _item As Object = Nothing
-    Private _contents As Object = Nothing
+    Private _item As T = Nothing
     Private _name As String = String.Empty
 
     ''' <summary>
@@ -20,14 +19,12 @@ Public Class DataItem
     ''' <summary>
     ''' Creates a new DataItem instance.
     ''' </summary>
-    ''' <param name="contents">Object. The contents of the item being processed.</param>
-    ''' <param name="item">Object. The item being processed.</param>
     ''' <param name="name">String. The friendly name of the item being processed.</param>
+    ''' <param name="item">Object. The item being processed.</param>
     ''' <remarks></remarks>
-    Public Sub New(ByVal item As Object, ByVal contents As Object, ByVal name As String)
-        _contents = contents
-        _item = item
+    Public Sub New(ByVal name As String, ByVal item As T)
         _name = name
+        _item = item
     End Sub
 
     ''' <summary>
@@ -36,9 +33,9 @@ Public Class DataItem
     ''' <value></value>
     ''' <returns>Object</returns>
     ''' <remarks></remarks>
-    Public Overridable ReadOnly Property Contents() As Object Implements IDataItem.Contents
+    Public Overridable ReadOnly Property GetString() As String Implements IDataItem.GetString
         Get
-            Return _contents
+            Return _item.ToString
         End Get
     End Property
 
@@ -46,13 +43,14 @@ Public Class DataItem
     ''' Gets the the item being processed.
     ''' </summary>
     ''' <value></value>
-    ''' <returns>Object</returns>
+    ''' <returns>T</returns>
     ''' <remarks></remarks>
-    Public Overridable ReadOnly Property Item() As Object Implements IDataItem.Item
+    Public Overloads ReadOnly Property Item() As T Implements IDataItem(Of T).Item
         Get
             Return _item
         End Get
     End Property
+
 
     ''' <summary>
     ''' Gets the friendly name of the item being processed.
@@ -65,4 +63,5 @@ Public Class DataItem
             Return _name
         End Get
     End Property
+
 End Class

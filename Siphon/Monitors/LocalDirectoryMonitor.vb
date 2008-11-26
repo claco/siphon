@@ -74,8 +74,8 @@ Public Class LocalDirectoryMonitor
         Dim items As New Collection(Of IDataItem)
         Log.DebugFormat("Found {0} files in {1}", files.Length, Me.Path)
 
-        For Each File As String In files
-            items.Add(New FileDataItem(File))
+        For Each file As String In files
+            items.Add(New FileDataItem(file))
         Next
 
         Return items
@@ -87,7 +87,9 @@ Public Class LocalDirectoryMonitor
     ''' <param name="data">IDataItem. The item to delete.</param>
     ''' <remarks></remarks>
     Public Overrides Sub Delete(ByVal data As IDataItem)
-        DirectCast(data, FileDataItem).File.Delete()
+        Dim item As IDataItem(Of FileInfo) = data
+
+        DirectCast(item, IDataItem(Of FileInfo)).Item.Delete()
     End Sub
 
     ''' <summary>
@@ -96,11 +98,11 @@ Public Class LocalDirectoryMonitor
     ''' <param name="data">IDataItem. The item to renamed.</param>
     ''' <remarks></remarks>
     Public Overrides Sub Rename(ByVal data As IDataItem)
-        Dim item As FileDataItem = data
-        Dim original As String = item.File.Name
+        Dim item As IDataItem(Of FileInfo) = data
+        Dim original As String = item.Item.Name
         Dim name As String = Me.GetNewFileName(original)
 
-        item.File.MoveTo(IO.Path.Combine(item.File.Directory.FullName, name))
+        item.Item.MoveTo(IO.Path.Combine(item.Item.Directory.FullName, name))
 
         Log.DebugFormat("Renaming {0} to {1}", original, name)
     End Sub

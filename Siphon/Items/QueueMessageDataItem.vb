@@ -5,7 +5,7 @@
 ''' </summary>
 ''' <remarks></remarks>
 Public Class QueueMessageDataItem
-    Inherits DataItem
+    Inherits DataItem(Of Message)
 
     ''' <summary>
     ''' Creates a new QueueMessageDataItem instance.
@@ -13,7 +13,7 @@ Public Class QueueMessageDataItem
     ''' <param name="message">Message. The queue message being processed.</param>
     ''' <remarks></remarks>
     Public Sub New(ByVal message As Message)
-        MyBase.New(message, String.Empty, message.Label)
+        MyBase.New(message.Label, message)
     End Sub
 
     ''' <summary>
@@ -22,9 +22,9 @@ Public Class QueueMessageDataItem
     ''' <value></value>
     ''' <returns>Object</returns>
     ''' <remarks></remarks>
-    Public Overrides ReadOnly Property Contents() As Object
+    Public Overrides ReadOnly Property GetString() As String
         Get
-            Return DirectCast(Me.Item, Message).Body
+            Return Me.Item.Body
         End Get
     End Property
 End Class
