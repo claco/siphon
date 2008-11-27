@@ -5,15 +5,15 @@
 Public Class ProcessEventArgs
     Inherits EventArgs
 
-    Private _data As IDataItem = Nothing
+    Private _item As IDataItem = Nothing
 
     ''' <summary>
     ''' Creates a new ProcessEventArgs class.
     ''' </summary>
-    ''' <param name="data">IDataItem. The data item being processed.</param>
+    ''' <param name="item">IDataItem. The data item being processed.</param>
     ''' <remarks></remarks>
-    Public Sub New(ByVal data As IDataItem)
-        _data = data
+    Public Sub New(ByVal item As IDataItem)
+        _item = item
     End Sub
 
     ''' <summary>
@@ -22,9 +22,9 @@ Public Class ProcessEventArgs
     ''' <value></value>
     ''' <returns>IDataItem</returns>
     ''' <remarks></remarks>
-    Public ReadOnly Property Data() As IDataItem
+    Public ReadOnly Property Item() As IDataItem
         Get
-            Return _data
+            Return _item
         End Get
     End Property
 End Class

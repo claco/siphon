@@ -99,6 +99,40 @@ Imports ChrisLaco.Siphon
         End Using
     End Sub
 
+    <Test(Description:="Test successful directory monitor process complete moves file")> _
+    Public Sub DirectoryMonitorProcessorCompleteMoveFile()
+        CreateSuccessFile("SUCCESS")
+
+        Using schedule = New DailySchedule(DateTime.Now.AddSeconds(2).TimeOfDay)
+            Using processor = New MockProcessor
+                Using monitor As LocalDirectoryMonitor = New LocalDirectoryMonitor("LocalMonitor", TestDirectory.FullName, schedule, processor)
+                    AddHandler monitor.ProcessComplete, AddressOf Monitor_ProcessComplete
+                    AddHandler monitor.ProcessFailure, AddressOf Monitor_ProcessFailure
+
+                    Assert.IsTrue(File.Exists(Path.Combine(TestDirectory.FullName, "SUCCESS")))
+                    monitor.CompletePath = "Processed"
+                    monitor.ProcessCompleteActions = DataActions.Move
+                    monitor.CreateMissingFolders = True
+                    monitor.Start()
+                    Threading.Thread.Sleep(3000)
+                    monitor.Stop()
+
+                    Assert.AreEqual(1, processor.Count, "Has processed 1 file")
+                    Assert.IsTrue(Me.ProcessComplete)
+                    Assert.IsFalse(Me.ProcessFailure)
+                    Assert.IsFalse(File.Exists(Path.Combine(TestDirectory.FullName, "SUCCESS")))
+                    Assert.IsTrue(File.Exists(Path.Combine(Path.Combine(TestDirectory.FullName, "Processed"), "SUCCESS")))
+                    Assert.AreEqual(0, TestDirectory.GetFiles.Count)
+                    Assert.AreEqual(1, Directory.GetFiles(Path.Combine(TestDirectory.FullName, "Processed")).Length)
+
+
+                    'Dim files() As FileInfo = TestDirectory.GetFiles
+                    'Assert.IsTrue(Regex.IsMatch(files(0).Name, "SUCCESS\.{?([0-9a-fA-F]){8}(-([0-9a-fA-F]){4}){3}-([0-9a-fA-F]){12}}?", RegexOptions.IgnoreCase))
+                End Using
+            End Using
+        End Using
+    End Sub
+
     <Test(Description:="Test directory monitor with processor failure")> _
     Public Sub DirectoryMonitorProcessorFailure()
         CreateFailureFile("FAILURE")

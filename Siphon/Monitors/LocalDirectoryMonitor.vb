@@ -84,25 +84,48 @@ Public Class LocalDirectoryMonitor
     ''' <summary>
     ''' Deletes the data item after processing.
     ''' </summary>
-    ''' <param name="data">IDataItem. The item to delete.</param>
+    ''' <param name="item">IDataItem. The item to delete.</param>
     ''' <remarks></remarks>
-    Public Overrides Sub Delete(ByVal data As IDataItem)
-        Dim item As IDataItem(Of FileInfo) = data
+    Public Overrides Sub Delete(ByVal item As IDataItem)
+        Dim file As IDataItem(Of FileInfo) = item
 
-        DirectCast(item, IDataItem(Of FileInfo)).Item.Delete()
+        Log.DebugFormat("Deleting {0}", file.Data.FullName)
+
+        file.Data.Delete()
+    End Sub
+
+    ''' <summary>
+    ''' Moves the data item after processing.
+    ''' </summary>
+    ''' <param name="item">IDataItem. The item to move.</param>
+    ''' <remarks></remarks>
+    Public Overrides Sub Move(ByVal item As IDataItem)
+        Dim file As IDataItem(Of FileInfo) = item
+        Dim path As String = String.Empty
+
+        If item.Status = DataItemStatus.CompletedProcessing Then
+            path = Me.CompletePath
+        ElseIf item.Status = DataItemStatus.FailedProcessing Then
+            path = Me.FailurePath
+        Else
+
+        End If
+        DirectCast(file, FileDataItem).Move(path)
+
+        Log.DebugFormat("Moving {0} to {1}", file.Data.FullName, path)
     End Sub
 
     ''' <summary>
     ''' Renames the data item after processing.
     ''' </summary>
-    ''' <param name="data">IDataItem. The item to renamed.</param>
+    ''' <param name="item">IDataItem. The item to renamed.</param>
     ''' <remarks></remarks>
-    Public Overrides Sub Rename(ByVal data As IDataItem)
-        Dim item As IDataItem(Of FileInfo) = data
-        Dim original As String = item.Item.Name
+    Public Overrides Sub Rename(ByVal item As IDataItem)
+        Dim file As IDataItem(Of FileInfo) = item
+        Dim original As String = file.Data.Name
         Dim name As String = Me.GetNewFileName(original)
 
-        item.Item.MoveTo(IO.Path.Combine(item.Item.Directory.FullName, name))
+        DirectCast(file, FileDataItem).Rename(name)
 
         Log.DebugFormat("Renaming {0} to {1}", original, name)
     End Sub

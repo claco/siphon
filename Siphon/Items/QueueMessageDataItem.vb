@@ -24,7 +24,7 @@ Public Class QueueMessageDataItem
     ''' <remarks></remarks>
     Public Overrides ReadOnly Property GetString() As String
         Get
-            Return Me.Item.Body
+            Return Me.Data.Body
         End Get
     End Property
 End Class

@@ -6,11 +6,6 @@ Imports ChrisLaco.Siphon
 Public Class ConfigurationTests
     Inherits TestBase
 
-    <TestFixtureSetUp()> _
-    Public Sub TestFixtureSetupUp()
-        log4net.Config.XmlConfigurator.Configure()
-    End Sub
-
     <Test(Description:="Test configuration classes")> _
     Public Sub Configuration()
         Dim exePath As String = System.IO.Path.Combine(Environment.CurrentDirectory, "SiphonTests.dll")

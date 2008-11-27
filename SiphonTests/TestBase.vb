@@ -60,7 +60,7 @@ Public Class TestBase
     Protected Sub Monitor_ProcessComplete(ByVal sender As Object, ByVal e As ProcessEventArgs)
         Log.Debug("ProcessComplete Event Caught")
 
-        Me.ProcessItem = e.Data
+        Me.ProcessItem = e.Item
         Me.ProcessComplete = True
         Me.ProcessFailure = False
     End Sub
@@ -68,7 +68,7 @@ Public Class TestBase
     Protected Sub Monitor_ProcessFailure(ByVal sender As Object, ByVal e As ProcessEventArgs)
         Log.Debug("ProcessFailure Event Caught")
 
-        Me.ProcessItem = e.Data
+        Me.ProcessItem = e.Item
         Me.ProcessComplete = False
         Me.ProcessFailure = True
     End Sub

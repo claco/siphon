@@ -93,16 +93,23 @@ Public Interface IDataMonitor
     ''' <summary>
     ''' Deletes the data item after processing.
     ''' </summary>
-    ''' <param name="data">IDataItem. The item to delete.</param>
+    ''' <param name="item">IDataItem. The item to delete.</param>
     ''' <remarks></remarks>
-    Sub Delete(ByVal data As IDataItem)
+    Sub Delete(ByVal item As IDataItem)
+
+    ''' <summary>
+    ''' Moves the data item after processing.
+    ''' </summary>
+    ''' <param name="item">IDataItem. The item to move.</param>
+    ''' <remarks></remarks>
+    Sub Move(ByVal item As IDataItem)
 
     ''' <summary>
     ''' Renames the data item after processing.
     ''' </summary>
-    ''' <param name="data">IDataItem. The item to renamed.</param>
+    ''' <param name="item">IDataItem. The item to renamed.</param>
     ''' <remarks></remarks>
-    Sub Rename(ByVal data As IDataItem)
+    Sub Rename(ByVal item As IDataItem)
 
     ''' <summary>
     ''' Event fires when data processing fails.

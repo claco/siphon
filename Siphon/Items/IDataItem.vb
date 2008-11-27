@@ -19,6 +19,14 @@ Public Interface IDataItem
     ''' <returns>String</returns>
     ''' <remarks></remarks>
     ReadOnly Property Name() As String
+
+    ''' <summary>
+    ''' Gets/sets the 
+    ''' </summary>
+    ''' <value></value>
+    ''' <returns></returns>
+    ''' <remarks></remarks>
+    Property Status() As DataItemStatus
 End Interface
 
 ''' <summary>
@@ -35,7 +43,5 @@ Public Interface IDataItem(Of T)
     ''' <value></value>
     ''' <returns>T</returns>
     ''' <remarks></remarks>
-    Overloads ReadOnly Property Item() As T
-
-
+    Overloads ReadOnly Property Data() As T
 End Interface

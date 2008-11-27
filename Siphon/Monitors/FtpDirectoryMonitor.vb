@@ -55,6 +55,15 @@ Public Class FtpDirectoryMonitor
     End Sub
 
     ''' <summary>
+    ''' Moves the data item after processing.
+    ''' </summary>
+    ''' <param name="data">IDataItem. The item to move.</param>
+    ''' <remarks></remarks>
+    Public Overrides Sub Move(ByVal data As IDataItem)
+        Throw New NotImplementedException
+    End Sub
+
+    ''' <summary>
     ''' Renames the data item after processing.
     ''' </summary>
     ''' <param name="data">IDataItem. The item to renamed.</param>

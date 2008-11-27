@@ -70,6 +70,7 @@
     <Compile Include="Configuration\TimeElement.vb" />
     <Compile Include="Configuration\TimeElementCollection.vb" />
     <Compile Include="Items\DataItem.vb" />
+    <Compile Include="Items\DataItemStatus.vb" />
     <Compile Include="Items\FileDataItem.vb" />
     <Compile Include="Items\IDataItem.vb" />
     <Compile Include="Items\QueueMessageDataItem.vb" />

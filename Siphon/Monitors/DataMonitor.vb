@@ -263,8 +263,10 @@ Public MustInherit Class DataMonitor
                     Log.DebugFormat("Processed: {0}", processed)
 
                     If processed Then
+                        item.Status = DataItemStatus.CompletedProcessing
                         Me.OnProcessComplete(New ProcessEventArgs(item))
                     Else
+                        item.Status = DataItemStatus.FailedProcessing
                         Me.OnProcessFailure(New ProcessEventArgs(item))
                     End If
                 Next
@@ -329,16 +331,23 @@ Public MustInherit Class DataMonitor
     ''' <summary>
     ''' Deletes the data item after processing.
     ''' </summary>
-    ''' <param name="data">IDataItem. The item to delete.</param>
+    ''' <param name="item">IDataItem. The item to delete.</param>
     ''' <remarks></remarks>
-    Public MustOverride Sub Delete(ByVal data As IDataItem) Implements IDataMonitor.Delete
+    Public MustOverride Sub Delete(ByVal item As IDataItem) Implements IDataMonitor.Delete
+
+    ''' <summary>
+    ''' Moves the data item after processing.
+    ''' </summary>
+    ''' <param name="item">IDataItem. The item to move.</param>
+    ''' <remarks></remarks>
+    Public MustOverride Sub Move(ByVal item As IDataItem) Implements IDataMonitor.Move
 
     ''' <summary>
     ''' Renames the data item after processing.
     ''' </summary>
-    ''' <param name="data">IDataItem. The item to renamed.</param>
+    ''' <param name="item">IDataItem. The item to renamed.</param>
     ''' <remarks></remarks>
-    Public MustOverride Sub Rename(ByVal data As IDataItem) Implements IDataMonitor.Rename
+    Public MustOverride Sub Rename(ByVal item As IDataItem) Implements IDataMonitor.Rename
 
 #Region "Events"
 
@@ -350,18 +359,19 @@ Public MustInherit Class DataMonitor
         Log.Debug("On Process Failure")
 
         If (Me.ProcessFailureActions And DataActions.Delete) <> DataActions.None Then
-            Log.InfoFormat("Deleting {0}", e.Data.Name)
+            Log.InfoFormat("Deleting {0}", e.Item.Name)
 
-            Me.Delete(e.Data)
+            Me.Delete(e.Item)
         Else
             If (Me.ProcessFailureActions And DataActions.Rename) <> DataActions.None Then
-                Log.InfoFormat("Renaming {0}", e.Data.Name)
+                Log.InfoFormat("Renaming {0}", e.Item.Name)
 
-                Me.Rename(e.Data)
+                Me.Rename(e.Item)
             End If
             If (Me.ProcessFailureActions And DataActions.Move) <> DataActions.None Then
-                Log.InfoFormat("Moving {0}", e.Data.Name)
+                Log.InfoFormat("Moving {0}", e.Item.Name)
 
+                Me.Move(e.Item)
             End If
         End If
 
@@ -376,18 +386,19 @@ Public MustInherit Class DataMonitor
         Log.Debug("On Process Complete")
 
         If (Me.ProcessCompleteActions And DataActions.Delete) <> DataActions.None Then
-            Log.InfoFormat("Deleting {0}", e.Data.Name)
+            Log.InfoFormat("Deleting {0}", e.Item.Name)
 
-            Me.Delete(e.Data)
+            Me.Delete(e.Item)
         Else
             If (Me.ProcessCompleteActions And DataActions.Rename) <> DataActions.None Then
-                Log.InfoFormat("Renaming {0}", e.Data.Name)
+                Log.InfoFormat("Renaming {0}", e.Item.Name)
 
-                Me.Rename(e.Data)
+                Me.Rename(e.Item)
             End If
             If (Me.ProcessCompleteActions And DataActions.Move) <> DataActions.None Then
-                Log.InfoFormat("Moving {0}", e.Data.Name)
+                Log.InfoFormat("Moving {0}", e.Item.Name)
 
+                Me.Move(e.Item)
             End If
         End If
 
