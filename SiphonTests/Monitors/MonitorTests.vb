@@ -1,6 +1,7 @@
 ﻿Imports System.IO
 Imports System.Messaging
 Imports System.Text.RegularExpressions
+Imports System.Reflection
 Imports NUnit.Framework
 Imports ChrisLaco.Siphon
 
@@ -376,6 +377,14 @@ Imports ChrisLaco.Siphon
             Assert.AreEqual("D:\Foo", monitor.FailurePath)
             Assert.AreEqual("file:///D:/Foo", monitor.FailureUri.ToString)
 
+            REM complete/failure uri to paths
+            monitor.CompletePath = New Uri("file:///D:/Foo").ToString
+            Assert.AreEqual("D:\Foo", monitor.CompletePath)
+            Assert.AreEqual("file:///D:/Foo", monitor.CompleteUri.ToString)
+            monitor.FailurePath = New Uri("file:///D:/Foo").ToString
+            Assert.AreEqual("D:\Foo", monitor.FailurePath)
+            Assert.AreEqual("file:///D:/Foo", monitor.FailureUri.ToString)
+
             REM rooted uri
             monitor.CompleteUri = New Uri("file:///Foo")
             Assert.AreEqual("C:\Foo", monitor.CompletePath)
@@ -386,6 +395,43 @@ Imports ChrisLaco.Siphon
 
         End Using
     End Sub
+
+    <Test(Description:="Unsupported Uri Scheme Exception")> _
+    <ExpectedException(GetType(UriFormatException))> _
+    Public Sub UriUnsupportedException()
+        Dim monitor As New LocalDirectoryMonitor("TestName", "gopher://foo.com/bar", New IntervalSchedule, New MockProcessor)
+    End Sub
+
+    <Test(Description:="Unsupported Uri Scheme Exception")> _
+    <ExpectedException(GetType(UriFormatException))> _
+    Public Sub FailureUriUnsupportedException()
+        Dim monitor As New LocalDirectoryMonitor("TestName", "C:\", New IntervalSchedule, New MockProcessor)
+
+        monitor.FailureUri = New Uri("gopher://foo.bar/")
+    End Sub
+
+    <Test(Description:="Unsupported Uri Scheme Exception")> _
+    <ExpectedException(GetType(UriFormatException))> _
+    Public Sub CompleteUriUnsupportedException()
+        Dim monitor As New LocalDirectoryMonitor("TestName", "C:\", New IntervalSchedule, New MockProcessor)
+        Dim uri = New Uri("gopher://foo.bar/")
+
+        monitor.CompleteUri = uri
+    End Sub
+
+    <Test(Description:="Argument Exception")> _
+    <ExpectedException(GetType(ArgumentException))> _
+    Public Sub PathEmptyArgumentException()
+        Dim monitor As New LocalDirectoryMonitor("TestName", "", New IntervalSchedule, New MockProcessor)
+    End Sub
+
+    <Test(Description:="Path returns empty with no uri")> _
+    Public Sub NoUriReturnsEmpty()
+        Dim monitor As LocalDirectoryMonitor = GetType(LocalDirectoryMonitor).Assembly.CreateInstance(GetType(LocalDirectoryMonitor).FullName, False, BindingFlags.CreateInstance Or BindingFlags.Static Or BindingFlags.Public Or BindingFlags.NonPublic, Nothing, Nothing, Nothing, Nothing)
+
+        Assert.IsTrue(String.IsNullOrEmpty(monitor.Path))
+    End Sub
+
 #End Region
 
 #Region "Message Queue Monitor Tests"

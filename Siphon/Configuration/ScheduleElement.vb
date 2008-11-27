@@ -10,29 +10,35 @@ Public Class ScheduleElement
     Inherits ConfigurationElement
 
     ''' <summary>
-    ''' Gets the type of the schedule to load.
+    ''' Gets/sets the type of the schedule to load.
     ''' </summary>
     ''' <value></value>
     ''' <returns>String</returns>
     ''' <remarks></remarks>
     <ConfigurationProperty("type", IsRequired:=True)> _
-    Public Overridable ReadOnly Property Type() As String
+    Public Overridable Property Type() As String
         Get
             Return Me.Item("type")
         End Get
+        Set(ByVal value As String)
+            Me.Item("type") = value.Trim
+        End Set
     End Property
 
     ''' <summary>
-    ''' Gets the interval for use by a schedule.
+    ''' Gets/sets the interval for use by a schedule.
     ''' </summary>
     ''' <value></value>
     ''' <returns>TimeSpan</returns>
     ''' <remarks></remarks>
     <ConfigurationProperty("interval")> _
-    Public Overridable ReadOnly Property Interval() As IntervalElement
+    Public Overridable Property Interval() As IntervalElement
         Get
             Return Me.Item("interval")
         End Get
+        Set(ByVal value As IntervalElement)
+            Me.Item("interval") = value
+        End Set
     End Property
 
     ''' <summary>
@@ -72,5 +78,14 @@ Public Class ScheduleElement
         schedule.Initialize(Me)
 
         Return schedule
+    End Function
+
+    ''' <summary>
+    ''' Determins if the config is read only.
+    ''' </summary>
+    ''' <returns>Boolean. Always returns False.</returns>
+    ''' <remarks></remarks>
+    Public Overrides Function IsReadOnly() As Boolean
+        Return False
     End Function
 End Class

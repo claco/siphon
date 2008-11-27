@@ -9,6 +9,15 @@ Public Class MonitorElementCollection
     Inherits ConfigurationElementCollection
 
     ''' <summary>
+    ''' Adds a new monitor element.
+    ''' </summary>
+    ''' <param name="monitor">MonitorElement. The new mlonitor being added.</param>
+    ''' <remarks></remarks>
+    Public Sub Add(ByVal monitor As MonitorElement)
+        Me.BaseAdd(monitor)
+    End Sub
+
+    ''' <summary>
     ''' Gets a monitor element by index.
     ''' </summary>
     ''' <param name="i">Integer. The position of the minitor element to return.</param>
@@ -51,5 +60,14 @@ Public Class MonitorElementCollection
     ''' <remarks></remarks>
     Protected Overrides Function GetElementKey(ByVal element As System.Configuration.ConfigurationElement) As Object
         Return DirectCast(element, MonitorElement).Name
+    End Function
+
+    ''' <summary>
+    ''' Determins if the config is read only.
+    ''' </summary>
+    ''' <returns>Boolean. Always returns False.</returns>
+    ''' <remarks></remarks>
+    Public Overrides Function IsReadOnly() As Boolean
+        Return False
     End Function
 End Class

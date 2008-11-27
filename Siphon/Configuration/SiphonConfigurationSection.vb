@@ -61,5 +61,4 @@ Public Class SiphonConfigurationSection
 
         Return assembly.CreateInstance(types(0).Trim, False, BindingFlags.CreateInstance Or BindingFlags.Static Or BindingFlags.Public Or BindingFlags.NonPublic, Nothing, Nothing, Nothing, Nothing)
     End Function
-
 End Class

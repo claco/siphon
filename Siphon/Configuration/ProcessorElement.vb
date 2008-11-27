@@ -10,16 +10,36 @@ Public Class ProcessorElement
     Inherits ConfigurationElement
 
     ''' <summary>
-    ''' Gets the type of the processor to load.
+    ''' Creates a new processor element.
+    ''' </summary>
+    ''' <remarks></remarks>
+    Public Sub New()
+
+    End Sub
+
+    ''' <summary>
+    ''' Creates a new processor element.
+    ''' </summary>
+    ''' <param name="type">String. The type of the new monitor.</param>
+    ''' <remarks></remarks>
+    Public Sub New(ByVal type As String)
+        Me.Type = type
+    End Sub
+
+    ''' <summary>
+    ''' Gets/sets the type of the processor to load.
     ''' </summary>
     ''' <value></value>
     ''' <returns>String</returns>
     ''' <remarks></remarks>
     <ConfigurationProperty("type", IsRequired:=True)> _
-    Public Overridable ReadOnly Property Type() As String
+    Public Overridable Property Type() As String
         Get
             Return Me.Item("type")
         End Get
+        Set(ByVal value As String)
+            Me.Item("type") = value.Trim
+        End Set
     End Property
 
     ''' <summary>
@@ -45,5 +65,14 @@ Public Class ProcessorElement
         processor.Initialize(Me)
 
         Return processor
+    End Function
+
+    ''' <summary>
+    ''' Determins if the config is read only.
+    ''' </summary>
+    ''' <returns>Boolean. Always returns False.</returns>
+    ''' <remarks></remarks>
+    Public Overrides Function IsReadOnly() As Boolean
+        Return False
     End Function
 End Class

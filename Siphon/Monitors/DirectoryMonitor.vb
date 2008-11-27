@@ -127,8 +127,6 @@ Public MustInherit Class DirectoryMonitor
                     Log.DebugFormat("Path: {0} converted to {1}", value, parsedUri.AbsoluteUri)
 
                     Me.Uri = parsedUri
-                Else
-                    Me.Uri = New Uri(value)
                 End If
             End If
         End Set

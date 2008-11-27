@@ -4,6 +4,7 @@ Imports ChrisLaco.Siphon
 
 <TestFixture(Description:="Test configuration classes")> _
 Public Class ConfigurationTests
+    Inherits TestBase
 
     <TestFixtureSetUp()> _
     Public Sub TestFixtureSetupUp()
@@ -77,6 +78,53 @@ Public Class ConfigurationTests
         Assert.AreEqual(New TimeSpan(12, 23, 0), DirectCast(monitor.Schedule, DailySchedule).Times(1))
         Assert.AreEqual(New TimeSpan(2, 34, 56), DirectCast(monitor.Schedule, DailySchedule).Times(2))
         Assert.IsInstanceOfType(GetType(MockProcessor), monitor.Processor)
+    End Sub
 
+    <Test(Description:="Config Exception when path is empty")> _
+    <ExpectedException(GetType(ConfigurationErrorsException))> _
+    Public Sub PathConfigurationException()
+        Dim monitor As New MonitorElement("Test")
+        monitor.Settings.Add(New NameValueConfigurationElement("Path", String.Empty))
+
+        Dim schedule As New ScheduleElement
+        schedule.Type = "ChrisLaco.Siphon.IntervalSchedule, Siphon"
+        schedule.Interval = New IntervalElement(New TimeSpan(100))
+        monitor.Schedule = schedule
+
+        Dim processor As New ProcessorElement
+        processor.Type = "ChrisLaco.Tests.Siphon.MockProcessor, SiphonTests"
+        monitor.Processor = processor
+
+        Dim directory As New LocalDirectoryMonitor("Test", "C:\", New IntervalSchedule, New MockProcessor)
+        directory.Initialize(monitor)
+    End Sub
+
+    <Test(Description:="Config empty when given bogus section")> _
+    Public Sub BadSectionEmptyConfig()
+        Dim section As SiphonConfigurationSection = SiphonConfigurationSection.GetSection("crap")
+
+        Assert.IsInstanceOfType(GetType(SiphonConfigurationSection), section)
+        Assert.AreEqual(0, section.Monitors.Count)
+    End Sub
+
+    <Test(Description:="Generate config file from config classes")> _
+    Public Sub GenerateConfig()
+        IO.File.Create(IO.Path.Combine(TestDirectory.FullName, "test.exe"))
+
+        Dim config As Configuration = ConfigurationManager.OpenExeConfiguration(TestDirectory.FullName & "/test.exe")
+        Dim section As New SiphonConfigurationSection
+        Dim monitor As New MonitorElement("TestMonitor", "LocalDirectoryMonitor, Siphon")
+        monitor.Settings.Add(New NameValueConfigurationElement("Path", "C:\"))
+        monitor.Processor = New ProcessorElement("MockProcessor, SiphonTests")
+        monitor.Processor.Settings.Add(New NameValueConfigurationElement("Foo", "Bar"))
+        monitor.Schedule.Type = "IntervalSchedule, Siphon"
+        monitor.Schedule.Daily.Add(New TimeElement(New TimeSpan(100)))
+        monitor.Schedule.Daily.Add(New TimeSpan(200))
+        section.Monitors.Add(monitor)
+
+        config.Sections.Add("siphon", section)
+        config.Save()
+
+        Assert.AreEqual(IO.File.ReadAllText("generated.config"), IO.File.ReadAllText(TestDirectory.FullName & "/test.exe.config"))
     End Sub
 End Class
