@@ -124,10 +124,39 @@ Imports ChrisLaco.Siphon
                     Assert.IsTrue(File.Exists(Path.Combine(Path.Combine(TestDirectory.FullName, "Processed"), "SUCCESS")))
                     Assert.AreEqual(0, TestDirectory.GetFiles.Count)
                     Assert.AreEqual(1, Directory.GetFiles(Path.Combine(TestDirectory.FullName, "Processed")).Length)
+                End Using
+            End Using
+        End Using
+    End Sub
 
+    <Test(Description:="Test successful directory monitor process complete moves file")> _
+    Public Sub DirectoryMonitorProcessorCompleteMoveRenameFile()
+        CreateSuccessFile("SUCCESS")
 
-                    'Dim files() As FileInfo = TestDirectory.GetFiles
-                    'Assert.IsTrue(Regex.IsMatch(files(0).Name, "SUCCESS\.{?([0-9a-fA-F]){8}(-([0-9a-fA-F]){4}){3}-([0-9a-fA-F]){12}}?", RegexOptions.IgnoreCase))
+        Using schedule = New DailySchedule(DateTime.Now.AddSeconds(2).TimeOfDay)
+            Using processor = New MockProcessor
+                Using monitor As LocalDirectoryMonitor = New LocalDirectoryMonitor("LocalMonitor", TestDirectory.FullName, schedule, processor)
+                    AddHandler monitor.ProcessComplete, AddressOf Monitor_ProcessComplete
+                    AddHandler monitor.ProcessFailure, AddressOf Monitor_ProcessFailure
+
+                    Assert.IsTrue(File.Exists(Path.Combine(TestDirectory.FullName, "SUCCESS")))
+                    monitor.CompletePath = "Processed"
+                    monitor.ProcessCompleteActions = DataActions.Move Or DataActions.Rename
+                    monitor.CreateMissingFolders = True
+                    monitor.Start()
+                    Threading.Thread.Sleep(3000)
+                    monitor.Stop()
+
+                    Assert.AreEqual(1, processor.Count, "Has processed 1 file")
+                    Assert.IsTrue(Me.ProcessComplete)
+                    Assert.IsFalse(Me.ProcessFailure)
+                    Assert.IsFalse(File.Exists(Path.Combine(TestDirectory.FullName, "SUCCESS")))
+                    Assert.AreEqual(0, TestDirectory.GetFiles.Count)
+                    Assert.AreEqual(1, Directory.GetFiles(Path.Combine(TestDirectory.FullName, "Processed")).Length)
+
+                    Dim files() As String = Directory.GetFiles(Path.Combine(TestDirectory.FullName, "Processed"))
+                    Dim file1 As New FileInfo(files(0))
+                    Assert.IsTrue(Regex.IsMatch(file1.Name, "SUCCESS\.{?([0-9a-fA-F]){8}(-([0-9a-fA-F]){4}){3}-([0-9a-fA-F]){12}}?", RegexOptions.IgnoreCase))
                 End Using
             End Using
         End Using
@@ -206,6 +235,69 @@ Imports ChrisLaco.Siphon
 
                     Dim files() As FileInfo = TestDirectory.GetFiles
                     Assert.IsTrue(Regex.IsMatch(files(0).Name, "FAILURE\.{?([0-9a-fA-F]){8}(-([0-9a-fA-F]){4}){3}-([0-9a-fA-F]){12}}?", RegexOptions.IgnoreCase))
+                End Using
+            End Using
+        End Using
+    End Sub
+
+    <Test(Description:="Test successful directory monitor process failure moves file")> _
+    Public Sub DirectoryMonitorProcessorFailureMoveFile()
+        CreateFailureFile("FAILURE")
+
+        Using schedule = New DailySchedule(DateTime.Now.AddSeconds(2).TimeOfDay)
+            Using processor = New MockProcessor
+                Using monitor As LocalDirectoryMonitor = New LocalDirectoryMonitor("LocalMonitor", TestDirectory.FullName, schedule, processor)
+                    AddHandler monitor.ProcessComplete, AddressOf Monitor_ProcessComplete
+                    AddHandler monitor.ProcessFailure, AddressOf Monitor_ProcessFailure
+
+                    Assert.IsTrue(File.Exists(Path.Combine(TestDirectory.FullName, "FAILURE")))
+                    monitor.FailurePath = "Failed"
+                    monitor.ProcessFailureActions = DataActions.Move
+                    monitor.CreateMissingFolders = True
+                    monitor.Start()
+                    Threading.Thread.Sleep(3000)
+                    monitor.Stop()
+
+                    Assert.AreEqual(1, processor.Count, "Has processed 1 file")
+                    Assert.IsFalse(Me.ProcessComplete)
+                    Assert.IsTrue(Me.ProcessFailure)
+                    Assert.IsFalse(File.Exists(Path.Combine(TestDirectory.FullName, "FAILURE")))
+                    Assert.IsTrue(File.Exists(Path.Combine(Path.Combine(TestDirectory.FullName, "Failed"), "FAILURE")))
+                    Assert.AreEqual(0, TestDirectory.GetFiles.Count)
+                    Assert.AreEqual(1, Directory.GetFiles(Path.Combine(TestDirectory.FullName, "Failed")).Length)
+                End Using
+            End Using
+        End Using
+    End Sub
+
+    <Test(Description:="Test successful directory monitor process failure moves file")> _
+    Public Sub DirectoryMonitorProcessorFailureMoveRenameFile()
+        CreateFailureFile("FAILURE")
+
+        Using schedule = New DailySchedule(DateTime.Now.AddSeconds(2).TimeOfDay)
+            Using processor = New MockProcessor
+                Using monitor As LocalDirectoryMonitor = New LocalDirectoryMonitor("LocalMonitor", TestDirectory.FullName, schedule, processor)
+                    AddHandler monitor.ProcessComplete, AddressOf Monitor_ProcessComplete
+                    AddHandler monitor.ProcessFailure, AddressOf Monitor_ProcessFailure
+
+                    Assert.IsTrue(File.Exists(Path.Combine(TestDirectory.FullName, "FAILURE")))
+                    monitor.FailurePath = "Failed"
+                    monitor.ProcessFailureActions = DataActions.Move Or DataActions.Rename
+                    monitor.CreateMissingFolders = True
+                    monitor.Start()
+                    Threading.Thread.Sleep(3000)
+                    monitor.Stop()
+
+                    Assert.AreEqual(1, processor.Count, "Has processed 1 file")
+                    Assert.IsFalse(Me.ProcessComplete)
+                    Assert.IsTrue(Me.ProcessFailure)
+                    Assert.IsFalse(File.Exists(Path.Combine(TestDirectory.FullName, "FAILURE")))
+                    Assert.AreEqual(0, TestDirectory.GetFiles.Count)
+                    Assert.AreEqual(1, Directory.GetFiles(Path.Combine(TestDirectory.FullName, "Failed")).Length)
+
+                    Dim files() As String = Directory.GetFiles(Path.Combine(TestDirectory.FullName, "Failed"))
+                    Dim file1 As New FileInfo(files(0))
+                    Assert.IsTrue(Regex.IsMatch(file1.Name, "FAILURE\.{?([0-9a-fA-F]){8}(-([0-9a-fA-F]){4}){3}-([0-9a-fA-F]){12}}?", RegexOptions.IgnoreCase))
                 End Using
             End Using
         End Using
