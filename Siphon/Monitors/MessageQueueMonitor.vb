@@ -12,6 +12,8 @@ Public Class MessageQueueMonitor
     Private Shared ReadOnly Log As ILog = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod.DeclaringType)
     Private _createMissingQueues As Boolean
     Private _queue As MessageQueue
+    Private _completeQueue As MessageQueue
+    Private _failureQueue As MessageQueue
 
     ''' <summary>
     ''' Protected constructor for reflection.
@@ -72,6 +74,20 @@ Public Class MessageQueueMonitor
 
             Me.Queue = MessageQueue.Create(Me.Queue.Path)
         End If
+        If Me.CompleteQueue IsNot Nothing Then
+            If Not MessageQueue.Exists(Me.CompleteQueue.Path) Then
+                Log.DebugFormat("Creating queue {0}", Me.CompleteQueue.Path)
+
+                Me.CompleteQueue = MessageQueue.Create(Me.CompleteQueue.Path)
+            End If
+        End If
+        If Me.FailureQueue IsNot Nothing Then
+            If Not MessageQueue.Exists(Me.FailureQueue.Path) Then
+                Log.DebugFormat("Creating queue {0}", Me.FailureQueue.Path)
+
+                Me.FailureQueue = MessageQueue.Create(Me.FailureQueue.Path)
+            End If
+        End If
     End Sub
 
     ''' <summary>
@@ -86,6 +102,36 @@ Public Class MessageQueueMonitor
         End Get
         Set(ByVal value As MessageQueue)
             _queue = value
+        End Set
+    End Property
+
+    ''' <summary>
+    ''' Gets/sets the mesage queue to use for the completed items.
+    ''' </summary>
+    ''' <value></value>
+    ''' <returns>MessageQueue</returns>
+    ''' <remarks></remarks>
+    Public Overridable Property CompleteQueue() As MessageQueue
+        Get
+            Return _completeQueue
+        End Get
+        Set(ByVal value As MessageQueue)
+            _completeQueue = value
+        End Set
+    End Property
+
+    ''' <summary>
+    ''' Gets/sets the mesage queue to use for the failed items.
+    ''' </summary>
+    ''' <value></value>
+    ''' <returns>MessageQueue</returns>
+    ''' <remarks></remarks>
+    Public Overridable Property FailureQueue() As MessageQueue
+        Get
+            Return _failureQueue
+        End Get
+        Set(ByVal value As MessageQueue)
+            _failureQueue = value
         End Set
     End Property
 
@@ -135,7 +181,19 @@ Public Class MessageQueueMonitor
     ''' <param name="item">IDataItem. The item to move.</param>
     ''' <remarks></remarks>
     Public Overrides Sub Move(ByVal item As IDataItem)
-        Throw New NotImplementedException
+        Dim message As IDataItem(Of Message) = item
+
+        If item.Status = DataItemStatus.CompletedProcessing Then
+            Log.DebugFormat("Moving {0} to {1}", message.Data.Label, Me.CompleteQueue.Path)
+
+            Me.CompleteQueue.Send(Me.Queue.ReceiveById(message.Data.Id))
+        ElseIf item.Status = DataItemStatus.FailedProcessing Then
+            Log.DebugFormat("Moving {0} to {1}", message.Data.Label, Me.FailureQueue.Path)
+
+            Me.FailureQueue.Send(Me.Queue.ReceiveById(message.Data.Id))
+        Else
+
+        End If
     End Sub
 
     ''' <summary>
