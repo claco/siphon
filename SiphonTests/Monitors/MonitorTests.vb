@@ -581,6 +581,7 @@ Imports ChrisLaco.Siphon
                         Assert.AreEqual(1, processor.Count, "Has processed 1 queue message")
                         Assert.IsTrue(Me.ProcessComplete)
                         Assert.IsFalse(Me.ProcessFailure)
+                        Assert.AreEqual(1, monitor.Queue.GetAllMessages.Count)
                     End Using
                 End Using
             End Using
@@ -617,6 +618,7 @@ Imports ChrisLaco.Siphon
                         Assert.AreEqual(1, processor.Count, "Has processed 1 queue message")
                         Assert.IsTrue(Me.ProcessComplete)
                         Assert.IsFalse(Me.ProcessFailure)
+                        Assert.AreEqual(1, monitor.Queue.GetAllMessages.Count)
                     End Using
                 End Using
             End Using
@@ -646,6 +648,7 @@ Imports ChrisLaco.Siphon
                         Assert.AreEqual(1, processor.Count, "Has processed 1 queue message")
                         Assert.IsFalse(Me.ProcessComplete)
                         Assert.IsTrue(Me.ProcessFailure)
+                        Assert.AreEqual(1, monitor.Queue.GetAllMessages.Count)
                     End Using
                 End Using
             End Using
@@ -675,6 +678,38 @@ Imports ChrisLaco.Siphon
                         Assert.AreEqual(1, processor.Count, "Has processed 1 queue message")
                         Assert.IsFalse(Me.ProcessComplete)
                         Assert.IsTrue(Me.ProcessFailure)
+                        Assert.AreEqual(1, monitor.Queue.GetAllMessages.Count)
+                    End Using
+                End Using
+            End Using
+        Catch ex As Exception
+            Throw
+        Finally
+            MessageQueue.Delete(queue.Path)
+        End Try
+    End Sub
+
+    <Test(Description:="Test successful message queue monitor deletes message")> _
+    Public Sub MessageQueueMonitorProcessorCompleteDeleteMessage()
+        Dim queue As MessageQueue = MessageQueue.Create(".\Private$\MyNewQueue")
+
+        Try
+            queue.Send("SUCCESS")
+
+            Using schedule = New DailySchedule(DateTime.Now.AddSeconds(2).TimeOfDay)
+                Using processor = New MockProcessor
+                    Using monitor As MessageQueueMonitor = New MessageQueueMonitor("LocalMonitor", queue, schedule, processor)
+                        AddHandler monitor.ProcessComplete, AddressOf Monitor_ProcessComplete
+                        AddHandler monitor.ProcessFailure, AddressOf Monitor_ProcessFailure
+                        monitor.ProcessCompleteActions = DataActions.Delete
+                        monitor.Start()
+                        Threading.Thread.Sleep(3000)
+                        monitor.Stop()
+
+                        Assert.AreEqual(1, processor.Count, "Has processed 1 queue message")
+                        Assert.IsTrue(Me.ProcessComplete)
+                        Assert.IsFalse(Me.ProcessFailure)
+                        Assert.AreEqual(0, monitor.Queue.GetAllMessages.Count)
                     End Using
                 End Using
             End Using

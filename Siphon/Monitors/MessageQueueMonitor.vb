@@ -122,27 +122,28 @@ Public Class MessageQueueMonitor
     ''' <summary>
     ''' Deletes the data item after processing.
     ''' </summary>
-    ''' <param name="data">IDataItem. The item to delete.</param>
+    ''' <param name="item">IDataItem. The item to delete.</param>
     ''' <remarks></remarks>
-    Public Overrides Sub Delete(ByVal data As IDataItem)
-        Throw New NotImplementedException
+    Public Overrides Sub Delete(ByVal item As IDataItem)
+        Dim message As IDataItem(Of Message) = item
+        Me.Queue.ReceiveById(message.Data.Id)
     End Sub
 
     ''' <summary>
     ''' Moves the data item after processing.
     ''' </summary>
-    ''' <param name="data">IDataItem. The item to move.</param>
+    ''' <param name="item">IDataItem. The item to move.</param>
     ''' <remarks></remarks>
-    Public Overrides Sub Move(ByVal data As IDataItem)
+    Public Overrides Sub Move(ByVal item As IDataItem)
         Throw New NotImplementedException
     End Sub
 
     ''' <summary>
     ''' Renames the data item after processing.
     ''' </summary>
-    ''' <param name="data">IDataItem. The item to renamed.</param>
+    ''' <param name="item">IDataItem. The item to renamed.</param>
     ''' <remarks></remarks>
-    Public Overrides Sub Rename(ByVal data As IDataItem)
+    Public Overrides Sub Rename(ByVal item As IDataItem)
         Throw New NotImplementedException
     End Sub
 End Class
