@@ -64,7 +64,11 @@ Public Class SiphonService
         For Each monitor As IDataMonitor In Me.Monitors
             Log.InfoFormat("Starting monitor {0}", monitor.Name)
 
-            monitor.Start()
+            Try
+                monitor.Start()
+            Catch ex As Exception
+                Log.Error(String.Format("Error starting monitor {0}", monitor.Name), ex)
+            End Try
         Next
     End Sub
 
@@ -92,7 +96,11 @@ Public Class SiphonService
         For Each monitor As IDataMonitor In Me.Monitors
             Log.InfoFormat("Resuming monitor {0}", monitor.Name)
 
-            monitor.Resume()
+            Try
+                monitor.Resume()
+            Catch ex As Exception
+                Log.Error(String.Format("Error resuming monitor {0}", monitor.Name), ex)
+            End Try
         Next
     End Sub
 

@@ -1,4 +1,5 @@
 ﻿Imports System.IO
+Imports System.Reflection
 Imports NUnit.Framework
 Imports ChrisLaco.Siphon
 
@@ -94,8 +95,8 @@ Public Class ServiceTests
         End Using
     End Sub
 
-    <Test(Description:="Monitor exception does not kill service")> _
-    Public Sub ServiceMonitorException()
+    <Test(Description:="Monitor Process exception does not kill service")> _
+    Public Sub ServiceMonitorProcessException()
         Using service As New SiphonService
             CreateExceptionFile()
 
@@ -122,4 +123,47 @@ Public Class ServiceTests
             End Using
         End Using
     End Sub
+
+    <Test(Description:="Monitor start/config exception does not kill service")> _
+     Public Sub ServiceMonitorStartException()
+        Using service As New SiphonService
+            CreateExceptionFile()
+
+            Using schedule = New DailySchedule(DateTime.Now.AddSeconds(2).TimeOfDay)
+                Using processor As New MockProcessor
+                    Using monitor As New LocalDirectoryMonitor("TestLocalDirectoryMonitor", TestDirectory.FullName, schedule, processor)
+                        Dim newMonitor As LocalDirectoryMonitor = monitor.GetType.Assembly.CreateInstance("ChrisLaco.Siphon.LocalDirectoryMonitor", True, BindingFlags.CreateInstance Or BindingFlags.Static Or BindingFlags.Public Or BindingFlags.NonPublic, Nothing, Nothing, Nothing, Nothing)
+                        newMonitor.Name = "TestNoPathMonitor"
+                        service.Monitors.Clear()
+                        service.Monitors.Add(newMonitor)
+
+                        Dim args() As String = {}
+                        Dim parameters() As Object = {args}
+                        service.GetType.GetMethod("OnStart", Reflection.BindingFlags.NonPublic Or Reflection.BindingFlags.Instance).Invoke(service, parameters)
+                    End Using
+                End Using
+            End Using
+        End Using
+    End Sub
+
+    <Test(Description:="Monitor resume/config exception does not kill service")> _
+     Public Sub ServiceMonitorResumeException()
+        Using service As New SiphonService
+            CreateExceptionFile()
+
+            Using schedule = New DailySchedule(DateTime.Now.AddSeconds(2).TimeOfDay)
+                Using processor As New MockProcessor
+                    Using monitor As New LocalDirectoryMonitor("TestLocalDirectoryMonitor", TestDirectory.FullName, schedule, processor)
+                        Dim newMonitor As LocalDirectoryMonitor = monitor.GetType.Assembly.CreateInstance("ChrisLaco.Siphon.LocalDirectoryMonitor", True, BindingFlags.CreateInstance Or BindingFlags.Static Or BindingFlags.Public Or BindingFlags.NonPublic, Nothing, Nothing, Nothing, Nothing)
+                        newMonitor.Name = "TestNoPathMonitor"
+                        service.Monitors.Clear()
+                        service.Monitors.Add(newMonitor)
+
+                        service.GetType.GetMethod("OnContinue", Reflection.BindingFlags.NonPublic Or Reflection.BindingFlags.Instance).Invoke(service, Nothing)
+                    End Using
+                End Using
+            End Using
+        End Using
+    End Sub
 End Class
+

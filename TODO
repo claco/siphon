@@ -1,5 +1,3 @@
-- Add Initialize(config) code/tests for complete/failure paths/queues, etc
-- Add Exceptions/tests when we have move actions but no destination configs
 - Add translators to mediate from Scan(Objects)->Processor(x)
 - Add IMAP/POP3 monitors
 - Add UriDataItem for ftp, ttp, https type data items
