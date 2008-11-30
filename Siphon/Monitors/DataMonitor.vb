@@ -111,6 +111,7 @@ Public MustInherit Class DataMonitor
     Public Overridable Sub Start() Implements IDataMonitor.Start
         Log.InfoFormat("Starting Monitor {0}", Me.Name)
 
+        Me.Validate()
         Me.Timer.Change(Me.GetNextInterval, Timeout.Infinite)
     End Sub
 
@@ -130,6 +131,8 @@ Public MustInherit Class DataMonitor
     ''' <remarks></remarks>
     Public Overridable Sub [Resume]() Implements IDataMonitor.Resume
         Log.InfoFormat("Resuming Monitor {0}", Me.Name)
+
+        Me.Validate()
 
         Try
             Me.Timer.Change(Me.GetNextInterval, Timeout.Infinite)
@@ -243,8 +246,10 @@ Public MustInherit Class DataMonitor
     ''' Scans a for new data and sends that data to the processor.
     ''' </summary>
     ''' <remarks></remarks>
-    Sub Process() Implements IDataMonitor.Process
+    Public Overridable Sub Process() Implements IDataMonitor.Process
         Try
+            Me.Validate()
+
             Dim items As Collection(Of IDataItem) = Me.Scan
             Log.DebugFormat("Scan returned {0} items", items.Count)
 
@@ -348,6 +353,18 @@ Public MustInherit Class DataMonitor
     ''' <param name="item">IDataItem. The item to renamed.</param>
     ''' <remarks></remarks>
     Public MustOverride Sub Rename(ByVal item As IDataItem) Implements IDataMonitor.Rename
+
+    ''' <summary>
+    ''' Validates the current monitors configuration for errors before processing/starting.
+    ''' </summary>
+    ''' <remarks></remarks>
+    Protected Overridable Sub Validate()
+        Log.Debug("Validating monitor configuration")
+
+        If String.IsNullOrEmpty(Me.Name) Then
+            Throw New ApplicationException("Name can not be null or empty")
+        End If
+    End Sub
 
 #Region "Events"
 

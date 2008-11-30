@@ -52,8 +52,71 @@ Public Class ConsoleTests
                     Assert.AreEqual(1, processor.Count)
                     Assert.IsTrue(Me.ProcessComplete)
                     Assert.IsFalse(Me.ProcessFailure)
+                    Assert.AreEqual(0, Environment.ExitCode)
                 End Using
             End Using
+        End Using
+    End Sub
+
+    <Test(Description:="Run actual monitor by name")> _
+    Public Sub ConsoleByName()
+        Using console As New SiphonConsole
+            CreateSuccessFile()
+
+            Using schedule = New DailySchedule(DateTime.Now.AddSeconds(2).TimeOfDay)
+                Using processor As New MockProcessor
+                    Dim monitor As New LocalDirectoryMonitor("TestLocalDirectoryMonitor", TestDirectory.FullName, schedule, processor)
+                    AddHandler monitor.ProcessComplete, AddressOf Monitor_ProcessComplete
+                    AddHandler monitor.ProcessFailure, AddressOf Monitor_ProcessFailure
+
+                    console.Monitors.Clear()
+                    console.Monitors.Add(monitor)
+
+                    Dim args() As String = {"TestLocalDirectoryMonitor"}
+                    console.Run(args)
+
+                    Assert.AreEqual(1, processor.Count)
+                    Assert.IsTrue(Me.ProcessComplete)
+                    Assert.IsFalse(Me.ProcessFailure)
+                    Assert.AreEqual(0, Environment.ExitCode)
+                End Using
+            End Using
+        End Using
+    End Sub
+
+    <Test(Description:="Run no monitor by name")> _
+    Public Sub ConsoleByNameNotFound()
+        Using console As New SiphonConsole
+            CreateSuccessFile()
+
+            Using schedule = New DailySchedule(DateTime.Now.AddSeconds(2).TimeOfDay)
+                Using processor As New MockProcessor
+                    Dim monitor As New LocalDirectoryMonitor("TestLocalDirectoryMonitor", TestDirectory.FullName, schedule, processor)
+                    AddHandler monitor.ProcessComplete, AddressOf Monitor_ProcessComplete
+                    AddHandler monitor.ProcessFailure, AddressOf Monitor_ProcessFailure
+
+                    console.Monitors.Clear()
+                    console.Monitors.Add(monitor)
+
+                    Dim args() As String = {"Mispelled"}
+                    console.Run(args)
+
+                    Assert.AreEqual(0, processor.Count)
+                    Assert.IsFalse(Me.ProcessComplete)
+                    Assert.IsFalse(Me.ProcessFailure)
+                    Assert.AreEqual(0, Environment.ExitCode)
+                End Using
+            End Using
+        End Using
+    End Sub
+
+    <Test(Description:="Exit code no args")> _
+    Public Sub ConsoleNoMonitors()
+        Using console As New SiphonConsole
+            Dim args() As String = {}
+            console.Run(args)
+
+            Assert.AreEqual(1, Environment.ExitCode)
         End Using
     End Sub
 

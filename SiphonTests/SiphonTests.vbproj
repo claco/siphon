@@ -65,7 +65,8 @@
   <ItemGroup>
     <Compile Include="Configuration\ConfigurationTests.vb" />
     <Compile Include="Console\ConsoleTests.vb" />
-    <Compile Include="Monitors\MonitorTests.vb" />
+    <Compile Include="Monitors\MessageQueueMonitorTests.vb" />
+    <Compile Include="Monitors\LocalDirectoryMonitorTests.vb" />
     <Compile Include="My Project\AssemblyInfo.vb" />
     <Compile Include="My Project\Application.Designer.vb">
       <AutoGen>True</AutoGen>

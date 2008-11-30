@@ -1,6 +1,6 @@
 ﻿Imports System.Configuration
 Imports System.Reflection
-
+Imports log4net
 
 ''' <summary>
 ''' Main Siphon configuration section information
@@ -8,6 +8,8 @@ Imports System.Reflection
 ''' <remarks></remarks>
 Public Class SiphonConfigurationSection
     Inherits System.Configuration.ConfigurationSection
+
+    Private Shared ReadOnly Log As ILog = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod.DeclaringType)
 
     Private Const SECTION_NAME As String = "siphon"
 
@@ -55,6 +57,8 @@ Public Class SiphonConfigurationSection
     ''' <returns>Object</returns>
     ''' <remarks></remarks>
     Friend Shared Function CreateInstance(ByVal type As String) As Object
+        Log.DebugFormat("Loading type {0}", type)
+
         Dim separators() As String = {","}
         Dim types() As String = type.Split(separators, 1)
         Dim assembly As Assembly = assembly.Load(types(1).Trim)

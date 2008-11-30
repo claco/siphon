@@ -10,6 +10,23 @@ Public Class ScheduleElement
     Inherits ConfigurationElement
 
     ''' <summary>
+    ''' Creates a new schedule element.
+    ''' </summary>
+    ''' <remarks></remarks>
+    Public Sub New()
+
+    End Sub
+
+    ''' <summary>
+    ''' Creates a new schedule element.
+    ''' </summary>
+    ''' <param name="type">String. The type of the new schedule.</param>
+    ''' <remarks></remarks>
+    Public Sub New(ByVal type As String)
+        Me.Type = type
+    End Sub
+
+    ''' <summary>
     ''' Gets/sets the type of the schedule to load.
     ''' </summary>
     ''' <value></value>

@@ -10,6 +10,7 @@ Public Class SiphonConsole
     Implements IDisposable
 
     Private Shared ReadOnly Log As ILog = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod.DeclaringType)
+
     Private _disposed As Boolean = False
     Private _configuration As SiphonConfigurationSection
     Private _monitors As Collection(Of IDataMonitor)
@@ -65,7 +66,7 @@ Public Class SiphonConsole
         If args.Length > 0 Then
             Dim first As String = args(0).Trim.ToLower
 
-            If first = "all" Then
+            If first = "all" Or first = "*" Then
                 Log.Info("Running all monitors")
 
                 For Each monitor As IDataMonitor In Me.Monitors
@@ -74,17 +75,19 @@ Public Class SiphonConsole
             Else
                 For Each arg As String In args
                     Dim name As String = arg.Trim
-                    Dim config As MonitorElement = Me.Configuration.Monitors(name)
+                    Dim query = From monitor In Me.Monitors Where monitor.Name = arg
 
-                    If config Is Nothing Then
+                    If query.Count = 0 Then
                         Log.ErrorFormat("Could not find monitor {0}", name)
                     Else
-                        Dim monitor As IDataMonitor = config.CreateInstance
+                        Log.InfoFormat("Running monitor {0}", query.First.Name)
 
-                        monitor.Process()
+                        query.First.Process()
                     End If
                 Next
             End If
+
+            Environment.ExitCode = 0
         Else
             Environment.ExitCode = 1
 

@@ -5,11 +5,9 @@ Imports System.Reflection
 Imports NUnit.Framework
 Imports ChrisLaco.Siphon
 
-<TestFixture(Description:="Monitor Tests")> _
-    Public Class MonitorTests
+<TestFixture(Description:="Local Directory Monitor Tests")> _
+    Public Class LocalDirectoryMonitorTests
     Inherits TestBase
-
-#Region "Local Directory Monitor Tests"
 
     <Test(Description:="Path throws exception when empty")> _
     <ExpectedException(GetType(ArgumentException))> _
@@ -551,6 +549,12 @@ Imports ChrisLaco.Siphon
         Dim monitor As New LocalDirectoryMonitor("TestName", "", New IntervalSchedule, New MockProcessor)
     End Sub
 
+    <Test(Description:="Argument Exception")> _
+    <ExpectedException(GetType(ArgumentException))> _
+    Public Sub NameEmptyArgumentException()
+        Dim monitor As New LocalDirectoryMonitor("", "C:\", New IntervalSchedule, New MockProcessor)
+    End Sub
+
     <Test(Description:="Path returns empty with no uri")> _
     Public Sub NoUriReturnsEmpty()
         Dim monitor As LocalDirectoryMonitor = GetType(LocalDirectoryMonitor).Assembly.CreateInstance(GetType(LocalDirectoryMonitor).FullName, False, BindingFlags.CreateInstance Or BindingFlags.Static Or BindingFlags.Public Or BindingFlags.NonPublic, Nothing, Nothing, Nothing, Nothing)
@@ -558,167 +562,41 @@ Imports ChrisLaco.Siphon
         Assert.IsTrue(String.IsNullOrEmpty(monitor.Path))
     End Sub
 
-#End Region
-
-#Region "Message Queue Monitor Tests"
-
-    <Test(Description:="Test successful message queue monitor")> _
-    Public Sub MessageQueueMonitor()
-        Dim queue As MessageQueue = MessageQueue.Create(".\Private$\MyNewQueue")
-
-        Try
-            queue.Send("SUCCESS")
-
-            Using schedule = New DailySchedule(DateTime.Now.AddSeconds(2).TimeOfDay)
-                Using processor = New MockProcessor
-                    Using monitor As MessageQueueMonitor = New MessageQueueMonitor("LocalMonitor", queue, schedule, processor)
-                        AddHandler monitor.ProcessComplete, AddressOf Monitor_ProcessComplete
-                        AddHandler monitor.ProcessFailure, AddressOf Monitor_ProcessFailure
-                        monitor.Start()
-                        Threading.Thread.Sleep(3000)
-                        monitor.Stop()
-
-                        Assert.AreEqual(1, processor.Count, "Has processed 1 queue message")
-                        Assert.IsTrue(Me.ProcessComplete)
-                        Assert.IsFalse(Me.ProcessFailure)
-                        Assert.AreEqual(1, monitor.Queue.GetAllMessages.Count)
-                    End Using
-                End Using
-            End Using
-        Catch ex As Exception
-            Throw
-        Finally
-            MessageQueue.Delete(queue.Path)
-        End Try
+    <Test(Description:="Start throws exception for null Uri/Path")> _
+    <ExpectedException(GetType(ApplicationException))> _
+    Public Sub StartFailureNullUriException()
+        Using monitor As New LocalDirectoryMonitor("TestMonitor", "C:\", New IntervalSchedule, New MockProcessor)
+            Dim newMonitor As LocalDirectoryMonitor = monitor.GetType.Assembly.CreateInstance("ChrisLaco.Siphon.LocalDirectoryMonitor", True, BindingFlags.CreateInstance Or BindingFlags.Static Or BindingFlags.Public Or BindingFlags.NonPublic, Nothing, Nothing, Nothing, Nothing)
+            newMonitor.Name = "Test"
+            newMonitor.Start()
+        End Using
     End Sub
 
-    <Test(Description:="Test message queue monitor create missing root queue")> _
-    Public Sub MessageQueueMonitorCreateQueue()
-        Dim queue As String = ".\Private$\MyNewQueue"
-
-        Try
-            Using schedule = New DailySchedule(DateTime.Now.AddSeconds(2).TimeOfDay)
-                Using processor = New MockProcessor
-                    Using monitor As MessageQueueMonitor = New MessageQueueMonitor("LocalMonitor", queue, schedule, processor)
-                        AddHandler monitor.ProcessComplete, AddressOf Monitor_ProcessComplete
-                        AddHandler monitor.ProcessFailure, AddressOf Monitor_ProcessFailure
-
-                        Assert.IsFalse(MessageQueue.Exists(queue), "Monitor queue doesn't exist")
-
-                        monitor.CreateMissingQueues = True
-                        monitor.Start()
-
-                        Assert.IsTrue(MessageQueue.Exists(queue), "Monitor queue exista")
-
-                        monitor.Queue.Send("SUCCESS")
-
-                        Threading.Thread.Sleep(3000)
-                        monitor.Stop()
-
-                        Assert.AreEqual(1, processor.Count, "Has processed 1 queue message")
-                        Assert.IsTrue(Me.ProcessComplete)
-                        Assert.IsFalse(Me.ProcessFailure)
-                        Assert.AreEqual(1, monitor.Queue.GetAllMessages.Count)
-                    End Using
-                End Using
-            End Using
-        Catch ex As Exception
-            Throw
-        Finally
-            MessageQueue.Delete(queue)
-        End Try
+    <Test(Description:="Start throws exception for null Uri/Path")> _
+    <ExpectedException(GetType(ApplicationException))> _
+    Public Sub StartFailureNullNameException()
+        Using monitor As New LocalDirectoryMonitor("TestMonitor", "C:\", New IntervalSchedule, New MockProcessor)
+            Dim newMonitor As LocalDirectoryMonitor = monitor.GetType.Assembly.CreateInstance("ChrisLaco.Siphon.LocalDirectoryMonitor", True, BindingFlags.CreateInstance Or BindingFlags.Static Or BindingFlags.Public Or BindingFlags.NonPublic, Nothing, Nothing, Nothing, Nothing)
+            newMonitor.Path = "C:\"
+            newMonitor.Start()
+        End Using
     End Sub
 
-    <Test(Description:="Test processor failure message queue monitor")> _
-    Public Sub MessageQueueMonitorProcessorFailure()
-        Dim queue As MessageQueue = MessageQueue.Create(".\Private$\MyNewQueue")
-
-        Try
-            queue.Send("FAILURE")
-
-            Using schedule = New DailySchedule(DateTime.Now.AddSeconds(2).TimeOfDay)
-                Using processor = New MockProcessor
-                    Using monitor As MessageQueueMonitor = New MessageQueueMonitor("LocalMonitor", queue, schedule, processor)
-                        AddHandler monitor.ProcessComplete, AddressOf Monitor_ProcessComplete
-                        AddHandler monitor.ProcessFailure, AddressOf Monitor_ProcessFailure
-                        monitor.Start()
-                        Threading.Thread.Sleep(3000)
-                        monitor.Stop()
-
-                        Assert.AreEqual(1, processor.Count, "Has processed 1 queue message")
-                        Assert.IsFalse(Me.ProcessComplete)
-                        Assert.IsTrue(Me.ProcessFailure)
-                        Assert.AreEqual(1, monitor.Queue.GetAllMessages.Count)
-                    End Using
-                End Using
-            End Using
-        Catch ex As Exception
-            Throw
-        Finally
-            MessageQueue.Delete(queue.Path)
-        End Try
+    <Test(Description:="Start throws exception for null Uri/Path")> _
+    <ExpectedException(GetType(ApplicationException))> _
+    Public Sub StartFailureNullCompleteUriException()
+        Using monitor As New LocalDirectoryMonitor("TestMonitor", "C:\", New IntervalSchedule, New MockProcessor)
+            monitor.ProcessCompleteActions = DataActions.Move
+            monitor.Start()
+        End Using
     End Sub
 
-    <Test(Description:="Test processor exception message queue monitor")> _
-    Public Sub MessageQueueMonitorProcessorException()
-        Dim queue As MessageQueue = MessageQueue.Create(".\Private$\MyNewQueue")
-
-        Try
-            queue.Send("EXCEPTION")
-
-            Using schedule = New DailySchedule(DateTime.Now.AddSeconds(2).TimeOfDay)
-                Using processor = New MockProcessor
-                    Using monitor As MessageQueueMonitor = New MessageQueueMonitor("LocalMonitor", queue, schedule, processor)
-                        AddHandler monitor.ProcessComplete, AddressOf Monitor_ProcessComplete
-                        AddHandler monitor.ProcessFailure, AddressOf Monitor_ProcessFailure
-                        monitor.Start()
-                        Threading.Thread.Sleep(3000)
-                        monitor.Stop()
-
-                        Assert.AreEqual(1, processor.Count, "Has processed 1 queue message")
-                        Assert.IsFalse(Me.ProcessComplete)
-                        Assert.IsTrue(Me.ProcessFailure)
-                        Assert.AreEqual(1, monitor.Queue.GetAllMessages.Count)
-                    End Using
-                End Using
-            End Using
-        Catch ex As Exception
-            Throw
-        Finally
-            MessageQueue.Delete(queue.Path)
-        End Try
+    <Test(Description:="Start throws exception for null Uri/Path")> _
+    <ExpectedException(GetType(ApplicationException))> _
+    Public Sub StartFailureNullFailureUriException()
+        Using monitor As New LocalDirectoryMonitor("TestMonitor", "C:\", New IntervalSchedule, New MockProcessor)
+            monitor.ProcessFailureActions = DataActions.Move
+            monitor.Start()
+        End Using
     End Sub
-
-    <Test(Description:="Test successful message queue monitor deletes message")> _
-    Public Sub MessageQueueMonitorProcessorCompleteDeleteMessage()
-        Dim queue As MessageQueue = MessageQueue.Create(".\Private$\MyNewQueue")
-
-        Try
-            queue.Send("SUCCESS")
-
-            Using schedule = New DailySchedule(DateTime.Now.AddSeconds(2).TimeOfDay)
-                Using processor = New MockProcessor
-                    Using monitor As MessageQueueMonitor = New MessageQueueMonitor("LocalMonitor", queue, schedule, processor)
-                        AddHandler monitor.ProcessComplete, AddressOf Monitor_ProcessComplete
-                        AddHandler monitor.ProcessFailure, AddressOf Monitor_ProcessFailure
-                        monitor.ProcessCompleteActions = DataActions.Delete
-                        monitor.Start()
-                        Threading.Thread.Sleep(3000)
-                        monitor.Stop()
-
-                        Assert.AreEqual(1, processor.Count, "Has processed 1 queue message")
-                        Assert.IsTrue(Me.ProcessComplete)
-                        Assert.IsFalse(Me.ProcessFailure)
-                        Assert.AreEqual(0, monitor.Queue.GetAllMessages.Count)
-                    End Using
-                End Using
-            End Using
-        Catch ex As Exception
-            Throw
-        Finally
-            MessageQueue.Delete(queue.Path)
-        End Try
-    End Sub
-#End Region
-
 End Class

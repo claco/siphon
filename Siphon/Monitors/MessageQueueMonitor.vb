@@ -1,4 +1,5 @@
-﻿Imports System.Collections.ObjectModel
+﻿Imports System.Configuration
+Imports System.Collections.ObjectModel
 Imports System.Messaging
 Imports log4net
 
@@ -10,6 +11,11 @@ Public Class MessageQueueMonitor
     Inherits DataMonitor
 
     Private Shared ReadOnly Log As ILog = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod.DeclaringType)
+    Private Const SETTING_QUEUE As String = "Queue"
+    Private Const SETTING_COMPLETE_QUEUE As String = "CompleteQueue"
+    Private Const SETTING_FAILURE_QUEUE As String = "FailureQueue"
+    Private Const SETTINGS_CREATE_MISSING_QUEUES As String = "CreateMissingQueues"
+
     Private _createMissingQueues As Boolean
     Private _queue As MessageQueue
     Private _completeQueue As MessageQueue
@@ -46,7 +52,12 @@ Public Class MessageQueueMonitor
     ''' <remarks></remarks>
     Public Sub New(ByVal name As String, ByVal path As String, ByVal schedule As IMonitorSchedule, ByVal processor As IDataProcessor)
         MyBase.New(name, schedule, processor)
-        Me.Queue = New MessageQueue(path)
+
+        If String.IsNullOrEmpty(path) Then
+            Throw New ArgumentException("Path can not be null or empty")
+        Else
+            Me.Queue = New MessageQueue(path)
+        End If
     End Sub
 
     ''' <summary>
@@ -91,6 +102,29 @@ Public Class MessageQueueMonitor
     End Sub
 
     ''' <summary>
+    ''' Initializes the monitor using the supplied monitor configuration settings.
+    ''' </summary>
+    ''' <param name="config">MonitorElement. The configuration for the current monitor.</param>
+    ''' <remarks></remarks>
+    Public Overrides Sub Initialize(ByVal config As MonitorElement)
+        MyBase.Initialize(config)
+
+        Dim settings As NameValueConfigurationCollection = config.Settings
+        If settings.AllKeys.Contains(SETTING_QUEUE) Then
+            Me.Queue = New MessageQueue(settings(SETTING_QUEUE).Value)
+        End If
+        If settings.AllKeys.Contains(SETTING_COMPLETE_QUEUE) Then
+            Me.CompleteQueue = New MessageQueue(settings(SETTING_COMPLETE_QUEUE).Value)
+        End If
+        If settings.AllKeys.Contains(SETTING_FAILURE_QUEUE) Then
+            Me.FailureQueue = New MessageQueue(settings(SETTING_FAILURE_QUEUE).Value)
+        End If
+        If settings.AllKeys.Contains(SETTINGS_CREATE_MISSING_QUEUES) Then
+            Me.CreateMissingQueues = settings(SETTINGS_CREATE_MISSING_QUEUES).Value
+        End If
+    End Sub
+
+    ''' <summary>
     ''' Gets/sets the mesage queue to use for the current monitor.
     ''' </summary>
     ''' <value></value>
@@ -101,7 +135,11 @@ Public Class MessageQueueMonitor
             Return _queue
         End Get
         Set(ByVal value As MessageQueue)
-            _queue = value
+            If value Is Nothing Then
+                Throw New ArgumentException("Queue can not be null or empty")
+            Else
+                _queue = value
+            End If
         End Set
     End Property
 
@@ -158,6 +196,8 @@ Public Class MessageQueueMonitor
     ''' </summary>
     ''' <remarks></remarks>
     Public Overrides Sub Start()
+        Me.Validate()
+
         If Me.CreateMissingQueues Then
             Me.CreateQueues()
         End If
@@ -200,8 +240,28 @@ Public Class MessageQueueMonitor
     ''' Renames the data item after processing.
     ''' </summary>
     ''' <param name="item">IDataItem. The item to renamed.</param>
-    ''' <remarks></remarks>
+    ''' <remarks>Always throws a NotImplementedException</remarks>
     Public Overrides Sub Rename(ByVal item As IDataItem)
         Throw New NotImplementedException
+    End Sub
+
+    ''' <summary>
+    ''' Validates the current monitors configuration for errors before processing/starting.
+    ''' </summary>
+    ''' <remarks></remarks>
+    Protected Overrides Sub Validate()
+        Log.Debug("Validting monitor configuration")
+
+        MyBase.Validate()
+
+        If Me.Queue Is Nothing Then
+            Throw New ApplicationException("No Queue is not defined")
+        ElseIf (Me.ProcessCompleteActions And DataActions.Rename) <> DataActions.None Or (Me.ProcessFailureActions And DataActions.Rename) <> DataActions.None Then
+            Throw New NotImplementedException("Rename is not supported for this monitor.")
+        ElseIf Me.CompleteQueue Is Nothing And (Me.ProcessCompleteActions And DataActions.Move) <> DataActions.None Then
+            Throw New ApplicationException("CompleteQueue must be defined to use the Move action on process completion.")
+        ElseIf Me.FailureQueue Is Nothing And (Me.ProcessFailureActions And DataActions.Move) <> DataActions.None Then
+            Throw New ApplicationException("FailureQueue must be defined to use the Move action on process failure.")
+        End If
     End Sub
 End Class

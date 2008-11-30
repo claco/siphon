@@ -66,7 +66,7 @@ Public MustInherit Class DirectoryMonitor
     ''' <summary>
     ''' Initializes the monitor using the supplied monitor configuration settings.
     ''' </summary>
-    ''' <param name="config">MonitorElement. The configuraiton for the current monitor.</param>
+    ''' <param name="config">MonitorElement. The configuration for the current monitor.</param>
     ''' <remarks></remarks>
     Public Overrides Sub Initialize(ByVal config As MonitorElement)
         MyBase.Initialize(config)
@@ -315,4 +315,21 @@ Public MustInherit Class DirectoryMonitor
         Return value
     End Function
 
+    ''' <summary>
+    ''' Validates the current monitors configuration for errors before processing/starting.
+    ''' </summary>
+    ''' <remarks></remarks>
+    Protected Overrides Sub Validate()
+        Log.Debug("Validting monitor configuration")
+
+        MyBase.Validate()
+
+        If Me.Uri Is Nothing Then
+            Throw New ApplicationException("No Uri/Path is defined")
+        ElseIf Me.CompleteUri Is Nothing And (Me.ProcessCompleteActions And DataActions.Move) <> DataActions.None Then
+            Throw New ApplicationException("CompleteUri/Path must be defined to use the Move action on process completion")
+        ElseIf Me.FailureUri Is Nothing And (Me.ProcessFailureActions And DataActions.Move) <> DataActions.None Then
+            Throw New ApplicationException("FailureUri/Path must be defined to use the Move action on process failure")
+        End If
+    End Sub
 End Class
