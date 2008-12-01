@@ -112,6 +112,13 @@ Public Interface IDataMonitor
     Sub Rename(ByVal item As IDataItem)
 
     ''' <summary>
+    ''' Prepares the data before if it processed.
+    ''' </summary>
+    ''' <param name="item">IDataItem. The item to prepare.</param>
+    ''' <remarks></remarks>
+    Sub Prepare(ByVal item As IDataItem)
+
+    ''' <summary>
     ''' Event fires when data processing fails.
     ''' </summary>
     ''' <remarks></remarks>

@@ -65,6 +65,7 @@
   <ItemGroup>
     <Compile Include="Configuration\ConfigurationTests.vb" />
     <Compile Include="Console\ConsoleTests.vb" />
+    <Compile Include="Monitors\FtpDirectoryMonitorTests.vb" />
     <Compile Include="Monitors\MessageQueueMonitorTests.vb" />
     <Compile Include="Monitors\LocalDirectoryMonitorTests.vb" />
     <Compile Include="My Project\AssemblyInfo.vb" />

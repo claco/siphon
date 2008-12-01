@@ -7,21 +7,20 @@ Public Interface IDataItem
     ''' <summary>
     ''' Gets the contents of the item being processed.
     ''' </summary>
-    ''' <value></value>
     ''' <returns>String</returns>
     ''' <remarks></remarks>
-    ReadOnly Property GetString() As String
+    Function GetString() As String
 
     ''' <summary>
-    ''' Gets the friendly name of the item being processed.
+    ''' Gets/sets the friendly name of the item being processed.
     ''' </summary>
     ''' <value></value>
     ''' <returns>String</returns>
     ''' <remarks></remarks>
-    ReadOnly Property Name() As String
+    Property Name() As String
 
     ''' <summary>
-    ''' Gets/sets the 
+    ''' Gets/sets the status of the item.
     ''' </summary>
     ''' <value></value>
     ''' <returns></returns>
@@ -43,5 +42,5 @@ Public Interface IDataItem(Of T)
     ''' <value></value>
     ''' <returns>T</returns>
     ''' <remarks></remarks>
-    Overloads ReadOnly Property Data() As T
+    Property Data() As T
 End Interface

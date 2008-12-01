@@ -1,3 +1,6 @@
 - Add translators to mediate from Scan(Objects)->Processor(x)
 - Add IMAP/POP3 monitors
 - Add UriDataItem for ftp, ttp, https type data items
+- Add config initialization for CompletePath/FailurePath in Directory Monitor, with tests for local/remote
+- Break apart into RemoteDirectoryMonitor and add NetorkCredentials/Interface
+- Add DownloadPath/Uri for local copy of remote files

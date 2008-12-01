@@ -19,12 +19,9 @@ Public Class QueueMessageDataItem
     ''' <summary>
     ''' Gets the contents of the queue message for processing.
     ''' </summary>
-    ''' <value></value>
-    ''' <returns>Object</returns>
+    ''' <returns>String</returns>
     ''' <remarks></remarks>
-    Public Overrides ReadOnly Property GetString() As String
-        Get
-            Return Me.Data.Body
-        End Get
-    End Property
+    Public Overrides Function GetString() As String
+        Return Me.Data.Body
+    End Function
 End Class

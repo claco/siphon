@@ -104,7 +104,7 @@ Public Class ConfigurationTests
 
     <Test(Description:="Generate config file from config classes")> _
     Public Sub GenerateConfig()
-        IO.File.Create(IO.Path.Combine(TestDirectory.FullName, "test.exe"))
+        IO.File.Create(IO.Path.Combine(TestDirectory.FullName, "test.exe")).Dispose()
 
         Dim config As Configuration = ConfigurationManager.OpenExeConfiguration(TestDirectory.FullName & "/test.exe")
         Dim section As New SiphonConfigurationSection

@@ -259,20 +259,33 @@ Public MustInherit Class DataMonitor
                 _processing = True
 
                 For Each item As IDataItem In items
-                    Dim processed As Boolean
-                    Try
-                        processed = Me.Processor.Process(item)
-                    Catch ex As Exception
-                        Log.Debug(String.Format("Processing {0} failed", item.Name), ex)
-                    End Try
-                    Log.DebugFormat("Processed: {0}", processed)
+                    Dim prepared As Boolean = False
+                    Dim processed As Boolean = False
 
-                    If processed Then
-                        item.Status = DataItemStatus.CompletedProcessing
-                        Me.OnProcessComplete(New ProcessEventArgs(item))
+                    Try
+                        Me.Prepare(item)
+                        prepared = True
+                    Catch ex As Exception
+                        Log.Error(String.Format("Error preparing {0}", item.Name), ex)
+                    End Try
+
+                    If Not prepared Then
+                        Log.DebugFormat("Skipping {0}", item.Name)
                     Else
-                        item.Status = DataItemStatus.FailedProcessing
-                        Me.OnProcessFailure(New ProcessEventArgs(item))
+                        Try
+                            processed = Me.Processor.Process(item)
+                        Catch ex As Exception
+                            Log.Debug(String.Format("Processing {0} failed", item.Name), ex)
+                        End Try
+                        Log.DebugFormat("Processed: {0}", processed)
+
+                        If processed Then
+                            item.Status = DataItemStatus.CompletedProcessing
+                            Me.OnProcessComplete(New ProcessEventArgs(item))
+                        Else
+                            item.Status = DataItemStatus.FailedProcessing
+                            Me.OnProcessFailure(New ProcessEventArgs(item))
+                        End If
                     End If
                 Next
 
@@ -353,6 +366,15 @@ Public MustInherit Class DataMonitor
     ''' <param name="item">IDataItem. The item to renamed.</param>
     ''' <remarks></remarks>
     Public MustOverride Sub Rename(ByVal item As IDataItem) Implements IDataMonitor.Rename
+
+    ''' <summary>
+    ''' Prepares the data before if it processed.
+    ''' </summary>
+    ''' <param name="item">IDataItem. The item to prepare.</param>
+    ''' <remarks></remarks>
+    Public Overridable Sub Prepare(ByVal item As IDataItem) Implements IDataMonitor.Prepare
+
+    End Sub
 
     ''' <summary>
     ''' Validates the current monitors configuration for errors before processing/starting.

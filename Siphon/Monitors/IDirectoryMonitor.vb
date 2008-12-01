@@ -31,7 +31,7 @@ Public Interface IDirectoryMonitor
     ''' Gets/sets the full path of the directory to monitor.
     ''' </summary>
     ''' <value></value>
-    ''' <returns></returns>
+    ''' <returns>String</returns>
     ''' <remarks>The path should take either a local system path or a file uri.</remarks>
     Property Path() As String
 
@@ -63,7 +63,7 @@ Public Interface IDirectoryMonitor
     ''' Gets/sets the path where files that process successfully should be moved to if the DataActions.Move aciton is set.
     ''' </summary>
     ''' <value></value>
-    ''' <returns></returns>
+    ''' <returns>String</returns>
     ''' <remarks></remarks>
     Property CompletePath() As String
 

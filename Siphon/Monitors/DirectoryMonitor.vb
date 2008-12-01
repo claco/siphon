@@ -284,7 +284,7 @@ Public MustInherit Class DirectoryMonitor
     ''' <param name="uri">Uri. The uri to validate.</param>
     ''' <returns>Boolean. True of the uri scheme is supported. False otherwise.</returns>
     ''' <remarks>Currently, only the file, ftp, http and https schemes are supported.</remarks>
-    Protected Function IsSchemeSupported(ByVal uri As Uri) As Boolean
+    Protected Overridable Function IsSchemeSupported(ByVal uri As Uri) As Boolean
         Select Case uri.Scheme
             Case uri.UriSchemeFile, uri.UriSchemeFtp, uri.UriSchemeHttp, uri.UriSchemeHttps
                 Return True
@@ -295,11 +295,11 @@ Public MustInherit Class DirectoryMonitor
 
     ''' <summary>
     ''' Verifies that a file uri is rooted to a drive and assigns it to the main Path/Uris drive if it isn't.
-    ''' </summary>
+    ''' </summary>s
     ''' <param name="value">Uri. The file uri being verified.</param>
     ''' <returns>Uri</returns>
     ''' <remarks></remarks>
-    Private Function VerifyDriveLEtter(ByVal value As Uri) As Uri
+    Protected Function VerifyDriveLEtter(ByVal value As Uri) As Uri
         If value.Scheme = Uri.UriSchemeFile Then
             If Not Regex.IsMatch(value.Segments(1), "(\:|\$)") Then
                 REM this will fix absolute file uris without drive letters

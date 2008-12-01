@@ -19,16 +19,13 @@ Public Class FileDataItem
     ''' <summary>
     ''' Gets the contents of the file for processing.
     ''' </summary>
-    ''' <value></value>
-    ''' <returns>Object</returns>
+    ''' <returns>String</returns>
     ''' <remarks></remarks>
-    Public Overrides ReadOnly Property GetString() As String
-        Get
-            Using reader As StreamReader = DirectCast(Me.Data, FileInfo).OpenText
-                GetString = reader.ReadToEnd
-            End Using
-        End Get
-    End Property
+    Public Overrides Function GetString() As String
+        Using reader As StreamReader = DirectCast(Me.Data, FileInfo).OpenText
+            GetString = reader.ReadToEnd
+        End Using
+    End Function
 
     ''' <summary>
     ''' Moves the current file and sets data to the new file location.
@@ -38,7 +35,7 @@ Public Class FileDataItem
     Public Sub Move(ByVal path As String)
         Dim moved As String = IO.Path.Combine(path, Me.Data.Name)
         Me.Data.MoveTo(moved)
-        Me.SetData(New FileInfo(moved))
+        Me.Data = New FileInfo(moved)
     End Sub
 
     ''' <summary>
@@ -49,6 +46,6 @@ Public Class FileDataItem
     Public Sub Rename(ByVal name As String)
         Dim renamed As String = IO.Path.Combine(Me.Data.Directory.FullName, name)
         Me.Data.MoveTo(renamed)
-        Me.SetData(New FileInfo(renamed))
+        Me.Data = New FileInfo(renamed)
     End Sub
 End Class

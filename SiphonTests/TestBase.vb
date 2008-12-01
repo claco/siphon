@@ -13,21 +13,21 @@ Public Class TestBase
     Private _testDirectory As DirectoryInfo
 
     <TestFixtureSetUp()> _
-    Protected Sub TestFixtureSetupUp()
+    Protected Overridable Sub TestFixtureSetupUp()
         log4net.Config.XmlConfigurator.Configure()
     End Sub
 
     <SetUp()> _
-    Protected Sub SetUp()
+    Protected Overridable Sub SetUp()
         Me.ProcessComplete = False
         Me.ProcessFailure = False
 
-        _testDirectory = Nothing
+        TestDirectory = Nothing
     End Sub
 
     <TearDown()> _
     Protected Sub TearDown()
-
+        DeleteTestDirectory()
     End Sub
 
     Protected Property ProcessComplete() As Boolean
@@ -73,17 +73,33 @@ Public Class TestBase
         Me.ProcessFailure = True
     End Sub
 
-    Protected Function TestDirectory() As DirectoryInfo
-        If _testDirectory Is Nothing Then
-            _testDirectory = System.IO.Directory.CreateDirectory(Path.Combine(Path.GetTempPath, Path.GetRandomFileName))
+    Protected Overridable Sub CreateTestDirectory()
+        TestDirectory = System.IO.Directory.CreateDirectory(Path.Combine(Path.GetTempPath, Path.GetRandomFileName))
+    End Sub
 
-            Log.DebugFormat("Created directory {0}", _testDirectory.FullName)
+    Protected Overridable Property TestDirectory() As DirectoryInfo
+        Get
+            If _testDirectory Is Nothing Then
+                CreateTestDirectory()
+
+                Log.DebugFormat("Created directory {0}", _testDirectory.FullName)
+            End If
+
+            Return _testDirectory
+        End Get
+        Set(ByVal value As DirectoryInfo)
+            _testDirectory = value
+        End Set
+    End Property
+ 
+    Protected Overridable Sub DeleteTestDirectory()
+        If _testDirectory IsNot Nothing Then
+            TestDirectory.Delete(True)
+            TestDirectory = Nothing
         End If
+    End Sub
 
-        Return _testDirectory
-    End Function
-
-    Protected Sub CreateFile(ByVal name As String, Optional ByVal content As String = "")
+    Protected Overridable Sub CreateFile(ByVal name As String, Optional ByVal content As String = "")
         Using file As FileStream = System.IO.File.Create(Path.Combine(TestDirectory.FullName, name))
             If Not String.IsNullOrEmpty(content) Then
                 Dim bytes() As Byte = Text.Encoding.UTF8.GetBytes(content)
@@ -94,15 +110,15 @@ Public Class TestBase
         End Using
     End Sub
 
-    Protected Sub CreateSuccessFile(Optional ByVal name As String = "SUCCESS")
+    Protected Overridable Sub CreateSuccessFile(Optional ByVal name As String = "SUCCESS")
         CreateFile(name, "SUCCESS")
     End Sub
 
-    Protected Sub CreateFailureFile(Optional ByVal name As String = "FAILURE")
+    Protected Overridable Sub CreateFailureFile(Optional ByVal name As String = "FAILURE")
         CreateFile(name, "FAILURE")
     End Sub
 
-    Protected Sub CreateExceptionFile(Optional ByVal name As String = "EXCEPTION")
+    Protected Overridable Sub CreateExceptionFile(Optional ByVal name As String = "EXCEPTION")
         CreateFile(name, "EXCEPTION")
     End Sub
 End Class

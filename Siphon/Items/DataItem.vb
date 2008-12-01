@@ -24,32 +24,32 @@ Public Class DataItem(Of T)
     ''' <param name="data">Object. The data being processed.</param>
     ''' <remarks></remarks>
     Public Sub New(ByVal name As String, ByVal data As T)
-        _name = name
+        Me.Name = name
         _data = data
     End Sub
 
     ''' <summary>
     ''' Gets the contents of the item being processed.
     ''' </summary>
-    ''' <value></value>
-    ''' <returns>Object</returns>
+    ''' <returns>String</returns>
     ''' <remarks></remarks>
-    Public Overridable ReadOnly Property GetString() As String Implements IDataItem.GetString
-        Get
-            Return _data.ToString
-        End Get
-    End Property
+    Public Overridable Function GetString() As String Implements IDataItem.GetString
+        Return _data.ToString
+    End Function
 
     ''' <summary>
-    ''' Gets the the item being processed.
+    ''' Gets/sets the the item being processed.
     ''' </summary>
     ''' <value></value>
     ''' <returns>T</returns>
     ''' <remarks></remarks>
-    Public Overloads ReadOnly Property Data() As T Implements IDataItem(Of T).Data
+    Public Overloads Property Data() As T Implements IDataItem(Of T).Data
         Get
             Return _data
         End Get
+        Set(ByVal value As T)
+            _data = value
+        End Set
     End Property
 
 
@@ -59,10 +59,13 @@ Public Class DataItem(Of T)
     ''' <value></value>
     ''' <returns>String</returns>
     ''' <remarks></remarks>
-    Public Overridable ReadOnly Property Name() As String Implements IDataItem.Name
+    Public Overridable Property Name() As String Implements IDataItem.Name
         Get
             Return _name
         End Get
+        Set(ByVal value As String)
+            _name = value.Trim
+        End Set
     End Property
 
     ''' <summary>
@@ -79,13 +82,4 @@ Public Class DataItem(Of T)
             _status = value
         End Set
     End Property
-
-    ''' <summary>
-    ''' Sets data from ithin inherited classes.
-    ''' </summary>
-    ''' <param name="data">T. The data to be set.</param>
-    ''' <remarks></remarks>
-    Protected Sub SetData(ByVal data As T)
-        _data = data
-    End Sub
 End Class
