@@ -123,28 +123,63 @@ Public Class FtpDirectoryMonitor
     ''' <summary>
     ''' Deletes the data item after processing.
     ''' </summary>
-    ''' <param name="data">IDataItem. The item to delete.</param>
+    ''' <param name="item">IDataItem. The item to delete.</param>
     ''' <remarks></remarks>
-    Public Overrides Sub Delete(ByVal data As IDataItem)
-        Throw New NotImplementedException
+    Public Overrides Sub Delete(ByVal item As IDataItem)
+        Dim uriItem As UriDataItem = item
+
+        Log.DebugFormat("Deleting {0}", uriItem.Data)
+
+        Try
+            Dim request As FtpWebRequest = FtpWebRequest.Create(uriItem.Data)
+            request.Method = WebRequestMethods.Ftp.DeleteFile
+            request.UsePassive = True
+            request.KeepAlive = False
+            'request.Credentials = New NetworkCredential("ftptest", "ftptest123")
+
+            Dim response As FtpWebResponse = request.GetResponse
+        Catch ex As Exception
+            Log.Error(String.Format("Error deleting {0}", uriItem.Data), ex)
+        End Try
     End Sub
 
     ''' <summary>
     ''' Moves the data item after processing.
     ''' </summary>
-    ''' <param name="data">IDataItem. The item to move.</param>
+    ''' <param name="item">IDataItem. The item to move.</param>
     ''' <remarks></remarks>
-    Public Overrides Sub Move(ByVal data As IDataItem)
+    Public Overrides Sub Move(ByVal item As IDataItem)
         Throw New NotImplementedException
     End Sub
 
     ''' <summary>
     ''' Renames the data item after processing.
     ''' </summary>
-    ''' <param name="data">IDataItem. The item to renamed.</param>
+    ''' <param name="item">IDataItem. The item to renamed.</param>
     ''' <remarks></remarks>
-    Public Overrides Sub Rename(ByVal data As IDataItem)
-        Throw New NotImplementedException
+    Public Overrides Sub Rename(ByVal item As IDataItem)
+        Dim uriItem As UriDataItem = item
+        Dim remoteFile As New FileInfo(uriItem.Data.LocalPath)
+        Dim newFile As String = Me.GetNewFileName(remoteFile.Name)
+        Dim newUri As New UriBuilder(uriItem.Data)
+        newUri.Path = newUri.Path.Replace(remoteFile.Name, newFile)
+
+        Log.DebugFormat("Renaming {0} to {1}", uriItem.Data, newUri.Uri)
+
+        Try
+            Dim request As FtpWebRequest = FtpWebRequest.Create(uriItem.Data)
+            request.Method = WebRequestMethods.Ftp.Rename
+            request.UsePassive = True
+            request.KeepAlive = False
+            request.RenameTo = newFile
+            'request.Credentials = New NetworkCredential("ftptest", "ftptest123")
+
+            Dim response As FtpWebResponse = request.GetResponse
+
+            uriItem.Data = newUri.Uri
+        Catch ex As Exception
+            Log.Error(String.Format("Error renaming {0}", uriItem.Data), ex)
+        End Try
     End Sub
 
     ''' <summary>
