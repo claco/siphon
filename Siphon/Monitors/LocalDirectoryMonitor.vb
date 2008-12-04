@@ -108,9 +108,12 @@ Public Class LocalDirectoryMonitor
         ElseIf item.Status = DataItemStatus.FailedProcessing Then
             path = Me.FailurePath
         Else
-
+            Throw New NotImplementedException("Unknown Item Status")
         End If
-        DirectCast(file, FileDataItem).Move(path)
+
+        Dim moved As String = IO.Path.Combine(path, file.Data.Name)
+        file.Data.MoveTo(moved)
+        file.Data = New FileInfo(moved)
 
         Log.DebugFormat("Moving {0} to {1}", file.Data.FullName, path)
     End Sub
@@ -124,8 +127,10 @@ Public Class LocalDirectoryMonitor
         Dim file As IDataItem(Of FileInfo) = item
         Dim original As String = file.Data.Name
         Dim name As String = Me.GetNewFileName(original)
+        Dim renamed As String = IO.Path.Combine(file.Data.Directory.FullName, name)
 
-        DirectCast(file, FileDataItem).Rename(name)
+        file.Data.MoveTo(renamed)
+        file.Data = New FileInfo(renamed)
 
         Log.DebugFormat("Renaming {0} to {1}", original, name)
     End Sub

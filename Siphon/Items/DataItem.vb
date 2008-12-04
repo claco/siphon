@@ -25,7 +25,7 @@ Public Class DataItem(Of T)
     ''' <remarks></remarks>
     Public Sub New(ByVal name As String, ByVal data As T)
         Me.Name = name
-        _data = data
+        Me.Data = data
     End Sub
 
     ''' <summary>
@@ -34,7 +34,7 @@ Public Class DataItem(Of T)
     ''' <returns>String</returns>
     ''' <remarks></remarks>
     Public Overridable Function GetString() As String Implements IDataItem.GetString
-        Return _data.ToString
+        Return Me.Data.ToString
     End Function
 
     ''' <summary>

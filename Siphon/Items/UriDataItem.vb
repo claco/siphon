@@ -18,16 +18,6 @@ Public Class UriDataItem
         MyBase.New(path.AbsoluteUri, path)
     End Sub
 
-    ''' <summary>
-    ''' Creates a new UriDataItem instance.
-    ''' </summary>
-    ''' <param name="path">String. The full uri including file name to the file being processed.</param>
-    ''' <remarks></remarks>
-    Public Sub New(ByVal path As Uri, ByVal localFile As String)
-        MyBase.New(path.AbsoluteUri, path)
-        Me.LocalFile = New FileInfo(localFile)
-    End Sub
-
     Public Property LocalFile() As FileInfo
         Get
             Return _localFile

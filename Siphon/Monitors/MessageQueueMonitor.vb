@@ -232,7 +232,7 @@ Public Class MessageQueueMonitor
 
             Me.FailureQueue.Send(Me.Queue.ReceiveById(message.Data.Id))
         Else
-
+            Throw New NotImplementedException("Unknown Item Status")
         End If
     End Sub
 

@@ -5,3 +5,4 @@
 - Break apart into RemoteDirectoryMonitor and add NetorkCredentials/Interface
 - Add Monitor.IsRunning to fix double stop/dispose
 - Rename Monitor.Processing to IsProcessing to match IsRunning?
+- FTP Move to different server should delete source, upload to remote

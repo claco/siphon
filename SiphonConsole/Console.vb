@@ -75,7 +75,7 @@ Public Class SiphonConsole
             Else
                 For Each arg As String In args
                     Dim name As String = arg.Trim
-                    Dim query = From monitor In Me.Monitors Where monitor.Name = arg
+                    Dim query = From monitor In Me.Monitors Where monitor.Name = name
 
                     If query.Count = 0 Then
                         Log.ErrorFormat("Could not find monitor {0}", name)

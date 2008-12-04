@@ -33,7 +33,63 @@ Public Class FtpDirectoryMonitor
     ''' </summary>
     ''' <remarks></remarks>
     Public Overrides Sub CreateFolders()
+        If Me.CreateMissingFolders Then
+            Log.DebugFormat("Creating directory {0}", Me.Uri)
 
+            Try
+                Dim request As FtpWebRequest = FtpWebRequest.Create(Me.Uri)
+                request.Method = WebRequestMethods.Ftp.MakeDirectory
+                request.UsePassive = True
+                request.KeepAlive = False
+                'request.Credentials = New NetworkCredential("ftptest", "ftptest123")
+
+                Dim response As FtpWebResponse = request.GetResponse
+            Catch ex As Exception
+                Log.Error(String.Format("Error creating {0}", Me.Uri), ex)
+            End Try
+
+            If Me.CompleteUri IsNot Nothing Then
+                Log.DebugFormat("Creating directory {0}", Me.CompleteUri)
+
+                Try
+                    Dim request As FtpWebRequest = FtpWebRequest.Create(Me.CompleteUri)
+                    request.Method = WebRequestMethods.Ftp.MakeDirectory
+                    request.UsePassive = True
+                    request.KeepAlive = False
+                    'request.Credentials = New NetworkCredential("ftptest", "ftptest123")
+
+                    Dim response As FtpWebResponse = request.GetResponse
+                Catch ex As Exception
+                    Log.Error(String.Format("Error creating {0}", Me.CompleteUri), ex)
+                End Try
+            End If
+
+            If Me.FailureUri IsNot Nothing Then
+                Log.DebugFormat("Creating directory {0}", Me.FailureUri)
+
+                Try
+                    Dim request As FtpWebRequest = FtpWebRequest.Create(Me.FailureUri)
+                    request.Method = WebRequestMethods.Ftp.MakeDirectory
+                    request.UsePassive = True
+                    request.KeepAlive = False
+                    'request.Credentials = New NetworkCredential("ftptest", "ftptest123")
+
+                    Dim response As FtpWebResponse = request.GetResponse
+                Catch ex As Exception
+                    Log.Error(String.Format("Error creating {0}", Me.FailureUri), ex)
+                End Try
+            End If
+
+            If Not String.IsNullOrEmpty(Me.DownloadPath) Then
+                Dim downloads As String = Me.DownloadUri.LocalPath
+
+                If Not Directory.Exists(downloads) Then
+                    Log.DebugFormat("Creating directory {0}", downloads)
+
+                    Directory.CreateDirectory(downloads)
+                End If
+            End If
+        End If
     End Sub
 
     ''' <summary>
@@ -93,6 +149,7 @@ Public Class FtpDirectoryMonitor
             request.Method = WebRequestMethods.Ftp.DownloadFile
             request.UsePassive = True
             request.KeepAlive = False
+            request.UseBinary = True
             'request.Credentials = New NetworkCredential("ftptest", "ftptest123")
 
             Dim response As FtpWebResponse = request.GetResponse
@@ -149,7 +206,32 @@ Public Class FtpDirectoryMonitor
     ''' <param name="item">IDataItem. The item to move.</param>
     ''' <remarks></remarks>
     Public Overrides Sub Move(ByVal item As IDataItem)
-        Throw New NotImplementedException
+        Dim uriItem As UriDataItem = item
+        Dim remoteFile As New FileInfo(uriItem.Data.LocalPath)
+        Dim newFile As Uri
+
+        If uriItem.Status = DataItemStatus.CompletedProcessing Then
+            newFile = New Uri(IO.Path.Combine(Me.CompleteUri.AbsoluteUri, remoteFile.Name))
+        ElseIf uriItem.Status = DataItemStatus.FailedProcessing Then
+            newFile = New Uri(IO.Path.Combine(Me.FailureUri.AbsoluteUri, remoteFile.Name))
+        Else
+            Throw New NotImplementedException("Unknown Item Status")
+        End If
+
+        Log.DebugFormat("Moving {0} to {1}", uriItem.Data, newFile)
+
+        Try
+            Dim request As FtpWebRequest = FtpWebRequest.Create(uriItem.Data)
+            request.Method = WebRequestMethods.Ftp.Rename
+            request.UsePassive = True
+            request.KeepAlive = False
+            request.RenameTo = newFile.AbsolutePath
+            'request.Credentials = New NetworkCredential("ftptest", "ftptest123")
+
+            Dim response As FtpWebResponse = request.GetResponse
+        Catch ex As Exception
+            Log.Error(String.Format("Error moving {0}", uriItem.Data), ex)
+        End Try
     End Sub
 
     ''' <summary>

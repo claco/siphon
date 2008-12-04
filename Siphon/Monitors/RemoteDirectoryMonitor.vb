@@ -57,8 +57,10 @@ Public MustInherit Class RemoteDirectoryMonitor
 
                 Me.DownloadUri = uri
             Else
-                Dim builder As New UriBuilder(Me.Uri)
-                builder.Path = IO.Path.Combine(builder.Path, value)
+                Dim builder As New UriBuilder
+                builder.Scheme = Uri.UriSchemeFile
+                builder.Host = String.Empty
+                builder.Path = value
 
                 Log.DebugFormat("DownloadPath: {0} converted to {1}", value, builder.Uri.ToString)
 
