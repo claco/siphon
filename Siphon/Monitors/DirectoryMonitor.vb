@@ -1,5 +1,6 @@
 ﻿Imports System.Configuration
 Imports System.Text.RegularExpressions
+Imports System.Net
 Imports log4net
 
 ''' <summary>
@@ -149,11 +150,31 @@ Public MustInherit Class DirectoryMonitor
     Public Property Uri() As Uri Implements IDirectoryMonitor.Uri
         Get
             Return _uri
-
         End Get
         Set(ByVal value As Uri)
             If IsSchemeSupported(value) Then
-                _uri = value
+                If Not String.IsNullOrEmpty(value.UserInfo) Then
+                    Dim info() As String = value.UserInfo.Split(":")
+                    Dim credentials As New NetworkCredential
+
+                    credentials.UserName = info(0).Trim
+                    If info.Length = 2 Then
+                        credentials.Password = info(1).Trim
+                    End If
+
+                    Me.Credentials = credentials
+
+                    Dim builder As New UriBuilder(value)
+                    builder.UserName = String.Empty
+                    builder.Password = String.Empty
+
+                    _uri = builder.Uri
+
+                    Log.DebugFormat("Migrated user info '{0}:{1}' to credentials ", credentials.UserName, credentials.Password)
+                    Log.DebugFormat("Converting {0} to {1}", value, _uri)
+                Else
+                    _uri = value
+                End If
             Else
                 Throw New UriFormatException("Scheme not supported")
             End If
@@ -294,7 +315,7 @@ Public MustInherit Class DirectoryMonitor
     ''' <remarks>Currently, only the file, ftp, http and https schemes are supported.</remarks>
     Protected Overridable Function IsSchemeSupported(ByVal uri As Uri) As Boolean
         Select Case uri.Scheme
-            Case uri.UriSchemeFile, uri.UriSchemeFtp, uri.UriSchemeHttp, uri.UriSchemeHttps
+            Case uri.UriSchemeFile, uri.UriSchemeFtp, uri.UriSchemeHttp, uri.UriSchemeHttps, "imap", "pop3"
                 Return True
             Case Else
                 Return False

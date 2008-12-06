@@ -107,7 +107,11 @@ Imports ChrisLaco.Siphon
 
         Using schedule = New DailySchedule(DateTime.Now.AddSeconds(2).TimeOfDay)
             Using processor = New MockProcessor
-                Using monitor As FtpDirectoryMonitor = New FtpDirectoryMonitor("FtpMonitor", Path.Combine(FtpUri.AbsoluteUri, TestDirectory.Name), schedule, processor)
+                Dim builder As New UriBuilder(FtpUri)
+                builder.UserName = FtpUser
+                builder.Password = FtpPass
+
+                Using monitor As FtpDirectoryMonitor = New FtpDirectoryMonitor("FtpMonitor", Path.Combine(builder.Uri.AbsoluteUri, TestDirectory.Name), schedule, processor)
                     AddHandler monitor.ProcessComplete, AddressOf Monitor_ProcessComplete
                     AddHandler monitor.ProcessFailure, AddressOf Monitor_ProcessFailure
 
@@ -535,6 +539,21 @@ Imports ChrisLaco.Siphon
             monitor.FailurePath = New Uri("ftp://foo.com/foo").ToString
             Assert.AreEqual("/foo", monitor.FailurePath)
             Assert.AreEqual("ftp://foo.com/foo", monitor.FailureUri.ToString)
+
+            REM Uri with user credentials
+            monitor.Path = "ftp://user:pass@foo.com/bar"
+            Assert.AreEqual("/bar", monitor.Path)
+            Assert.AreEqual("ftp://foo.com/bar", monitor.Uri.ToString)
+            Assert.AreEqual("user", monitor.Credentials.UserName)
+            Assert.AreEqual("pass", monitor.Credentials.Password)
+
+            REM Uri with user credentials and port
+            monitor.Path = "ftp://user2:pass2@foo.com:993/bar"
+            Assert.AreEqual("/bar", monitor.Path)
+            Assert.AreEqual(993, monitor.Uri.Port)
+            Assert.AreEqual("ftp://foo.com:993/bar", monitor.Uri.ToString)
+            Assert.AreEqual("user2", monitor.Credentials.UserName)
+            Assert.AreEqual("pass2", monitor.Credentials.Password)
         End Using
     End Sub
 
@@ -710,4 +729,23 @@ Imports ChrisLaco.Siphon
             Assert.IsTrue(monitor.CreateMissingFolders)
         End Using
     End Sub
+
+    <Test(Description:="Set credentials when they're passed in the Uri")> _
+    Public Sub CredentialsFromUri()
+        Using monitor As New FtpDirectoryMonitor("FtpMonitor", "ftp://claco:mypass@foo.com/bar", New IntervalSchedule, New MockProcessor)
+            Assert.AreEqual("ftp://foo.com/bar", monitor.Uri.ToString)
+            Assert.AreEqual("claco", monitor.Credentials.UserName)
+            Assert.AreEqual("mypass", monitor.Credentials.Password)
+        End Using
+    End Sub
+
+    <Test(Description:="Set credentials when they're passed in the Uri")> _
+    Public Sub PartialCredentialsFromUri()
+        Using monitor As New FtpDirectoryMonitor("FtpMonitor", "ftp://claco@foo.com/bar", New IntervalSchedule, New MockProcessor)
+            Assert.AreEqual("ftp://foo.com/bar", monitor.Uri.ToString)
+            Assert.AreEqual("claco", monitor.Credentials.UserName)
+            Assert.AreEqual(String.Empty, monitor.Credentials.Password)
+        End Using
+    End Sub
+
 End Class

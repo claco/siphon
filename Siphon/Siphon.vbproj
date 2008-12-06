@@ -42,6 +42,10 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>bin\log4net.dll</HintPath>
     </Reference>
+    <Reference Include="LumiSoft.Net, Version=2.0.3202.18210, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>bin\LumiSoft.Net.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.configuration" />
     <Reference Include="System.Core">
@@ -80,6 +84,7 @@
     <Compile Include="Monitors\DirectoryMonitor.vb" />
     <Compile Include="Monitors\FtpDirectoryMonitor.vb" />
     <Compile Include="Monitors\IDataMonitor.vb" />
+    <Compile Include="Monitors\ImapMonitor.vb" />
     <Compile Include="Monitors\IRemoteDirectoryMonitor.vb" />
     <Compile Include="Monitors\LocalDirectoryMonitor.vb" />
     <Compile Include="Monitors\MessageQueueMonitor.vb" />
