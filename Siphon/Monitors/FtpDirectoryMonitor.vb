@@ -41,7 +41,9 @@ Public Class FtpDirectoryMonitor
                 request.Method = WebRequestMethods.Ftp.MakeDirectory
                 request.UsePassive = True
                 request.KeepAlive = False
-                'request.Credentials = New NetworkCredential("ftptest", "ftptest123")
+                If Me.Credentials IsNot Nothing Then
+                    request.Credentials = Me.Credentials
+                End If
 
                 Dim response As FtpWebResponse = request.GetResponse
             Catch ex As Exception
@@ -56,7 +58,9 @@ Public Class FtpDirectoryMonitor
                     request.Method = WebRequestMethods.Ftp.MakeDirectory
                     request.UsePassive = True
                     request.KeepAlive = False
-                    'request.Credentials = New NetworkCredential("ftptest", "ftptest123")
+                    If Me.Credentials IsNot Nothing Then
+                        request.Credentials = Me.Credentials
+                    End If
 
                     Dim response As FtpWebResponse = request.GetResponse
                 Catch ex As Exception
@@ -72,7 +76,9 @@ Public Class FtpDirectoryMonitor
                     request.Method = WebRequestMethods.Ftp.MakeDirectory
                     request.UsePassive = True
                     request.KeepAlive = False
-                    'request.Credentials = New NetworkCredential("ftptest", "ftptest123")
+                    If Me.Credentials IsNot Nothing Then
+                        request.Credentials = Me.Credentials
+                    End If
 
                     Dim response As FtpWebResponse = request.GetResponse
                 Catch ex As Exception
@@ -107,7 +113,9 @@ Public Class FtpDirectoryMonitor
             request.Method = WebRequestMethods.Ftp.ListDirectory
             request.UsePassive = True
             request.KeepAlive = False
-            'request.Credentials = New NetworkCredential("ftptest", "ftptest123")
+            If Me.Credentials IsNot Nothing Then
+                request.Credentials = Me.Credentials
+            End If
 
             Dim response As FtpWebResponse = request.GetResponse
             Using reader As New StreamReader(response.GetResponseStream)
@@ -150,7 +158,9 @@ Public Class FtpDirectoryMonitor
             request.UsePassive = True
             request.KeepAlive = False
             request.UseBinary = True
-            'request.Credentials = New NetworkCredential("ftptest", "ftptest123")
+            If Me.Credentials IsNot Nothing Then
+                request.Credentials = Me.Credentials
+            End If
 
             Dim response As FtpWebResponse = request.GetResponse
             Using stream As IO.Stream = response.GetResponseStream
@@ -192,7 +202,9 @@ Public Class FtpDirectoryMonitor
             request.Method = WebRequestMethods.Ftp.DeleteFile
             request.UsePassive = True
             request.KeepAlive = False
-            'request.Credentials = New NetworkCredential("ftptest", "ftptest123")
+            If Me.Credentials IsNot Nothing Then
+                request.Credentials = Me.Credentials
+            End If
 
             Dim response As FtpWebResponse = request.GetResponse
         Catch ex As Exception
@@ -226,7 +238,9 @@ Public Class FtpDirectoryMonitor
             request.UsePassive = True
             request.KeepAlive = False
             request.RenameTo = newFile.AbsolutePath
-            'request.Credentials = New NetworkCredential("ftptest", "ftptest123")
+            If Me.Credentials IsNot Nothing Then
+                request.Credentials = Me.Credentials
+            End If
 
             Dim response As FtpWebResponse = request.GetResponse
         Catch ex As Exception
@@ -254,7 +268,9 @@ Public Class FtpDirectoryMonitor
             request.UsePassive = True
             request.KeepAlive = False
             request.RenameTo = newFile
-            'request.Credentials = New NetworkCredential("ftptest", "ftptest123")
+            If Me.Credentials IsNot Nothing Then
+                request.Credentials = Me.Credentials
+            End If
 
             Dim response As FtpWebResponse = request.GetResponse
 

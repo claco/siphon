@@ -76,7 +76,7 @@ Public Class ConfigurationTests
     End Sub
 
     <Test(Description:="Config Exception when path is empty")> _
-    <ExpectedException(GetType(ConfigurationErrorsException))> _
+    <ExpectedException(GetType(ArgumentException))> _
     Public Sub PathConfigurationException()
         Dim monitor As New MonitorElement("Test")
         monitor.Settings.Add(New NameValueConfigurationElement("Path", String.Empty))

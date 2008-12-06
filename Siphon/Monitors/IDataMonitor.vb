@@ -1,4 +1,5 @@
 ﻿Imports System.Collections.ObjectModel
+Imports System.Net
 
 ''' <summary>
 ''' Interface that defines a data monitoring instance.
@@ -21,6 +22,14 @@ Public Interface IDataMonitor
     ''' <returns>String</returns>
     ''' <remarks></remarks>
     Property Name() As String
+
+    ''' <summary>
+    ''' Gets/sets the credentials to use for the data source.
+    ''' </summary>
+    ''' <value></value>
+    ''' <returns></returns>
+    ''' <remarks></remarks>
+    Property Credentials() As NetworkCredential
 
     ''' <summary>
     ''' Starts the data monitoring instance.

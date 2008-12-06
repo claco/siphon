@@ -1,6 +1,7 @@
 ﻿Imports System.Configuration
 Imports System.IO
 Imports System.Messaging
+Imports System.Net
 Imports System.Text.RegularExpressions
 Imports System.Reflection
 Imports NUnit.Framework
@@ -59,6 +60,8 @@ Imports ChrisLaco.Siphon
                 Using monitor As FtpDirectoryMonitor = New FtpDirectoryMonitor("FtpMonitor", Path.Combine(FtpUri.AbsoluteUri, TestDirectory.Name), schedule, processor)
                     AddHandler monitor.ProcessComplete, AddressOf Monitor_ProcessComplete
                     AddHandler monitor.ProcessFailure, AddressOf Monitor_ProcessFailure
+
+                    monitor.Credentials = New NetworkCredential(FtpUser, FtpPass)
                     monitor.Filter = String.Empty
                     monitor.Start()
                     Threading.Thread.Sleep(3000)
@@ -84,6 +87,7 @@ Imports ChrisLaco.Siphon
 
                     Assert.IsTrue(File.Exists(Path.Combine(TestDirectory.FullName, "SUCCESS")))
                     monitor.ProcessCompleteActions = DataActions.Delete
+                    monitor.Credentials = New NetworkCredential("anonymous", "claco@chrislaco.com")
                     monitor.Start()
                     Threading.Thread.Sleep(3000)
                     monitor.Stop()
@@ -672,6 +676,38 @@ Imports ChrisLaco.Siphon
                     Assert.IsTrue(Directory.Exists(Path.Combine(TestDirectory.FullName, "Downloads")))
                 End Using
             End Using
+        End Using
+    End Sub
+
+    <Test(Description:="Create monitor from configuration")> _
+    Public Sub CreateFromConfiguration()
+        Dim monitorElement As New MonitorElement("TestQueueMonitor", "ChrisLaco.Siphon.FtpDirectoryMonitor, Siphon")
+        Dim processorElement As New ProcessorElement("ChrisLaco.Tests.Siphon.MockProcessor, SiphonTests")
+        Dim scheduleElement As New ScheduleElement("ChrisLaco.Siphon.DailySchedule, Siphon")
+        scheduleElement.Daily.Add(DateTime.Now.AddSeconds(3).TimeOfDay)
+        monitorElement.Schedule = scheduleElement
+        monitorElement.Processor = processorElement
+        monitorElement.Settings.Add(New NameValueConfigurationElement("Path", "ftp://foo.com/bar"))
+        monitorElement.Settings.Add(New NameValueConfigurationElement("CompletePath", "Processed"))
+        monitorElement.Settings.Add(New NameValueConfigurationElement("FailurePath", "Failed"))
+        monitorElement.Settings.Add(New NameValueConfigurationElement("CreateMissingFolders", "true"))
+        monitorElement.Settings.Add(New NameValueConfigurationElement("Username", "FtpUser"))
+        monitorElement.Settings.Add(New NameValueConfigurationElement("Password", "FtpPass"))
+        monitorElement.Settings.Add(New NameValueConfigurationElement("Domain", "FtpDomain"))
+
+        Using monitor As FtpDirectoryMonitor = monitorElement.CreateInstance
+            Assert.IsInstanceOfType(GetType(FtpDirectoryMonitor), monitor)
+            Assert.IsInstanceOfType(GetType(Uri), monitor.Uri)
+            Assert.IsInstanceOfType(GetType(Uri), monitor.CompleteUri)
+            Assert.IsInstanceOfType(GetType(Uri), monitor.FailureUri)
+            Assert.IsInstanceOfType(GetType(NetworkCredential), monitor.Credentials)
+            Assert.AreEqual("ftp://foo.com/bar", monitor.Uri.ToString)
+            Assert.AreEqual("ftp://foo.com/bar/Processed", monitor.CompleteUri.ToString)
+            Assert.AreEqual("ftp://foo.com/bar/Failed", monitor.FailureUri.ToString)
+            Assert.AreEqual("FtpUser", monitor.Credentials.UserName)
+            Assert.AreEqual("FtpPass", monitor.Credentials.Password)
+            Assert.AreEqual("FtpDomain", monitor.Credentials.Domain)
+            Assert.IsTrue(monitor.CreateMissingFolders)
         End Using
     End Sub
 End Class

@@ -1,4 +1,5 @@
 ﻿Imports System.Configuration
+Imports System.Net
 Imports System.Text.RegularExpressions
 Imports log4net
 
@@ -13,6 +14,7 @@ Public MustInherit Class RemoteDirectoryMonitor
     Private Shared ReadOnly Log As ILog = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod.DeclaringType)
 
     Private _downloadUri As Uri = Nothing
+    Private _credentials As NetworkCredential = Nothing
 
     ''' <summary>
     ''' Protected constructor for reflection.
@@ -81,7 +83,7 @@ Public MustInherit Class RemoteDirectoryMonitor
         End Get
         Set(ByVal value As Uri)
             If value.Scheme = Uri.UriSchemeFile Then
-                _downloadUri = Me.VerifyDriveLetter(value)
+                _downloadUri = Me.VerifyDriveLEtter(value)
             Else
                 Throw New UriFormatException("Scheme not supported")
             End If

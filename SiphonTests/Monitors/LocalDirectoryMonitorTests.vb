@@ -1,4 +1,5 @@
-﻿Imports System.IO
+﻿Imports System.Configuration
+Imports System.IO
 Imports System.Messaging
 Imports System.Text.RegularExpressions
 Imports System.Reflection
@@ -597,6 +598,31 @@ Imports ChrisLaco.Siphon
         Using monitor As New LocalDirectoryMonitor("TestMonitor", "C:\", New IntervalSchedule, New MockProcessor)
             monitor.ProcessFailureActions = DataActions.Move
             monitor.Start()
+        End Using
+    End Sub
+
+    <Test(Description:="Create monitor from configuration")> _
+    Public Sub CreateFromConfiguration()
+        Dim monitorElement As New MonitorElement("TestQueueMonitor", "ChrisLaco.Siphon.LocalDirectoryMonitor, Siphon")
+        Dim processorElement As New ProcessorElement("ChrisLaco.Tests.Siphon.MockProcessor, SiphonTests")
+        Dim scheduleElement As New ScheduleElement("ChrisLaco.Siphon.DailySchedule, Siphon")
+        scheduleElement.Daily.Add(DateTime.Now.AddSeconds(3).TimeOfDay)
+        monitorElement.Schedule = scheduleElement
+        monitorElement.Processor = processorElement
+        monitorElement.Settings.Add(New NameValueConfigurationElement("Path", "C:\temp"))
+        monitorElement.Settings.Add(New NameValueConfigurationElement("CompletePath", "Processed"))
+        monitorElement.Settings.Add(New NameValueConfigurationElement("FailurePath", "Failed"))
+        monitorElement.Settings.Add(New NameValueConfigurationElement("CreateMissingFolders", "true"))
+
+        Using monitor As LocalDirectoryMonitor = monitorElement.CreateInstance
+            Assert.IsInstanceOfType(GetType(LocalDirectoryMonitor), monitor)
+            Assert.IsInstanceOfType(GetType(Uri), monitor.Uri)
+            Assert.IsInstanceOfType(GetType(Uri), monitor.CompleteUri)
+            Assert.IsInstanceOfType(GetType(Uri), monitor.FailureUri)
+            Assert.AreEqual("C:\temp", monitor.Path)
+            Assert.AreEqual("C:\temp\Processed", monitor.CompletePath)
+            Assert.AreEqual("C:\temp\Failed", monitor.FailurePath)
+            Assert.IsTrue(monitor.CreateMissingFolders)
         End Using
     End Sub
 End Class

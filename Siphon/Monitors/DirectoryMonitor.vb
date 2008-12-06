@@ -12,8 +12,11 @@ Public MustInherit Class DirectoryMonitor
 
     Private Shared ReadOnly Log As ILog = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod.DeclaringType)
     Private Const DEFAULT_FILTER As String = "*"
-    Private Const CONFIG_SETTING_PATH As String = "Path"
-    Private Const CONFIG_SETTING_FILTER As String = "Filter"
+    Private Const SETTING_PATH As String = "Path"
+    Private Const SETTING_FILTER As String = "Filter"
+    Private Const SETTING_COMPLETE_PATH As String = "CompletePath"
+    Private Const SETTING_FAILURE_PATH As String = "FailurePath"
+    Private Const SETTINGS_CREATE_MISSING_FOLDERS As String = "CreateMissingFolders"
 
     Private _createMissingFolders As Boolean
     Private _filter As String = DEFAULT_FILTER
@@ -71,16 +74,21 @@ Public MustInherit Class DirectoryMonitor
     Public Overrides Sub Initialize(ByVal config As MonitorElement)
         MyBase.Initialize(config)
 
-        Dim path As NameValueConfigurationElement = config.Settings(CONFIG_SETTING_PATH)
-        If path Is Nothing OrElse String.IsNullOrEmpty(path.Value) Then
-            Throw New ConfigurationErrorsException(String.Format("The setting {0} is required", CONFIG_SETTING_PATH))
-        Else
-            Me.Path = path.Value
+        Dim settings As NameValueConfigurationCollection = config.Settings
+        If settings.AllKeys.Contains(SETTING_PATH) Then
+            Me.Path = settings(SETTING_PATH).Value
         End If
-
-        Dim filter As NameValueConfigurationElement = config.Settings(CONFIG_SETTING_FILTER)
-        If Not filter Is Nothing Then
-            Me.Filter = filter.Value
+        If settings.AllKeys.Contains(SETTING_FILTER) Then
+            Me.Filter = settings(SETTING_FILTER).Value
+        End If
+        If settings.AllKeys.Contains(SETTING_COMPLETE_PATH) Then
+            Me.CompletePath = settings(SETTING_COMPLETE_PATH).Value
+        End If
+        If settings.AllKeys.Contains(SETTING_FAILURE_PATH) Then
+            Me.FailurePath = settings(SETTING_FAILURE_PATH).Value
+        End If
+        If settings.AllKeys.Contains(SETTINGS_CREATE_MISSING_FOLDERS) Then
+            Me.CreateMissingFolders = settings(SETTINGS_CREATE_MISSING_FOLDERS).Value
         End If
     End Sub
 
@@ -124,7 +132,7 @@ Public MustInherit Class DirectoryMonitor
                 Dim parsedUri As Uri = Nothing
 
                 If Uri.TryCreate(value, UriKind.RelativeOrAbsolute, parsedUri) Then
-                    Log.DebugFormat("Path: {0} converted to {1}", value, parsedUri.AbsoluteUri)
+                    Log.DebugFormat("Path: {0} converted to {1}", value, parsedUri)
 
                     Me.Uri = parsedUri
                 End If

@@ -1,4 +1,6 @@
 ﻿Imports System.Collections.ObjectModel
+Imports System.Configuration
+Imports System.Net
 Imports System.Threading
 Imports System.Timers
 Imports log4net
@@ -11,6 +13,12 @@ Public MustInherit Class DataMonitor
     Implements IDataMonitor
 
     Private Shared ReadOnly Log As ILog = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod.DeclaringType)
+
+    Private Const SETTING_USERNAME As String = "Username"
+    Private Const SETTING_PASSWORD As String = "Password"
+    Private Const SETTING_DOMAIN As String = "Domain"
+
+    Private _credentials As NetworkCredential = Nothing
     Private _disposed As Boolean
     Private _name As String = String.Empty
     Private _processing As Boolean
@@ -43,11 +51,41 @@ Public MustInherit Class DataMonitor
     End Sub
 
     ''' <summary>
+    ''' Gets/sets the credentials to use for the data source.
+    ''' </summary>
+    ''' <value></value>
+    ''' <returns></returns>
+    ''' <remarks></remarks>
+    Public Overridable Property Credentials() As NetworkCredential Implements IDataMonitor.Credentials
+        Get
+            Return _credentials
+        End Get
+        Set(ByVal value As NetworkCredential)
+            _credentials = value
+        End Set
+    End Property
+
+    ''' <summary>
     ''' Initializes the monitor using the supplied monitor configuration settings.
     ''' </summary>
     ''' <param name="config">MonitorElement. The configuraiton for the current monitor.</param>
     ''' <remarks></remarks>
     Public Overridable Sub Initialize(ByVal config As MonitorElement) Implements IDataMonitor.Initialize
+        Dim userName, password, domain As String
+        Dim settings As NameValueConfigurationCollection = config.Settings
+        If settings.AllKeys.Contains(SETTING_USERNAME) Then
+            userName = settings(SETTING_USERNAME).Value
+
+            If settings.AllKeys.Contains(SETTING_PASSWORD) Then
+                password = settings(SETTING_PASSWORD).Value
+            End If
+            If settings.AllKeys.Contains(SETTING_DOMAIN) Then
+                domain = settings(SETTING_DOMAIN).Value
+            End If
+
+            Me.Credentials = New NetworkCredential(userName, password, domain)
+        End If
+
         Me.Schedule = config.Schedule.CreateInstance
         Me.Processor = config.Processor.CreateInstance
     End Sub

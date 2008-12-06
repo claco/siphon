@@ -1,8 +1,4 @@
-- Add translators to mediate from Scan(Objects)->Processor(x)
 - Add IMAP/POP3 monitors
-- Add UriDataItem for ftp, ttp, https type data items
-- Add config initialization for CompletePath/FailurePath in Directory Monitor, with tests for local/remote
-- Break apart into RemoteDirectoryMonitor and add NetorkCredentials/Interface
 - Add Monitor.IsRunning to fix double stop/dispose
 - Rename Monitor.Processing to IsProcessing to match IsRunning?
 - FTP Move to different server should delete source, upload to remote
