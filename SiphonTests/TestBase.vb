@@ -26,7 +26,7 @@ Public Class TestBase
     End Sub
 
     <TearDown()> _
-    Protected Sub TearDown()
+    Protected Overridable Sub TearDown()
         DeleteTestDirectory()
     End Sub
 

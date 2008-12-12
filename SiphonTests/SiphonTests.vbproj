@@ -40,6 +40,10 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>bin\log4net.dll</HintPath>
     </Reference>
+    <Reference Include="LumiSoft.Net, Version=2.0.3262.28679, Culture=neutral, PublicKeyToken=0576062738dd7ad9, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Siphon\bin\LumiSoft.Net.dll</HintPath>
+    </Reference>
     <Reference Include="nunit.framework, Version=2.4.7.0, Culture=neutral, PublicKeyToken=96d09a1eb7f44a77">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\..\Program Files\TestDriven.NET 2.0\NUnit\2.4\nunit.framework.dll</HintPath>

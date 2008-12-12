@@ -134,4 +134,19 @@ Public Class LocalDirectoryMonitor
 
         Log.DebugFormat("Renaming {0} to {1}", original, name)
     End Sub
+
+    ''' <summary>
+    ''' Returns value indicating if the given uri scheme is supported or not.
+    ''' </summary>
+    ''' <param name="uri">Uri. The uri to validate.</param>
+    ''' <returns>Boolean. True of the uri scheme is supported. False otherwise.</returns>
+    ''' <remarks>Currently, only file is supported.</remarks>
+    Protected Overrides Function IsSchemeSupported(ByVal uri As Uri) As Boolean
+        Select Case uri.Scheme
+            Case uri.UriSchemeFile
+                Return True
+            Case Else
+                Return False
+        End Select
+    End Function
 End Class

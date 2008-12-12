@@ -147,7 +147,7 @@ Public MustInherit Class DirectoryMonitor
     ''' <value></value>
     ''' <returns>Uri</returns>
     ''' <remarks></remarks>
-    Public Property Uri() As Uri Implements IDirectoryMonitor.Uri
+    Public Overridable Property Uri() As Uri Implements IDirectoryMonitor.Uri
         Get
             Return _uri
         End Get
@@ -168,18 +168,28 @@ Public MustInherit Class DirectoryMonitor
                     builder.UserName = String.Empty
                     builder.Password = String.Empty
 
-                    _uri = builder.Uri
+                    _uri = Me.PrepareUri(builder.Uri)
 
                     Log.DebugFormat("Migrated user info '{0}:{1}' to credentials ", credentials.UserName, credentials.Password)
                     Log.DebugFormat("Converting {0} to {1}", value, _uri)
                 Else
-                    _uri = value
+                    _uri = Me.PrepareUri(value)
                 End If
             Else
                 Throw New UriFormatException("Scheme not supported")
             End If
         End Set
     End Property
+
+    ''' <summary>
+    ''' Prepares a uri for use, setting any defaults if necessary.
+    ''' </summary>
+    ''' <param name="value">Uri. The uri to prepare for use.</param>
+    ''' <returns>Uri</returns>
+    ''' <remarks></remarks>
+    Protected Overridable Function PrepareUri(ByVal value As Uri) As Uri
+        Return Me.VerifyDriveLetter(value)
+    End Function
 
     ''' <summary>
     ''' Starts the directory monitor, creating any missing directories if configured.
@@ -199,7 +209,7 @@ Public MustInherit Class DirectoryMonitor
     ''' <value></value>
     ''' <returns>String</returns>
     ''' <remarks></remarks>
-    Public Property CompletePath() As String Implements IDirectoryMonitor.CompletePath
+    Public Overridable Property CompletePath() As String Implements IDirectoryMonitor.CompletePath
         Get
             Dim uri As Uri = Me.CompleteUri
             If uri Is Nothing Then
@@ -232,13 +242,13 @@ Public MustInherit Class DirectoryMonitor
     ''' <value></value>
     ''' <returns>Uri</returns>
     ''' <remarks></remarks>
-    Public Property CompleteUri() As Uri Implements IDirectoryMonitor.CompleteUri
+    Public Overridable Property CompleteUri() As Uri Implements IDirectoryMonitor.CompleteUri
         Get
             Return _completeUri
         End Get
         Set(ByVal value As Uri)
             If IsSchemeSupported(value) Then
-                _completeUri = Me.VerifyDriveLEtter(value)
+                _completeUri = Me.PrepareUri(value)
             Else
                 Throw New UriFormatException("Scheme not supported")
             End If
@@ -251,7 +261,7 @@ Public MustInherit Class DirectoryMonitor
     ''' <value></value>
     ''' <returns></returns>
     ''' <remarks></remarks>
-    Public Property FailurePath() As String Implements IDirectoryMonitor.FailurePath
+    Public Overridable Property FailurePath() As String Implements IDirectoryMonitor.FailurePath
         Get
             Dim uri As Uri = Me.FailureUri
             If uri Is Nothing Then
@@ -284,13 +294,13 @@ Public MustInherit Class DirectoryMonitor
     ''' <value></value>
     ''' <returns>Uri</returns>
     ''' <remarks></remarks>
-    Public Property FailureUri() As Uri Implements IDirectoryMonitor.FailureUri
+    Public Overridable Property FailureUri() As Uri Implements IDirectoryMonitor.FailureUri
         Get
             Return _failureUri
         End Get
         Set(ByVal value As Uri)
             If IsSchemeSupported(value) Then
-                _failureUri = Me.VerifyDriveLEtter(value)
+                _failureUri = Me.PrepareUri(value)
             Else
                 Throw New UriFormatException("Scheme not supported")
             End If
@@ -314,12 +324,7 @@ Public MustInherit Class DirectoryMonitor
     ''' <returns>Boolean. True of the uri scheme is supported. False otherwise.</returns>
     ''' <remarks>Currently, only the file, ftp, http and https schemes are supported.</remarks>
     Protected Overridable Function IsSchemeSupported(ByVal uri As Uri) As Boolean
-        Select Case uri.Scheme
-            Case uri.UriSchemeFile, uri.UriSchemeFtp, uri.UriSchemeHttp, uri.UriSchemeHttps, "imap", "pop3"
-                Return True
-            Case Else
-                Return False
-        End Select
+        Return True
     End Function
 
     ''' <summary>
@@ -328,7 +333,7 @@ Public MustInherit Class DirectoryMonitor
     ''' <param name="value">Uri. The file uri being verified.</param>
     ''' <returns>Uri</returns>
     ''' <remarks></remarks>
-    Protected Function VerifyDriveLEtter(ByVal value As Uri) As Uri
+    Protected Function VerifyDriveLetter(ByVal value As Uri) As Uri
         If value.Scheme = Uri.UriSchemeFile Then
             If Not Regex.IsMatch(value.Segments(1), "(\:|\$)") Then
                 REM this will fix absolute file uris without drive letters
@@ -349,7 +354,7 @@ Public MustInherit Class DirectoryMonitor
     ''' </summary>
     ''' <remarks></remarks>
     Protected Overrides Sub Validate()
-        Log.Debug("Validting monitor configuration")
+        Log.Debug("Validating monitor configuration")
 
         MyBase.Validate()
 

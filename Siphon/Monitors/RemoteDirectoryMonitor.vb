@@ -42,7 +42,7 @@ Public MustInherit Class RemoteDirectoryMonitor
     ''' <value></value>
     ''' <returns>String</returns>
     ''' <remarks></remarks>
-    Public Property DownloadPath() As String Implements IRemoteDirectoryMonitor.DownloadPath
+    Public Overridable Property DownloadPath() As String Implements IRemoteDirectoryMonitor.DownloadPath
         Get
             Dim uri As Uri = Me.DownloadUri
             If uri Is Nothing Then
@@ -77,13 +77,13 @@ Public MustInherit Class RemoteDirectoryMonitor
     ''' <value></value>
     ''' <returns>Uri</returns>
     ''' <remarks></remarks>
-    Public Property DownloadUri() As System.Uri Implements IRemoteDirectoryMonitor.DownloadUri
+    Public Overridable Property DownloadUri() As System.Uri Implements IRemoteDirectoryMonitor.DownloadUri
         Get
             Return _downloadUri
         End Get
         Set(ByVal value As Uri)
             If value.Scheme = Uri.UriSchemeFile Then
-                _downloadUri = Me.VerifyDriveLEtter(value)
+                _downloadUri = Me.VerifyDriveLetter(value)
             Else
                 Throw New UriFormatException("Scheme not supported")
             End If
