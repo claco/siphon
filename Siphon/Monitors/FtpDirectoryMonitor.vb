@@ -142,13 +142,7 @@ Public Class FtpDirectoryMonitor
     Public Overrides Sub Prepare(ByVal item As IDataItem)
         Dim uriItem As UriDataItem = item
         Dim remoteFile As New FileInfo(uriItem.Data.LocalPath)
-        Dim tempFile As String
-
-        If Me.DownloadUri Is Nothing Then
-            tempFile = IO.Path.GetTempFileName
-        Else
-            tempFile = IO.Path.Combine(Me.DownloadPath, remoteFile.Name)
-        End If
+        Dim tempFile As String = IO.Path.Combine(Me.DownloadPath, remoteFile.Name)
 
         Log.DebugFormat("Downloading {0} to {1}", item.Name, tempFile)
 

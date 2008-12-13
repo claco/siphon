@@ -71,7 +71,10 @@ Public MustInherit Class DataMonitor
     ''' <param name="config">MonitorElement. The configuraiton for the current monitor.</param>
     ''' <remarks></remarks>
     Public Overridable Sub Initialize(ByVal config As MonitorElement) Implements IDataMonitor.Initialize
-        Dim userName, password, domain As String
+        Dim userName As String = String.Empty
+        Dim password As String = String.Empty
+        Dim domain As String = String.Empty
+
         Dim settings As NameValueConfigurationCollection = config.Settings
         If settings.AllKeys.Contains(SETTING_USERNAME) Then
             userName = settings(SETTING_USERNAME).Value

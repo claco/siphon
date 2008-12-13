@@ -1,4 +1,6 @@
 ﻿Imports System.Collections.ObjectModel
+Imports System.IO
+Imports LumiSoft.Net.IMAP
 Imports LumiSoft.Net.IMAP.Client
 Imports log4net
 
@@ -48,15 +50,47 @@ Public Class ImapMonitor
 
     End Sub
 
-    Public Overridable Function Folder() As String
-        Dim path As String = Me.Path
+    Public Overrides Sub Prepare(ByVal item As IDataItem)
+        Dim imapItem As ImapDataItem = item
+        Dim tempFile As String = IO.Path.Combine(Me.DownloadPath, String.Format("{0}.eml", imapItem.UID))
 
-        If Left(path, 1) = "/" Then
-            path = path.Substring(1)
-        End If
+        Log.DebugFormat("Downloading {0} to {1}", item.Name, tempFile)
 
-        Return path
-    End Function
+        Using client As New IMAP_Client
+            client.Connect(Me.Uri.Host, Me.Uri.Port, IIf(Me.Uri.Scheme = SCHEME_IMAPS, True, False))
+            If client.IsConnected Then
+                client.Authenticate(Me.Credentials.UserName, Me.Credentials.Password)
+
+                If client.IsAuthenticated Then
+                    client.SelectFolder(Me.Folder)
+
+                    Log.Debug("GettMessage")
+
+                    Using stream As FileStream = File.Create(tempFile)
+                        client.FetchMessage(imapItem.UID, stream)
+                        imapItem.LocalFile = New FileInfo(tempFile)
+                    End Using
+                End If
+            End If
+        End Using
+    End Sub
+
+    ''' <summary>
+    ''' Gets the folder name from the imap uri
+    ''' </summary>
+    ''' <returns></returns>
+    ''' <remarks></remarks>
+    Public Overridable ReadOnly Property Folder() As String
+        Get
+            Dim path As String = Me.Path
+
+            If Left(path, 1) = "/" Then
+                path = path.Substring(1)
+            End If
+
+            Return path
+        End Get
+    End Property
 
     ''' <summary>
     ''' Scans the specified IMAP folder for new email messages to process.
@@ -72,17 +106,22 @@ Public Class ImapMonitor
                 client.Authenticate(Me.Credentials.UserName, Me.Credentials.Password)
 
                 If client.IsAuthenticated Then
-                    client.SelectFolder(Me.Folder)
-                    Debug.WriteLine(Me.Folder)
-                    Dim seq As New LumiSoft.Net.IMAP.IMAP_SequenceSet
+                    Dim folder As String = Me.Folder
+
+                    Log.DebugFormat("Selecting Folder: {0}", folder)
+                    client.SelectFolder(folder)
+
+                    Dim seq As New IMAP_SequenceSet
                     seq.Parse("1:*")
 
-                    Dim i() As IMAP_FetchItem = client.FetchMessages(seq, IMAP_FetchItem_Flags.UID Or IMAP_FetchItem_Flags.MessageFlags Or IMAP_FetchItem_Flags.Message, False, True)
-                    For Each item As IMAP_FetchItem In i
-                        Debug.WriteLine(item.MessageFlags)
-                        Debug.WriteLine(Text.Encoding.UTF7.GetString(item.MessageData))
-                        If (item.MessageFlags And LumiSoft.Net.IMAP.IMAP_MessageFlags.Deleted) <> LumiSoft.Net.IMAP.IMAP_MessageFlags.Deleted Then
-                            items.Add(New UriDataItem(New Uri(String.Format("{0}/;UID={1}", Me.Uri, item.UID))))
+                    Dim messages() As IMAP_FetchItem = client.FetchMessages(seq, IMAP_FetchItem_Flags.UID Or IMAP_FetchItem_Flags.MessageFlags, False, True)
+                    Log.DebugFormat("Found {0} messages", messages.Length)
+
+                    For Each item As IMAP_FetchItem In messages
+                        Log.DebugFormat("Message Flags: {0}", item.MessageFlags)
+
+                        If (item.MessageFlags And IMAP_MessageFlags.Deleted) <> IMAP_MessageFlags.Deleted Then
+                            items.Add(New ImapDataItem(New Uri(String.Format("{0}/;UID={1}", Me.Uri, item.UID))))
                         End If
                     Next
                 End If

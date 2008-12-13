@@ -1,4 +1,5 @@
 ﻿Imports System.IO
+Imports System.Net
 Imports NUnit.Framework
 Imports log4net
 Imports ChrisLaco.Siphon
@@ -121,4 +122,16 @@ Public Class TestBase
     Protected Overridable Sub CreateExceptionFile(Optional ByVal name As String = "EXCEPTION")
         CreateFile(name, "EXCEPTION")
     End Sub
+
+    Protected Overridable ReadOnly Property Credentials() As NetworkCredential
+        Get
+            Return New NetworkCredential()
+        End Get
+    End Property
+
+    Protected Overridable ReadOnly Property Uri() As Uri
+        Get
+            Return Nothing
+        End Get
+    End Property
 End Class

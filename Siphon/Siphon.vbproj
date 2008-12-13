@@ -77,6 +77,7 @@
     <Compile Include="Items\DataItemStatus.vb" />
     <Compile Include="Items\FileDataItem.vb" />
     <Compile Include="Items\IDataItem.vb" />
+    <Compile Include="Items\ImapDataItem.vb" />
     <Compile Include="Items\QueueMessageDataItem.vb" />
     <Compile Include="Items\UriDataItem.vb" />
     <Compile Include="Monitors\DataActions.vb" />

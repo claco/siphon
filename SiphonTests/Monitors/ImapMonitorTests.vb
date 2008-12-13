@@ -1,85 +1,12 @@
 ﻿Imports System.Configuration
-Imports System.IO
-Imports System.Net
 Imports System.Text.RegularExpressions
 Imports System.Reflection
 Imports NUnit.Framework
 Imports ChrisLaco.Siphon
-Imports LumiSoft.Net.IMAP.Server
 
 <TestFixture(Description:="Imap Monitor Tests")> _
 Public Class ImapMonitorTests
-    Inherits TestBase
-
-    Private _server As IMAP_Server
-
-    <SetUp()> _
-    Protected Overrides Sub SetUp()
-        MyBase.SetUp()
-
-        Server.StartServer()
-    End Sub
-
-    <TearDown()> _
-    Protected Overrides Sub TearDown()
-        MyBase.TearDown()
-
-        Server.StopServer()
-    End Sub
-
-    Protected Overrides Sub CreateTestDirectory()
-        TestDirectory = System.IO.Directory.CreateDirectory(Path.Combine(Path.Combine(Path.GetTempPath, Path.GetRandomFileName), "INBOX"))
-    End Sub
-
-    Protected Overridable ReadOnly Property ImapUri() As Uri
-        Get
-            Return New Uri(ConfigurationManager.AppSettings("ImapUri"))
-        End Get
-    End Property
-
-    Protected Overridable ReadOnly Property ImapUser() As String
-        Get
-            Return ConfigurationManager.AppSettings("ImapUser")
-        End Get
-    End Property
-
-    Protected Overridable ReadOnly Property ImapPass() As String
-        Get
-            Return ConfigurationManager.AppSettings("ImapPass")
-        End Get
-    End Property
-
-    Protected Overridable ReadOnly Property Server() As IMAP_Server
-        Get
-            If _server Is Nothing Then
-                _server = New IMAP_Server
-                AddHandler _server.AuthUser, AddressOf Authenticate
-                AddHandler _server.GetFolders, AddressOf GetFolders
-                AddHandler _server.GetMessagesInfo, AddressOf GetMessagesInfo
-                AddHandler _server.GetMessageItems, AddressOf GetMessageItems
-            End If
-
-            Return _server
-        End Get
-    End Property
-
-    Protected Overridable Sub Authenticate(ByVal sender As Object, ByVal e As AuthUser_EventArgs)
-        e.Validated = True
-    End Sub
-
-    Protected Overridable Sub GetFolders(ByVal sender As Object, ByVal e As IMAP_Folders)
-        e.Add("Foo", True)
-    End Sub
-
-    Protected Overridable Sub GetMessagesInfo(ByVal sender As Object, ByVal e As IMAP_eArgs_GetMessagesInfo)
-        For Each file As FileInfo In TestDirectory.GetFiles
-            e.FolderInfo.Messages.Add(file.Name, 1, file.LastWriteTime, file.Length, LumiSoft.Net.IMAP.IMAP_MessageFlags.None)
-        Next
-    End Sub
-
-    Protected Overridable Sub GetMessageItems()
-
-    End Sub
+    Inherits ImapTestBase
 
     <Test(Description:="Path throws exception when empty")> _
     <ExpectedException(GetType(ArgumentException))> _
@@ -99,14 +26,11 @@ Public Class ImapMonitorTests
 
         Using schedule = New DailySchedule(DateTime.Now.AddSeconds(2).TimeOfDay)
             Using processor = New MockProcessor
-                Using monitor As ImapMonitor = New ImapMonitor("ImapMonitor", ImapUri.AbsoluteUri, schedule, processor)
-                    monitor.Path = "imaps://mail.chrislaco.com"
-                    monitor.Credentials = New NetworkCredential("claco@chrislaco.com", "aH57T29Re3#")
-
+                Using monitor As ImapMonitor = New ImapMonitor("ImapMonitor", Uri.AbsoluteUri, schedule, processor)
                     AddHandler monitor.ProcessComplete, AddressOf Monitor_ProcessComplete
                     AddHandler monitor.ProcessFailure, AddressOf Monitor_ProcessFailure
 
-                    'monitor.Credentials = New NetworkCredential(ImapUser, ImapPass)
+                    monitor.Credentials = Me.Credentials
                     monitor.Filter = String.Empty
                     monitor.Start()
                     Threading.Thread.Sleep(5000)

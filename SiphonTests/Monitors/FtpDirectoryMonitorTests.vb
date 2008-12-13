@@ -9,7 +9,7 @@ Imports ChrisLaco.Siphon
 
 <TestFixture(Description:="FTP Directory Monitor Tests")> _
     Public Class FtpDirectoryMonitorTests
-    Inherits TestBase
+    Inherits FtpTestBase
 
     Protected Overrides Sub CreateTestDirectory()
         TestDirectory = System.IO.Directory.CreateDirectory(Path.Combine(FtpDirectory.FullName, Path.GetRandomFileName))
@@ -18,24 +18,6 @@ Imports ChrisLaco.Siphon
     Protected Overridable ReadOnly Property FtpDirectory() As DirectoryInfo
         Get
             Return New DirectoryInfo(ConfigurationManager.AppSettings("FtpDirectory"))
-        End Get
-    End Property
-
-    Protected Overridable ReadOnly Property FtpUri() As Uri
-        Get
-            Return New Uri(ConfigurationManager.AppSettings("FtpUri"))
-        End Get
-    End Property
-
-    Protected Overridable ReadOnly Property FtpUser() As String
-        Get
-            Return ConfigurationManager.AppSettings("FtpUser")
-        End Get
-    End Property
-
-    Protected Overridable ReadOnly Property FtpPass() As String
-        Get
-            Return ConfigurationManager.AppSettings("FtpPass")
         End Get
     End Property
 
@@ -57,11 +39,11 @@ Imports ChrisLaco.Siphon
 
         Using schedule = New DailySchedule(DateTime.Now.AddSeconds(2).TimeOfDay)
             Using processor = New MockProcessor
-                Using monitor As FtpDirectoryMonitor = New FtpDirectoryMonitor("FtpMonitor", Path.Combine(FtpUri.AbsoluteUri, TestDirectory.Name), schedule, processor)
+                Using monitor As FtpDirectoryMonitor = New FtpDirectoryMonitor("FtpMonitor", Path.Combine(Uri.AbsoluteUri, TestDirectory.Name), schedule, processor)
                     AddHandler monitor.ProcessComplete, AddressOf Monitor_ProcessComplete
                     AddHandler monitor.ProcessFailure, AddressOf Monitor_ProcessFailure
 
-                    monitor.Credentials = New NetworkCredential(FtpUser, FtpPass)
+                    monitor.Credentials = Me.Credentials
                     monitor.Filter = String.Empty
                     monitor.Start()
                     Threading.Thread.Sleep(3000)
@@ -81,7 +63,7 @@ Imports ChrisLaco.Siphon
 
         Using schedule = New DailySchedule(DateTime.Now.AddSeconds(2).TimeOfDay)
             Using processor = New MockProcessor
-                Using monitor As FtpDirectoryMonitor = New FtpDirectoryMonitor("FtpMonitor", Path.Combine(FtpUri.AbsoluteUri, TestDirectory.Name), schedule, processor)
+                Using monitor As FtpDirectoryMonitor = New FtpDirectoryMonitor("FtpMonitor", Path.Combine(Uri.AbsoluteUri, TestDirectory.Name), schedule, processor)
                     AddHandler monitor.ProcessComplete, AddressOf Monitor_ProcessComplete
                     AddHandler monitor.ProcessFailure, AddressOf Monitor_ProcessFailure
 
@@ -107,9 +89,9 @@ Imports ChrisLaco.Siphon
 
         Using schedule = New DailySchedule(DateTime.Now.AddSeconds(2).TimeOfDay)
             Using processor = New MockProcessor
-                Dim builder As New UriBuilder(FtpUri)
-                builder.UserName = FtpUser
-                builder.Password = FtpPass
+                Dim builder As New UriBuilder(Uri)
+                builder.UserName = Me.Credentials.UserName
+                builder.Password = Me.Credentials.Password
 
                 Using monitor As FtpDirectoryMonitor = New FtpDirectoryMonitor("FtpMonitor", Path.Combine(builder.Uri.AbsoluteUri, TestDirectory.Name), schedule, processor)
                     AddHandler monitor.ProcessComplete, AddressOf Monitor_ProcessComplete
@@ -140,7 +122,7 @@ Imports ChrisLaco.Siphon
 
         Using schedule = New DailySchedule(DateTime.Now.AddSeconds(2).TimeOfDay)
             Using processor = New MockProcessor
-                Using monitor As FtpDirectoryMonitor = New FtpDirectoryMonitor("FtpMonitor", Path.Combine(FtpUri.AbsoluteUri, TestDirectory.Name), schedule, processor)
+                Using monitor As FtpDirectoryMonitor = New FtpDirectoryMonitor("FtpMonitor", Path.Combine(Uri.AbsoluteUri, TestDirectory.Name), schedule, processor)
                     AddHandler monitor.ProcessComplete, AddressOf Monitor_ProcessComplete
                     AddHandler monitor.ProcessFailure, AddressOf Monitor_ProcessFailure
 
@@ -170,7 +152,7 @@ Imports ChrisLaco.Siphon
 
         Using schedule = New DailySchedule(DateTime.Now.AddSeconds(2).TimeOfDay)
             Using processor = New MockProcessor
-                Using monitor As FtpDirectoryMonitor = New FtpDirectoryMonitor("FtpMonitor", Path.Combine(FtpUri.AbsoluteUri, TestDirectory.Name), schedule, processor)
+                Using monitor As FtpDirectoryMonitor = New FtpDirectoryMonitor("FtpMonitor", Path.Combine(Uri.AbsoluteUri, TestDirectory.Name), schedule, processor)
                     AddHandler monitor.ProcessComplete, AddressOf Monitor_ProcessComplete
                     AddHandler monitor.ProcessFailure, AddressOf Monitor_ProcessFailure
 
@@ -203,7 +185,7 @@ Imports ChrisLaco.Siphon
 
         Using schedule = New DailySchedule(DateTime.Now.AddSeconds(2).TimeOfDay)
             Using processor = New MockProcessor
-                Using monitor As FtpDirectoryMonitor = New FtpDirectoryMonitor("FtpMonitor", Path.Combine(FtpUri.AbsoluteUri, TestDirectory.Name), schedule, processor)
+                Using monitor As FtpDirectoryMonitor = New FtpDirectoryMonitor("FtpMonitor", Path.Combine(Uri.AbsoluteUri, TestDirectory.Name), schedule, processor)
                     AddHandler monitor.ProcessComplete, AddressOf Monitor_ProcessComplete
                     AddHandler monitor.ProcessFailure, AddressOf Monitor_ProcessFailure
 
@@ -227,7 +209,7 @@ Imports ChrisLaco.Siphon
 
         Using schedule = New DailySchedule(DateTime.Now.AddSeconds(2).TimeOfDay)
             Using processor = New MockProcessor
-                Using monitor As IDirectoryMonitor = New FtpDirectoryMonitor("FtpMonitor", Path.Combine(FtpUri.AbsoluteUri, TestDirectory.Name), schedule, processor)
+                Using monitor As IDirectoryMonitor = New FtpDirectoryMonitor("FtpMonitor", Path.Combine(Uri.AbsoluteUri, TestDirectory.Name), schedule, processor)
                     AddHandler monitor.ProcessComplete, AddressOf Monitor_ProcessComplete
                     AddHandler monitor.ProcessFailure, AddressOf Monitor_ProcessFailure
 
@@ -252,7 +234,7 @@ Imports ChrisLaco.Siphon
 
         Using schedule = New DailySchedule(DateTime.Now.AddSeconds(2).TimeOfDay)
             Using processor = New MockProcessor
-                Using monitor As IDirectoryMonitor = New FtpDirectoryMonitor("FtpMonitor", Path.Combine(FtpUri.AbsoluteUri, TestDirectory.Name), schedule, processor)
+                Using monitor As IDirectoryMonitor = New FtpDirectoryMonitor("FtpMonitor", Path.Combine(Uri.AbsoluteUri, TestDirectory.Name), schedule, processor)
                     AddHandler monitor.ProcessComplete, AddressOf Monitor_ProcessComplete
                     AddHandler monitor.ProcessFailure, AddressOf Monitor_ProcessFailure
 
@@ -281,7 +263,7 @@ Imports ChrisLaco.Siphon
 
         Using schedule = New DailySchedule(DateTime.Now.AddSeconds(2).TimeOfDay)
             Using processor = New MockProcessor
-                Using monitor As FtpDirectoryMonitor = New FtpDirectoryMonitor("FtpMonitor", Path.Combine(FtpUri.AbsoluteUri, TestDirectory.Name), schedule, processor)
+                Using monitor As FtpDirectoryMonitor = New FtpDirectoryMonitor("FtpMonitor", Path.Combine(Uri.AbsoluteUri, TestDirectory.Name), schedule, processor)
                     AddHandler monitor.ProcessComplete, AddressOf Monitor_ProcessComplete
                     AddHandler monitor.ProcessFailure, AddressOf Monitor_ProcessFailure
 
@@ -311,7 +293,7 @@ Imports ChrisLaco.Siphon
 
         Using schedule = New DailySchedule(DateTime.Now.AddSeconds(2).TimeOfDay)
             Using processor = New MockProcessor
-                Using monitor As FtpDirectoryMonitor = New FtpDirectoryMonitor("FtpMonitor", Path.Combine(FtpUri.AbsoluteUri, TestDirectory.Name), schedule, processor)
+                Using monitor As FtpDirectoryMonitor = New FtpDirectoryMonitor("FtpMonitor", Path.Combine(Uri.AbsoluteUri, TestDirectory.Name), schedule, processor)
                     AddHandler monitor.ProcessComplete, AddressOf Monitor_ProcessComplete
                     AddHandler monitor.ProcessFailure, AddressOf Monitor_ProcessFailure
 
@@ -344,7 +326,7 @@ Imports ChrisLaco.Siphon
 
         Using schedule = New DailySchedule(DateTime.Now.AddSeconds(2).TimeOfDay)
             Using processor = New MockProcessor
-                Using monitor As FtpDirectoryMonitor = New FtpDirectoryMonitor("FtpMonitor", Path.Combine(FtpUri.AbsoluteUri, TestDirectory.Name), schedule, processor)
+                Using monitor As FtpDirectoryMonitor = New FtpDirectoryMonitor("FtpMonitor", Path.Combine(Uri.AbsoluteUri, TestDirectory.Name), schedule, processor)
                     AddHandler monitor.ProcessComplete, AddressOf Monitor_ProcessComplete
                     AddHandler monitor.ProcessFailure, AddressOf Monitor_ProcessFailure
                     monitor.Start()
@@ -366,7 +348,7 @@ Imports ChrisLaco.Siphon
 
         Using schedule = New DailySchedule(DateTime.Now.AddSeconds(1).TimeOfDay)
             Using processor = New MockProcessor
-                Using monitor As FtpDirectoryMonitor = New FtpDirectoryMonitor("FtpMonitor", Path.Combine(Path.Combine(FtpUri.AbsoluteUri, TestDirectory.Name), newdir), schedule, processor)
+                Using monitor As FtpDirectoryMonitor = New FtpDirectoryMonitor("FtpMonitor", Path.Combine(Path.Combine(Uri.AbsoluteUri, TestDirectory.Name), newdir), schedule, processor)
                     AddHandler monitor.ProcessComplete, AddressOf Monitor_ProcessComplete
                     AddHandler monitor.ProcessFailure, AddressOf Monitor_ProcessFailure
 
@@ -395,7 +377,7 @@ Imports ChrisLaco.Siphon
 
         Using schedule = New DailySchedule(DateTime.Now.AddSeconds(1).TimeOfDay)
             Using processor = New MockProcessor
-                Using monitor As FtpDirectoryMonitor = New FtpDirectoryMonitor("FtpMonitor", Path.Combine(Path.Combine(FtpUri.AbsoluteUri, TestDirectory.Name), newdir), schedule, processor)
+                Using monitor As FtpDirectoryMonitor = New FtpDirectoryMonitor("FtpMonitor", Path.Combine(Path.Combine(Uri.AbsoluteUri, TestDirectory.Name), newdir), schedule, processor)
                     AddHandler monitor.ProcessComplete, AddressOf Monitor_ProcessComplete
                     AddHandler monitor.ProcessFailure, AddressOf Monitor_ProcessFailure
 
@@ -425,7 +407,7 @@ Imports ChrisLaco.Siphon
 
         Using schedule = New DailySchedule(DateTime.Now.AddSeconds(2).TimeOfDay)
             Using processor = New MockProcessor
-                Using monitor As FtpDirectoryMonitor = New FtpDirectoryMonitor("FtpMonitor", Path.Combine(FtpUri.AbsoluteUri, TestDirectory.Name), schedule, processor)
+                Using monitor As FtpDirectoryMonitor = New FtpDirectoryMonitor("FtpMonitor", Path.Combine(Uri.AbsoluteUri, TestDirectory.Name), schedule, processor)
                     AddHandler monitor.ProcessComplete, AddressOf Monitor_ProcessComplete
                     AddHandler monitor.ProcessFailure, AddressOf Monitor_ProcessFailure
                     monitor.Filter = "*.csv"
@@ -448,7 +430,7 @@ Imports ChrisLaco.Siphon
 
         Using schedule = New IntervalSchedule(2)
             Using processor = New MockProcessor
-                Using monitor As FtpDirectoryMonitor = New FtpDirectoryMonitor("FtpMonitor", Path.Combine(FtpUri.AbsoluteUri, TestDirectory.Name), schedule, processor)
+                Using monitor As FtpDirectoryMonitor = New FtpDirectoryMonitor("FtpMonitor", Path.Combine(Uri.AbsoluteUri, TestDirectory.Name), schedule, processor)
                     AddHandler monitor.ProcessComplete, AddressOf Monitor_ProcessComplete
                     AddHandler monitor.ProcessFailure, AddressOf Monitor_ProcessFailure
                     processor.Delay = 10
@@ -471,9 +453,9 @@ Imports ChrisLaco.Siphon
 
     <Test(Description:="DirectoryMonitor path tests")> _
     Public Sub FtpDirectoryPaths()
-        Using monitor As New FtpDirectoryMonitor("FtpMonitor", FtpUri.AbsoluteUri, New IntervalSchedule, New MockProcessor)
-            Assert.AreEqual(FtpUri.AbsolutePath, monitor.Path)
-            Assert.AreEqual(FtpUri.AbsoluteUri, monitor.Uri.ToString)
+        Using monitor As New FtpDirectoryMonitor("FtpMonitor", Uri.AbsoluteUri, New IntervalSchedule, New MockProcessor)
+            Assert.AreEqual(Uri.AbsolutePath, monitor.Path)
+            Assert.AreEqual(Uri.AbsoluteUri, monitor.Uri.ToString)
 
             REM path gets uri
             monitor.Path = "ftp://foo.com/bar"
@@ -652,7 +634,7 @@ Imports ChrisLaco.Siphon
 
         Using schedule = New DailySchedule(DateTime.Now.AddSeconds(2).TimeOfDay)
             Using processor = New MockProcessor
-                Using monitor As FtpDirectoryMonitor = New FtpDirectoryMonitor("FtpMonitor", Path.Combine(FtpUri.AbsoluteUri, TestDirectory.Name), schedule, processor)
+                Using monitor As FtpDirectoryMonitor = New FtpDirectoryMonitor("FtpMonitor", Path.Combine(Uri.AbsoluteUri, TestDirectory.Name), schedule, processor)
                     AddHandler monitor.ProcessComplete, AddressOf Monitor_ProcessComplete
                     AddHandler monitor.ProcessFailure, AddressOf Monitor_ProcessFailure
 
@@ -678,7 +660,7 @@ Imports ChrisLaco.Siphon
 
         Using schedule = New DailySchedule(DateTime.Now.AddSeconds(2).TimeOfDay)
             Using processor = New MockProcessor
-                Using monitor As FtpDirectoryMonitor = New FtpDirectoryMonitor("FtpMonitor", Path.Combine(FtpUri.AbsoluteUri, TestDirectory.Name), schedule, processor)
+                Using monitor As FtpDirectoryMonitor = New FtpDirectoryMonitor("FtpMonitor", Path.Combine(Uri.AbsoluteUri, TestDirectory.Name), schedule, processor)
                     AddHandler monitor.ProcessComplete, AddressOf Monitor_ProcessComplete
                     AddHandler monitor.ProcessFailure, AddressOf Monitor_ProcessFailure
 

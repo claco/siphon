@@ -69,6 +69,8 @@
   <ItemGroup>
     <Compile Include="Configuration\ConfigurationTests.vb" />
     <Compile Include="Console\ConsoleTests.vb" />
+    <Compile Include="FtpTestBase.vb" />
+    <Compile Include="ImapTestBase.vb" />
     <Compile Include="Monitors\FtpDirectoryMonitorTests.vb" />
     <Compile Include="Monitors\ImapMonitorTests.vb" />
     <Compile Include="Monitors\MessageQueueMonitorTests.vb" />

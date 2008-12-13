@@ -13,7 +13,7 @@ Public MustInherit Class RemoteDirectoryMonitor
 
     Private Shared ReadOnly Log As ILog = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod.DeclaringType)
 
-    Private _downloadUri As Uri = Nothing
+    Private _downloadUri As Uri = New Uri(IO.Path.GetTempPath)
     Private _credentials As NetworkCredential = Nothing
 
     ''' <summary>
