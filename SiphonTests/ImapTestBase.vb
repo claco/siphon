@@ -31,8 +31,20 @@ Public Class ImapTestBase
         e.Validated = True
     End Sub
 
+    Protected Overridable Sub CopyMessage(ByVal sender As Object, ByVal e As Message_EventArgs)
+        Dim files() As FileInfo = TestDirectory.GetFiles
+        Dim name As String = files(e.Message.UID - 1).Name
+        Dim destination As String = Path.Combine(TestDirectory.Parent.FullName, e.CopyLocation)
+
+        files(e.Message.UID - 1).CopyTo(Path.Combine(destination, name))
+    End Sub
+
     Protected Overrides Sub CreateTestDirectory()
         TestDirectory = System.IO.Directory.CreateDirectory(Path.Combine(Path.Combine(Path.GetTempPath, Path.GetRandomFileName), "INBOX"))
+    End Sub
+
+    Protected Overridable Sub CreateFolder(ByVal sender As Object, ByVal e As Mailbox_EventArgs)
+        TestDirectory.Parent.CreateSubdirectory(e.Folder)
     End Sub
 
     Protected Overrides ReadOnly Property Credentials() As System.Net.NetworkCredential
@@ -44,8 +56,16 @@ Public Class ImapTestBase
         End Get
     End Property
 
-    Protected Overridable Sub GetFolders(ByVal sender As Object, ByVal e As IMAP_Folders)
+    Protected Overridable Sub DeleteMessage(ByVal sender As Object, ByVal e As Message_EventArgs)
+        Dim files() As FileInfo = TestDirectory.GetFiles
 
+        files(e.Message.UID - 1).Delete()
+    End Sub
+
+    Protected Overridable Sub GetFolders(ByVal sender As Object, ByVal e As IMAP_Folders)
+        For Each directory As DirectoryInfo In TestDirectory.Parent.GetDirectories("*", SearchOption.AllDirectories)
+            e.Add(directory.FullName.Replace(TestDirectory.Parent.FullName.ToString, "").Substring(1), True)
+        Next
     End Sub
 
     Protected Overridable Sub GetMessagesInfo(ByVal sender As Object, ByVal e As IMAP_eArgs_GetMessagesInfo)
@@ -72,6 +92,9 @@ Public Class ImapTestBase
                 AddHandler _server.GetFolders, AddressOf GetFolders
                 AddHandler _server.GetMessagesInfo, AddressOf GetMessagesInfo
                 AddHandler _server.GetMessageItems, AddressOf GetMessageItems
+                AddHandler _server.DeleteMessage, AddressOf DeleteMessage
+                AddHandler _server.CreateFolder, AddressOf CreateFolder
+                AddHandler _server.CopyMessage, AddressOf CopyMessage
             End If
 
             Return _server

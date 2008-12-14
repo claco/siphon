@@ -250,7 +250,7 @@ Public Class MessageQueueMonitor
     ''' </summary>
     ''' <remarks></remarks>
     Protected Overrides Sub Validate()
-        Log.Debug("Validting monitor configuration")
+        Log.Debug("Validating monitor configuration")
 
         MyBase.Validate()
 

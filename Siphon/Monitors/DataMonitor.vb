@@ -192,7 +192,7 @@ Public MustInherit Class DataMonitor
         Log.InfoFormat("Stopping Monitor {0}", Me.Name)
 
         If Me.Processing Then
-            Log.Debug("Waiting for processot to finish")
+            Log.Debug("Waiting for processor to finish")
             Me.EventWaitHandle.WaitOne()
             Log.Debug("Done waiting for processor to finish")
         End If

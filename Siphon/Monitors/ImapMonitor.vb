@@ -34,22 +34,140 @@ Public Class ImapMonitor
         MyBase.New(name, path, schedule, processor)
     End Sub
 
+    ''' <summary>
+    ''' Creates missing folders before starting the timer.
+    ''' </summary>
+    ''' <remarks></remarks>
     Public Overrides Sub CreateFolders()
+        MyBase.CreateFolders()
 
+        If Me.CreateMissingFolders Then
+
+            Using client As New IMAP_Client
+                client.Connect(Me.Uri.Host, Me.Uri.Port, IIf(Me.Uri.Scheme = SCHEME_IMAPS, True, False))
+                If client.IsConnected Then
+                    client.Authenticate(Me.Credentials.UserName, Me.Credentials.Password)
+
+                    If client.IsAuthenticated Then
+                        Dim folders() As String = client.GetFolders()
+
+                        For Each folderName As String In folders
+                            Log.DebugFormat("Folder {0} Exists", folderName)
+                        Next
+
+                        Dim folder As String = Me.GetFolderName(Me.Uri, client.GetFolderSeparator)
+                        If Not folders.Contains(folder) Then
+                            Log.DebugFormat("Creating folder {0}", Me.Uri)
+
+                            client.CreateFolder(folder)
+                        End If
+
+                        If Me.CompleteUri IsNot Nothing Then
+                            Dim completeFolder As String = Me.GetFolderName(Me.CompleteUri, client.GetFolderSeparator)
+
+                            If Not folders.Contains(completeFolder) Then
+                                Log.DebugFormat("Creating folder {0}", Me.CompleteUri)
+
+                                client.CreateFolder(completeFolder)
+                            End If
+                        End If
+
+                        If Me.FailureUri IsNot Nothing Then
+                            Dim failureFolder As String = Me.GetFolderName(Me.FailureUri, client.GetFolderSeparator)
+
+                            If Not folders.Contains(failureFolder) Then
+                                Log.DebugFormat("Creating folder {0}", Me.FailureUri)
+
+                                client.CreateFolder(failureFolder)
+                            End If
+                        End If
+                    End If
+                End If
+            End Using
+        End If
     End Sub
 
+    ''' <summary>
+    ''' Deletes the data item after processing.
+    ''' </summary>
+    ''' <param name="item">ImapDataItem. The imap message to delete.</param>
+    ''' <remarks></remarks>
     Public Overrides Sub Delete(ByVal item As IDataItem)
+        Dim imapItem As ImapDataItem = item
 
+        Log.DebugFormat("Deleting {0}", imapItem.Data)
+
+        Using client As New IMAP_Client
+            client.Connect(Me.Uri.Host, Me.Uri.Port, IIf(Me.Uri.Scheme = SCHEME_IMAPS, True, False))
+            If client.IsConnected Then
+                client.Authenticate(Me.Credentials.UserName, Me.Credentials.Password)
+
+                If client.IsAuthenticated Then
+                    Dim folder As String = Me.GetFolderName(Me.Uri, client.GetFolderSeparator)
+
+                    client.SelectFolder(folder)
+
+                    Dim seq As New IMAP_SequenceSet
+                    seq.Parse(imapItem.UID)
+
+                    client.DeleteMessages(seq, True)
+                End If
+            End If
+        End Using
     End Sub
 
+    ''' <summary>
+    ''' Moves the data item after processing.
+    ''' </summary>
+    ''' <param name="item">ImapDataItem. The imap message to move.</param>
+    ''' <remarks></remarks>
     Public Overrides Sub Move(ByVal item As IDataItem)
+        Dim imapItem As ImapDataItem = item
+ 
+        Using client As New IMAP_Client
+            client.Connect(Me.Uri.Host, Me.Uri.Port, IIf(Me.Uri.Scheme = SCHEME_IMAPS, True, False))
+            If client.IsConnected Then
+                client.Authenticate(Me.Credentials.UserName, Me.Credentials.Password)
 
+                If client.IsAuthenticated Then
+                    Dim folder As String = Me.GetFolderName(Me.Uri, client.GetFolderSeparator)
+
+                    client.SelectFolder(folder)
+
+                    Dim seq As New IMAP_SequenceSet
+                    seq.Parse(imapItem.UID)
+
+                    Dim destination As String = String.Empty
+                    If imapItem.Status = DataItemStatus.CompletedProcessing Then
+                        Log.DebugFormat("Moving {0} to {1}", imapItem.Data, Me.CompleteUri)
+
+                        destination = Me.GetFolderName(Me.CompleteUri, client.GetFolderSeparator)
+                    ElseIf imapItem.Status = DataItemStatus.FailedProcessing Then
+                        Log.DebugFormat("Moving {0} to {1}", imapItem.Data, Me.FailureUri)
+
+                        destination = Me.GetFolderName(Me.FailureUri, client.GetFolderSeparator)
+                    End If
+
+                    client.MoveMessages(seq, destination, True)
+                End If
+            End If
+        End Using
     End Sub
 
+    ''' <summary>
+    ''' Deletes the data item after processing.
+    ''' </summary>
+    ''' <param name="item">ImapDataItem. The imap message to delete.</param>
+    ''' <remarks>This method always returns NotImplementedException</remarks>
     Public Overrides Sub Rename(ByVal item As IDataItem)
-
+        Throw New NotImplementedException
     End Sub
 
+    ''' <summary>
+    ''' Prepares the data before if it processed.
+    ''' </summary>
+    ''' <param name="item">ImapDataItem. The imap message to prepare.</param>
+    ''' <remarks></remarks>
     Public Overrides Sub Prepare(ByVal item As IDataItem)
         Dim imapItem As ImapDataItem = item
         Dim tempFile As String = IO.Path.Combine(Me.DownloadPath, String.Format("{0}.eml", imapItem.UID))
@@ -62,10 +180,10 @@ Public Class ImapMonitor
                 client.Authenticate(Me.Credentials.UserName, Me.Credentials.Password)
 
                 If client.IsAuthenticated Then
-                    client.SelectFolder(Me.Folder)
+                    Dim folder As String = Me.GetFolderName(Me.Uri, client.GetFolderSeparator)
 
-                    Log.Debug("GettMessage")
-
+                    client.SelectFolder(folder)
+                    Dim m As New LumiSoft.Net.IMAP.IMAP_BODY
                     Using stream As FileStream = File.Create(tempFile)
                         client.FetchMessage(imapItem.UID, stream)
                         imapItem.LocalFile = New FileInfo(tempFile)
@@ -76,26 +194,9 @@ Public Class ImapMonitor
     End Sub
 
     ''' <summary>
-    ''' Gets the folder name from the imap uri
-    ''' </summary>
-    ''' <returns></returns>
-    ''' <remarks></remarks>
-    Public Overridable ReadOnly Property Folder() As String
-        Get
-            Dim path As String = Me.Path
-
-            If Left(path, 1) = "/" Then
-                path = path.Substring(1)
-            End If
-
-            Return path
-        End Get
-    End Property
-
-    ''' <summary>
     ''' Scans the specified IMAP folder for new email messages to process.
     ''' </summary>
-    ''' <returns>Collection(Of IDataItem)</returns>
+    ''' <returns>Collection(Of ImapDataItem)</returns>
     ''' <remarks></remarks>
     Public Overrides Function Scan() As Collection(Of IDataItem)
         Dim items As New Collection(Of IDataItem)
@@ -106,7 +207,7 @@ Public Class ImapMonitor
                 client.Authenticate(Me.Credentials.UserName, Me.Credentials.Password)
 
                 If client.IsAuthenticated Then
-                    Dim folder As String = Me.Folder
+                    Dim folder As String = Me.GetFolderName(Me.Uri, client.GetFolderSeparator)
 
                     Log.DebugFormat("Selecting Folder: {0}", folder)
                     client.SelectFolder(folder)
@@ -163,6 +264,22 @@ Public Class ImapMonitor
     End Function
 
     ''' <summary>
+    ''' Gets the imap folder name from the uri and converts it to the specified directory separator.
+    ''' </summary>
+    ''' <param name="uri">Uri. The uri containing the folder name.</param>
+    ''' <param name="folderSeparator">String. The folder separator used on the imap server.</param>
+    ''' <returns>String</returns>
+    ''' <remarks></remarks>
+    Protected Overridable Function GetFolderName(ByVal uri As Uri, ByVal folderSeparator As String) As String
+        Dim folder As String = uri.AbsolutePath.Substring(1)
+        Dim name As String = folder.Replace("/", folderSeparator)
+
+        Log.DebugFormat("Devined folder {0} from {1}", name, uri.AbsoluteUri)
+
+        Return name
+    End Function
+
+    ''' <summary>
     ''' Returns value indicating if the given uri scheme is supported or not.
     ''' </summary>
     ''' <param name="uri">Uri. The uri to validate.</param>
@@ -188,6 +305,8 @@ Public Class ImapMonitor
 
         If Me.Credentials Is Nothing Then
             Throw New ApplicationException("Credentials required for this monitor")
+        ElseIf (Me.ProcessCompleteActions And DataActions.Rename) <> DataActions.None Or (Me.ProcessFailureActions And DataActions.Rename) <> DataActions.None Then
+            Throw New NotImplementedException("Rename is not supported for this monitor.")
         End If
     End Sub
 End Class

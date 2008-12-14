@@ -33,6 +33,8 @@ Public Class FtpDirectoryMonitor
     ''' </summary>
     ''' <remarks></remarks>
     Public Overrides Sub CreateFolders()
+        MyBase.CreateFolders()
+
         If Me.CreateMissingFolders Then
             Log.DebugFormat("Creating directory {0}", Me.Uri)
 
@@ -84,16 +86,6 @@ Public Class FtpDirectoryMonitor
                 Catch ex As Exception
                     Log.Error(String.Format("Error creating {0}", Me.FailureUri), ex)
                 End Try
-            End If
-
-            If Not String.IsNullOrEmpty(Me.DownloadPath) Then
-                Dim downloads As String = Me.DownloadUri.LocalPath
-
-                If Not Directory.Exists(downloads) Then
-                    Log.DebugFormat("Creating directory {0}", downloads)
-
-                    Directory.CreateDirectory(downloads)
-                End If
             End If
         End If
     End Sub

@@ -28,7 +28,7 @@ Public Class MockProcessor
             Case "EXCEPTION"
                 Throw New Exception("Manually invoked exception")
             Case Else
-                Throw New Exception("Unknown contents")
+                Throw New Exception(String.Format("Unknown contents: {0}", data.GetString))
         End Select
     End Function
 

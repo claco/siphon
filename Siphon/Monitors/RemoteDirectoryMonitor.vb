@@ -1,4 +1,5 @@
 ﻿Imports System.Configuration
+Imports System.IO
 Imports System.Net
 Imports System.Text.RegularExpressions
 Imports log4net
@@ -12,6 +13,8 @@ Public MustInherit Class RemoteDirectoryMonitor
     Implements IRemoteDirectoryMonitor
 
     Private Shared ReadOnly Log As ILog = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod.DeclaringType)
+
+    Private Const SETTING_DOWNLOAD_PATH As String = "DownloadPath"
 
     Private _downloadUri As Uri = New Uri(IO.Path.GetTempPath)
     Private _credentials As NetworkCredential = Nothing
@@ -34,6 +37,38 @@ Public MustInherit Class RemoteDirectoryMonitor
     ''' <remarks></remarks>
     Protected Sub New(ByVal name As String, ByVal path As String, ByVal schedule As IMonitorSchedule, ByVal processor As IDataProcessor)
         MyBase.New(name, path, schedule, processor)
+    End Sub
+
+    ''' <summary>
+    ''' Initializes the monitor using the supplied monitor configuration settings.
+    ''' </summary>
+    ''' <param name="config">MonitorElement. The configuration for the current monitor.</param>
+    ''' <remarks></remarks>
+    Public Overrides Sub Initialize(ByVal config As MonitorElement)
+        MyBase.Initialize(config)
+
+        Dim settings As NameValueConfigurationCollection = config.Settings
+        If settings.AllKeys.Contains(SETTING_DOWNLOAD_PATH) Then
+            Me.DownloadPath = settings(SETTING_DOWNLOAD_PATH).Value
+        End If
+    End Sub
+
+    ''' <summary>
+    ''' Creates missing folders before starting the timer.
+    ''' </summary>
+    ''' <remarks></remarks>
+    Public Overrides Sub CreateFolders()
+        If Me.CreateMissingFolders Then
+            If Not String.IsNullOrEmpty(Me.DownloadPath) Then
+                Dim downloads As String = Me.DownloadUri.LocalPath
+
+                If Not Directory.Exists(downloads) Then
+                    Log.DebugFormat("Creating directory {0}", downloads)
+
+                    Directory.CreateDirectory(downloads)
+                End If
+            End If
+        End If
     End Sub
 
     ''' <summary>
