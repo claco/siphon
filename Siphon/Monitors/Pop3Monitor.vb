@@ -32,15 +32,45 @@ Public Class Pop3Monitor
         MyBase.New(name, path, schedule, processor)
     End Sub
 
+    ''' <summary>
+    ''' Deletes the data item after processing.
+    ''' </summary>
+    ''' <param name="item">MailDataItem. The mail message to delete.</param>
+    ''' <remarks></remarks>
     Public Overrides Sub Delete(ByVal item As IDataItem)
+        Dim mailItem As MailDataItem = item
+
+        Log.DebugFormat("Deleting {0}", mailItem.Data)
+
+        Using client As New POP3_Client
+            client.Connect(Me.Uri.Host, Me.Uri.Port, IIf(Me.Uri.Scheme = SCHEME_POPS, True, False))
+            If client.IsConnected Then
+                client.Authenticate(Me.Credentials.UserName, Me.Credentials.Password, True)
+
+                If client.IsAuthenticated Then
+                    Dim message As POP3_ClientMessage = client.Messages(mailItem.UID)
+                    message.MarkForDeletion()
+                End If
+            End If
+        End Using
     End Sub
 
+    ''' <summary>
+    ''' Moves the data item after processing.
+    ''' </summary>
+    ''' <param name="item">MailDataItem. The mail message to move.</param>
+    ''' <remarks>This method always returns NotSupportedException</remarks>
     Public Overrides Sub Move(ByVal item As IDataItem)
-
+        Throw New NotSupportedException
     End Sub
 
+    ''' <summary>
+    ''' Renames the data item after processing.
+    ''' </summary>
+    ''' <param name="item">MailDataItem. The mail message to rename.</param>
+    ''' <remarks>This method always returns NotSupportedException</remarks>
     Public Overrides Sub Rename(ByVal item As IDataItem)
-
+        Throw New NotSupportedException
     End Sub
 
     ''' <summary>
@@ -153,6 +183,8 @@ Public Class Pop3Monitor
             Throw New ApplicationException("Credentials required for this monitor")
         ElseIf (Me.ProcessCompleteActions And DataActions.Rename) <> DataActions.None Or (Me.ProcessFailureActions And DataActions.Rename) <> DataActions.None Then
             Throw New NotImplementedException("Rename is not supported for this monitor.")
+        ElseIf (Me.ProcessCompleteActions And DataActions.Move) <> DataActions.None Or (Me.ProcessFailureActions And DataActions.Move) <> DataActions.None Then
+            Throw New NotImplementedException("Move is not supported for this monitor.")
         End If
     End Sub
 End Class

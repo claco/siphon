@@ -60,6 +60,12 @@ Public Class Pop3TestBase
         e.MessageStream = files(e.MessageInfo.UID - 1).OpenRead
     End Sub
 
+    Protected Overridable Sub DeleteMessage(ByVal sender As Object, ByVal e As POP3_Message_EventArgs)
+        Dim files() As FileInfo = TestDirectory.GetFiles
+
+        files(e.MessageUID - 1).Delete()
+    End Sub
+
     Protected Overridable ReadOnly Property Server() As POP3_Server
         Get
             If _server Is Nothing Then
@@ -67,6 +73,7 @@ Public Class Pop3TestBase
                 AddHandler _server.AuthUser, AddressOf Authenticate
                 AddHandler _server.GetMessgesList, AddressOf GetMessagesList
                 AddHandler _server.GetMessageStream, AddressOf GetMessageStream
+                AddHandler _server.DeleteMessage, AddressOf DeleteMessage
             End If
 
             Return _server

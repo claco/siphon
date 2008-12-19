@@ -46,6 +46,159 @@ Public Class Pop3MonitorTests
         End Using
     End Sub
 
+    <Test(Description:="Test successful directory monitor process complete deletes message")> _
+    Public Sub Pop3MonitorProcessorCompleteDeleteMessage()
+        CreateSuccessFile("SUCCESS")
+
+        Using schedule = New DailySchedule(DateTime.Now.AddSeconds(2).TimeOfDay)
+            Using processor = New MockProcessor
+                Using monitor As Pop3Monitor = New Pop3Monitor("Pop3Monitor", Path.Combine(Uri.AbsoluteUri, TestDirectory.Name), schedule, processor)
+                    AddHandler monitor.ProcessComplete, AddressOf Monitor_ProcessComplete
+                    AddHandler monitor.ProcessFailure, AddressOf Monitor_ProcessFailure
+
+                    Assert.IsTrue(File.Exists(Path.Combine(TestDirectory.FullName, "SUCCESS")))
+                    monitor.ProcessCompleteActions = DataActions.Delete
+                    monitor.Credentials = Me.Credentials
+                    monitor.Start()
+                    Threading.Thread.Sleep(3000)
+                    monitor.Stop()
+
+                    Assert.AreEqual(1, processor.Count, "Has processed 1 file")
+                    Assert.IsTrue(Me.ProcessComplete)
+                    Assert.IsFalse(Me.ProcessFailure)
+                    Assert.IsFalse(File.Exists(Path.Combine(TestDirectory.FullName, "SUCCESS")))
+                End Using
+            End Using
+        End Using
+    End Sub
+
+    <Test(Description:="Test directory monitor with processor failure")> _
+    Public Sub Pop3MonitorProcessorFailure()
+        CreateFailureFile("FAILURE")
+
+        Using schedule = New DailySchedule(DateTime.Now.AddSeconds(2).TimeOfDay)
+            Using processor = New MockProcessor
+                Using monitor As Pop3Monitor = New Pop3Monitor("Pop3Monitor", Path.Combine(Uri.AbsoluteUri, TestDirectory.Name), schedule, processor)
+                    AddHandler monitor.ProcessComplete, AddressOf Monitor_ProcessComplete
+                    AddHandler monitor.ProcessFailure, AddressOf Monitor_ProcessFailure
+
+                    Assert.IsTrue(File.Exists(Path.Combine(TestDirectory.FullName, "FAILURE")))
+                    monitor.Credentials = Me.Credentials
+                    monitor.Start()
+                    Threading.Thread.Sleep(3000)
+                    monitor.Stop()
+
+                    Assert.AreEqual(1, processor.Count, "Has processed 1 file")
+                    Assert.IsFalse(Me.ProcessComplete)
+                    Assert.IsTrue(Me.ProcessFailure)
+                    Assert.IsTrue(File.Exists(Path.Combine(TestDirectory.FullName, "FAILURE")))
+                End Using
+            End Using
+        End Using
+    End Sub
+
+    <Test(Description:="Test directory monitor with processor failure deletes message")> _
+    Public Sub Pop3MonitorProcessorFailureDeleteMessage()
+        CreateFailureFile("FAILURE")
+
+        Using schedule = New DailySchedule(DateTime.Now.AddSeconds(2).TimeOfDay)
+            Using processor = New MockProcessor
+                Using monitor As IDirectoryMonitor = New Pop3Monitor("Pop3Monitor", Path.Combine(Uri.AbsoluteUri, TestDirectory.Name), schedule, processor)
+                    AddHandler monitor.ProcessComplete, AddressOf Monitor_ProcessComplete
+                    AddHandler monitor.ProcessFailure, AddressOf Monitor_ProcessFailure
+
+                    Assert.IsTrue(File.Exists(Path.Combine(TestDirectory.FullName, "FAILURE")))
+                    monitor.ProcessFailureActions = DataActions.Delete
+                    monitor.Credentials = Me.Credentials
+                    monitor.Start()
+                    Threading.Thread.Sleep(3000)
+                    monitor.Stop()
+
+                    Assert.AreEqual(1, processor.Count, "Has processed 1 file")
+                    Assert.IsFalse(Me.ProcessComplete)
+                    Assert.IsTrue(Me.ProcessFailure)
+                    Assert.IsFalse(File.Exists(Path.Combine(TestDirectory.FullName, "FAILURE")))
+                End Using
+            End Using
+        End Using
+    End Sub
+
+    <Test(Description:="Test directory monitor with processor exception")> _
+    Public Sub Pop3MonitorProcessorException()
+        CreateExceptionFile()
+
+        Using schedule = New DailySchedule(DateTime.Now.AddSeconds(2).TimeOfDay)
+            Using processor = New MockProcessor
+                Using monitor As Pop3Monitor = New Pop3Monitor("Pop3Monitor", Path.Combine(Uri.AbsoluteUri, TestDirectory.Name), schedule, processor)
+                    AddHandler monitor.ProcessComplete, AddressOf Monitor_ProcessComplete
+                    AddHandler monitor.ProcessFailure, AddressOf Monitor_ProcessFailure
+                    monitor.Credentials = Me.Credentials
+                    monitor.Start()
+                    Threading.Thread.Sleep(3000)
+                    monitor.Stop()
+
+                    Assert.AreEqual(1, processor.Count, "Has processed 1 file")
+                    Assert.IsFalse(Me.ProcessComplete)
+                    Assert.IsTrue(Me.ProcessFailure)
+                End Using
+            End Using
+        End Using
+    End Sub
+
+    <Test(Description:="Test directory monitor with filter")> _
+    <Ignore("TODO: Devise Filter strings")> _
+    Public Sub Pop3MonitorWithFilter()
+        CreateSuccessFile()
+        CreateSuccessFile("test.csv")
+
+        Using schedule = New DailySchedule(DateTime.Now.AddSeconds(2).TimeOfDay)
+            Using processor = New MockProcessor
+                Using monitor As Pop3Monitor = New Pop3Monitor("Pop3Monitor", Path.Combine(Uri.AbsoluteUri, TestDirectory.Name), schedule, processor)
+                    AddHandler monitor.ProcessComplete, AddressOf Monitor_ProcessComplete
+                    AddHandler monitor.ProcessFailure, AddressOf Monitor_ProcessFailure
+                    monitor.Filter = "*.csv"
+                    monitor.Credentials = Me.Credentials
+
+                    monitor.Start()
+                    Threading.Thread.Sleep(3000)
+                    monitor.Stop()
+
+                    Assert.AreEqual(1, processor.Count, "Has processed 1 files")
+                    Assert.IsTrue(Me.ProcessComplete)
+                    Assert.IsFalse(Me.ProcessFailure)
+                End Using
+            End Using
+        End Using
+    End Sub
+
+    <Test(Description:="Test directory monitor with slow processor on stop")> _
+    Public Sub Pop3MonitorStillProcessing()
+        CreateSuccessFile()
+
+        Using schedule = New IntervalSchedule(2)
+            Using processor = New MockProcessor
+                Using monitor As Pop3Monitor = New Pop3Monitor("Pop3Monitor", Path.Combine(Uri.AbsoluteUri, TestDirectory.Name), schedule, processor)
+                    AddHandler monitor.ProcessComplete, AddressOf Monitor_ProcessComplete
+                    AddHandler monitor.ProcessFailure, AddressOf Monitor_ProcessFailure
+                    monitor.Credentials = Me.Credentials
+                    processor.Delay = 10
+                    monitor.Start()
+                    Threading.Thread.Sleep(3000)
+
+                    Assert.IsTrue(monitor.Processing, "Processing is true when a worker processor is still running")
+                    Dim pre As DateTime = DateTime.Now
+                    monitor.Stop()
+                    Dim post As DateTime = DateTime.Now
+
+                    Assert.AreEqual(1, processor.Count, "Has processed 1 files")
+                    Assert.GreaterOrEqual((post - pre).TotalSeconds, 5, "Waited for still running process to finish")
+                    Assert.IsTrue(Me.ProcessComplete)
+                    Assert.IsFalse(Me.ProcessFailure)
+                End Using
+            End Using
+        End Using
+    End Sub
+
     <Test(Description:="DirectoryMonitor path tests")> _
     Public Sub Pop3DirectoryPaths()
         Using monitor As New Pop3Monitor("Pop3Monitor", "pop://foo.com/", New IntervalSchedule, New MockProcessor)
@@ -133,6 +286,206 @@ Public Class Pop3MonitorTests
             Assert.AreEqual("pop://foo.com:110/bar", monitor.Uri.ToString)
             Assert.AreEqual("user2", monitor.Credentials.UserName)
             Assert.AreEqual("pass2", monitor.Credentials.Password)
+        End Using
+    End Sub
+
+    <Test(Description:="Unsupported Uri Scheme Exception")> _
+    <ExpectedException(GetType(UriFormatException))> _
+    Public Sub UriUnsupportedException()
+        Dim monitor As New Pop3Monitor("TestName", "file:///C:/bar", New IntervalSchedule, New MockProcessor)
+    End Sub
+
+    <Test(Description:="Unsupported Uri Scheme Exception")> _
+    <ExpectedException(GetType(UriFormatException))> _
+    Public Sub FailureUriUnsupportedException()
+        Dim monitor As New Pop3Monitor("TestName", "pop://foo.com/bar", New IntervalSchedule, New MockProcessor)
+
+        monitor.FailureUri = New Uri("file:///C:/foo")
+    End Sub
+
+    <Test(Description:="Unsupported Uri Scheme Exception")> _
+    <ExpectedException(GetType(UriFormatException))> _
+    Public Sub CompleteUriUnsupportedException()
+        Dim monitor As New Pop3Monitor("TestName", "pop://foo.com/bar", New IntervalSchedule, New MockProcessor)
+        Dim uri = New Uri("file:///C:/foo")
+
+        monitor.CompleteUri = uri
+    End Sub
+
+    <Test(Description:="Unsupported Uri Scheme Exception")> _
+    <ExpectedException(GetType(UriFormatException))> _
+    Public Sub DownloadUriUnsupportedException()
+        Dim monitor As New Pop3Monitor("TestName", "pop://foo.com/bar", New IntervalSchedule, New MockProcessor)
+        Dim uri = New Uri("ftp://foo.com/bar")
+
+        monitor.DownloadUri = uri
+    End Sub
+
+    <Test(Description:="Argument Exception")> _
+    <ExpectedException(GetType(ArgumentException))> _
+    Public Sub PathEmptyArgumentException()
+        Dim monitor As New Pop3Monitor("TestName", "", New IntervalSchedule, New MockProcessor)
+    End Sub
+
+    <Test(Description:="Argument Exception")> _
+    <ExpectedException(GetType(ArgumentException))> _
+    Public Sub NameEmptyArgumentException()
+        Dim monitor As New Pop3Monitor("", "pop://foo.com", New IntervalSchedule, New MockProcessor)
+    End Sub
+
+    <Test(Description:="Path returns empty with no uri")> _
+    Public Sub NoUriReturnsEmpty()
+        Dim monitor As Pop3Monitor = GetType(Pop3Monitor).Assembly.CreateInstance(GetType(Pop3Monitor).FullName, False, BindingFlags.CreateInstance Or BindingFlags.Static Or BindingFlags.Public Or BindingFlags.NonPublic, Nothing, Nothing, Nothing, Nothing)
+
+        Assert.IsTrue(String.IsNullOrEmpty(monitor.Path))
+    End Sub
+
+    <Test(Description:="Start throws exception for null Uri/Path")> _
+    <ExpectedException(GetType(ApplicationException))> _
+    Public Sub StartFailureNullUriException()
+        Using monitor As New Pop3Monitor("Pop3Monitor", "pop://foo.com/bar", New IntervalSchedule, New MockProcessor)
+            Dim newMonitor As Pop3Monitor = monitor.GetType.Assembly.CreateInstance("ChrisLaco.Siphon.Pop3Monitor", True, BindingFlags.CreateInstance Or BindingFlags.Static Or BindingFlags.Public Or BindingFlags.NonPublic, Nothing, Nothing, Nothing, Nothing)
+            newMonitor.Credentials = Me.Credentials
+            newMonitor.Name = "Test"
+            newMonitor.Start()
+        End Using
+    End Sub
+
+    <Test(Description:="Start throws exception for null Uri/Path")> _
+    <ExpectedException(GetType(ApplicationException))> _
+    Public Sub StartFailureNullNameException()
+        Using monitor As New Pop3Monitor("Pop3Monitor", "pop://foo.com/bar", New IntervalSchedule, New MockProcessor)
+            Dim newMonitor As Pop3Monitor = monitor.GetType.Assembly.CreateInstance("ChrisLaco.Siphon.Pop3Monitor", True, BindingFlags.CreateInstance Or BindingFlags.Static Or BindingFlags.Public Or BindingFlags.NonPublic, Nothing, Nothing, Nothing, Nothing)
+            newMonitor.Credentials = Me.Credentials
+            newMonitor.Path = "pop://foo.com/bar"
+            newMonitor.Start()
+        End Using
+    End Sub
+
+    <Test(Description:="Start throws exception for null Uri/Path")> _
+    <ExpectedException(GetType(ApplicationException))> _
+    Public Sub StartFailureNullCompleteUriException()
+        Using monitor As New Pop3Monitor("Pop3Monitor", "pop://foo.com/bar", New IntervalSchedule, New MockProcessor)
+            monitor.Credentials = Me.Credentials
+            monitor.ProcessCompleteActions = DataActions.Move
+            monitor.Start()
+        End Using
+    End Sub
+
+    <Test(Description:="Start throws exception for null Uri/Path")> _
+    <ExpectedException(GetType(ApplicationException))> _
+    Public Sub StartFailureNullFailureUriException()
+        Using monitor As New Pop3Monitor("Pop3Monitor", "pop://foo.com/bar", New IntervalSchedule, New MockProcessor)
+            monitor.Credentials = Me.Credentials
+            monitor.ProcessFailureActions = DataActions.Move
+            monitor.Start()
+        End Using
+    End Sub
+
+    <Test(Description:="Test successful directory monitor remote downloads to download path")> _
+    Public Sub Pop3MonitorDownloadPath()
+        CreateSuccessFile()
+
+        Using schedule = New DailySchedule(DateTime.Now.AddSeconds(2).TimeOfDay)
+            Using processor = New MockProcessor
+                Using monitor As Pop3Monitor = New Pop3Monitor("Pop3Monitor", Path.Combine(Uri.AbsoluteUri, TestDirectory.Name), schedule, processor)
+                    AddHandler monitor.ProcessComplete, AddressOf Monitor_ProcessComplete
+                    AddHandler monitor.ProcessFailure, AddressOf Monitor_ProcessFailure
+
+                    monitor.DownloadPath = Path.Combine(TestDirectory.FullName, "Downloads")
+                    monitor.CreateMissingFolders = True
+                    monitor.Filter = String.Empty
+                    monitor.Credentials = Me.Credentials
+                    monitor.Start()
+                    Threading.Thread.Sleep(3000)
+                    monitor.Stop()
+
+                    Assert.AreEqual(1, processor.Count, "Has processed 1 file")
+                    Assert.IsTrue(Me.ProcessComplete)
+                    Assert.IsFalse(Me.ProcessFailure)
+                    Assert.IsTrue(Directory.Exists(Path.Combine(TestDirectory.FullName, "Downloads")))
+                End Using
+            End Using
+        End Using
+    End Sub
+
+    <Test(Description:="Test successful directory monitor remote downloads to download path")> _
+    Public Sub Pop3MonitorDownloadUri()
+        CreateSuccessFile()
+
+        Using schedule = New DailySchedule(DateTime.Now.AddSeconds(2).TimeOfDay)
+            Using processor = New MockProcessor
+                Using monitor As Pop3Monitor = New Pop3Monitor("Pop3MonitorDownloadUri", Path.Combine(Uri.AbsoluteUri, TestDirectory.Name), schedule, processor)
+                    AddHandler monitor.ProcessComplete, AddressOf Monitor_ProcessComplete
+                    AddHandler monitor.ProcessFailure, AddressOf Monitor_ProcessFailure
+
+                    monitor.DownloadPath = New Uri(Path.Combine(TestDirectory.FullName, "Downloads")).AbsoluteUri
+                    monitor.CreateMissingFolders = True
+                    monitor.Filter = String.Empty
+                    monitor.Credentials = Me.Credentials
+                    monitor.Start()
+                    Threading.Thread.Sleep(3000)
+                    monitor.Stop()
+
+                    Assert.AreEqual(1, processor.Count, "Has processed 1 file")
+                    Assert.IsTrue(Me.ProcessComplete)
+                    Assert.IsFalse(Me.ProcessFailure)
+                    Assert.IsTrue(Directory.Exists(Path.Combine(TestDirectory.FullName, "Downloads")))
+                End Using
+            End Using
+        End Using
+    End Sub
+
+    <Test(Description:="Create monitor from configuration")> _
+    Public Sub CreateFromConfiguration()
+        Dim monitorElement As New MonitorElement("TestQueueMonitor", "ChrisLaco.Siphon.Pop3Monitor, Siphon")
+        Dim processorElement As New ProcessorElement("ChrisLaco.Tests.Siphon.MockProcessor, SiphonTests")
+        Dim scheduleElement As New ScheduleElement("ChrisLaco.Siphon.DailySchedule, Siphon")
+        scheduleElement.Daily.Add(DateTime.Now.AddSeconds(3).TimeOfDay)
+        monitorElement.Schedule = scheduleElement
+        monitorElement.Processor = processorElement
+        monitorElement.Settings.Add(New NameValueConfigurationElement("Path", "pop://foo.com/bar"))
+        monitorElement.Settings.Add(New NameValueConfigurationElement("CompletePath", "Processed"))
+        monitorElement.Settings.Add(New NameValueConfigurationElement("FailurePath", "Failed"))
+        monitorElement.Settings.Add(New NameValueConfigurationElement("DownloadPath", "C:\Downloads"))
+        monitorElement.Settings.Add(New NameValueConfigurationElement("CreateMissingFolders", "true"))
+        monitorElement.Settings.Add(New NameValueConfigurationElement("Username", "Pop3User"))
+        monitorElement.Settings.Add(New NameValueConfigurationElement("Password", "Pop3Pass"))
+        monitorElement.Settings.Add(New NameValueConfigurationElement("Domain", "Pop3Domain"))
+
+        Using monitor As Pop3Monitor = monitorElement.CreateInstance
+            Assert.IsInstanceOfType(GetType(Pop3Monitor), monitor)
+            Assert.IsInstanceOfType(GetType(Uri), monitor.Uri)
+            Assert.IsInstanceOfType(GetType(Uri), monitor.CompleteUri)
+            Assert.IsInstanceOfType(GetType(Uri), monitor.FailureUri)
+            Assert.IsInstanceOfType(GetType(Uri), monitor.DownloadUri)
+            Assert.IsInstanceOfType(GetType(NetworkCredential), monitor.Credentials)
+            Assert.AreEqual("pop://foo.com:110/bar", monitor.Uri.ToString)
+            Assert.AreEqual("pop://foo.com:110/bar/Processed", monitor.CompleteUri.ToString)
+            Assert.AreEqual("pop://foo.com:110/bar/Failed", monitor.FailureUri.ToString)
+            Assert.AreEqual("file:///C:/Downloads", monitor.DownloadUri.ToString)
+            Assert.AreEqual("Pop3User", monitor.Credentials.UserName)
+            Assert.AreEqual("Pop3Pass", monitor.Credentials.Password)
+            Assert.AreEqual("Pop3Domain", monitor.Credentials.Domain)
+            Assert.IsTrue(monitor.CreateMissingFolders)
+        End Using
+    End Sub
+
+    <Test(Description:="Set credentials when they're passed in the Uri")> _
+    Public Sub CredentialsFromUri()
+        Using monitor As New Pop3Monitor("Pop3Monitor", "pop://claco:mypass@foo.com/bar", New IntervalSchedule, New MockProcessor)
+            Assert.AreEqual("pop://foo.com:110/bar", monitor.Uri.ToString)
+            Assert.AreEqual("claco", monitor.Credentials.UserName)
+            Assert.AreEqual("mypass", monitor.Credentials.Password)
+        End Using
+    End Sub
+
+    <Test(Description:="Set credentials when they're passed in the Uri")> _
+    Public Sub PartialCredentialsFromUri()
+        Using monitor As New Pop3Monitor("Pop3Monitor", "pops://claco@foo.com/bar", New IntervalSchedule, New MockProcessor)
+            Assert.AreEqual("pops://foo.com:995/bar", monitor.Uri.ToString)
+            Assert.AreEqual("claco", monitor.Credentials.UserName)
+            Assert.AreEqual(String.Empty, monitor.Credentials.Password)
         End Using
     End Sub
 End Class

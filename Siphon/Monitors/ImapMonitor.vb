@@ -158,9 +158,9 @@ Public Class ImapMonitor
     ''' Deletes the data item after processing.
     ''' </summary>
     ''' <param name="item">MailDataItem. The mail message to delete.</param>
-    ''' <remarks>This method always returns NotImplementedException</remarks>
+    ''' <remarks>This method always returns NotSupportedException</remarks>
     Public Overrides Sub Rename(ByVal item As IDataItem)
-        Throw New NotImplementedException
+        Throw New NotSupportedException
     End Sub
 
     ''' <summary>
