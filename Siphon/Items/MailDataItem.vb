@@ -5,21 +5,22 @@ Imports log4net
 Imports LumiSoft.Net.MIME
 
 ''' <summary>
-''' Class to reference remote uri-based imap maessages.
+''' Class to reference remote uri-based mail (imap/pop3) maessages.
 ''' </summary>
 ''' <remarks></remarks>
-Public Class ImapDataItem
+Public Class MailDataItem
     Inherits UriDataItem
 
     Private Shared ReadOnly Log As ILog = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod.DeclaringType)
 
     ''' <summary>
-    ''' Creates a new ImapDataItem instance.
+    ''' Creates a new MailDataItem instance.
     ''' </summary>
-    ''' <param name="path">String. The full uri including UID to the message being processed.</param>
+    ''' <param name="path">String. The full uri to the location of the message being processed.</param>
+    ''' <param name="uid">String. The uid of the message being processed.</param>
     ''' <remarks></remarks>
-    Public Sub New(ByVal path As Uri)
-        MyBase.New(path)
+    Public Sub New(ByVal path As Uri, ByVal uid As String)
+        MyBase.New(New Uri(String.Format("{0}/;UID={1}", path, uid)))
     End Sub
 
     ''' <summary>

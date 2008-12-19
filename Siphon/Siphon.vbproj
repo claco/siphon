@@ -77,7 +77,7 @@
     <Compile Include="Items\DataItemStatus.vb" />
     <Compile Include="Items\FileDataItem.vb" />
     <Compile Include="Items\IDataItem.vb" />
-    <Compile Include="Items\ImapDataItem.vb" />
+    <Compile Include="Items\MailDataItem.vb" />
     <Compile Include="Items\QueueMessageDataItem.vb" />
     <Compile Include="Items\UriDataItem.vb" />
     <Compile Include="Monitors\DataActions.vb" />
@@ -89,6 +89,7 @@
     <Compile Include="Monitors\IRemoteDirectoryMonitor.vb" />
     <Compile Include="Monitors\LocalDirectoryMonitor.vb" />
     <Compile Include="Monitors\MessageQueueMonitor.vb" />
+    <Compile Include="Monitors\Pop3Monitor.vb" />
     <Compile Include="Monitors\ProcessEventArgs.vb" />
     <Compile Include="Monitors\RemoteDirectoryMonitor.vb" />
     <Compile Include="Processors\DataProcessor.vb" />

@@ -90,12 +90,12 @@ Public Class ImapMonitor
     ''' <summary>
     ''' Deletes the data item after processing.
     ''' </summary>
-    ''' <param name="item">ImapDataItem. The imap message to delete.</param>
+    ''' <param name="item">MailDataItem. The mail message to delete.</param>
     ''' <remarks></remarks>
     Public Overrides Sub Delete(ByVal item As IDataItem)
-        Dim imapItem As ImapDataItem = item
+        Dim mailItem As MailDataItem = item
 
-        Log.DebugFormat("Deleting {0}", imapItem.Data)
+        Log.DebugFormat("Deleting {0}", mailItem.Data)
 
         Using client As New IMAP_Client
             client.Connect(Me.Uri.Host, Me.Uri.Port, IIf(Me.Uri.Scheme = SCHEME_IMAPS, True, False))
@@ -108,7 +108,7 @@ Public Class ImapMonitor
                     client.SelectFolder(folder)
 
                     Dim seq As New IMAP_SequenceSet
-                    seq.Parse(imapItem.UID)
+                    seq.Parse(mailItem.UID)
 
                     client.DeleteMessages(seq, True)
                 End If
@@ -119,11 +119,11 @@ Public Class ImapMonitor
     ''' <summary>
     ''' Moves the data item after processing.
     ''' </summary>
-    ''' <param name="item">ImapDataItem. The imap message to move.</param>
+    ''' <param name="item">MailDataItem. The mail message to move.</param>
     ''' <remarks></remarks>
     Public Overrides Sub Move(ByVal item As IDataItem)
-        Dim imapItem As ImapDataItem = item
- 
+        Dim mailItem As MailDataItem = item
+
         Using client As New IMAP_Client
             client.Connect(Me.Uri.Host, Me.Uri.Port, IIf(Me.Uri.Scheme = SCHEME_IMAPS, True, False))
             If client.IsConnected Then
@@ -135,15 +135,15 @@ Public Class ImapMonitor
                     client.SelectFolder(folder)
 
                     Dim seq As New IMAP_SequenceSet
-                    seq.Parse(imapItem.UID)
+                    seq.Parse(mailItem.UID)
 
                     Dim destination As String = String.Empty
-                    If imapItem.Status = DataItemStatus.CompletedProcessing Then
-                        Log.DebugFormat("Moving {0} to {1}", imapItem.Data, Me.CompleteUri)
+                    If mailItem.Status = DataItemStatus.CompletedProcessing Then
+                        Log.DebugFormat("Moving {0} to {1}", mailItem.Data, Me.CompleteUri)
 
                         destination = Me.GetFolderName(Me.CompleteUri, client.GetFolderSeparator)
-                    ElseIf imapItem.Status = DataItemStatus.FailedProcessing Then
-                        Log.DebugFormat("Moving {0} to {1}", imapItem.Data, Me.FailureUri)
+                    ElseIf mailItem.Status = DataItemStatus.FailedProcessing Then
+                        Log.DebugFormat("Moving {0} to {1}", mailItem.Data, Me.FailureUri)
 
                         destination = Me.GetFolderName(Me.FailureUri, client.GetFolderSeparator)
                     End If
@@ -157,7 +157,7 @@ Public Class ImapMonitor
     ''' <summary>
     ''' Deletes the data item after processing.
     ''' </summary>
-    ''' <param name="item">ImapDataItem. The imap message to delete.</param>
+    ''' <param name="item">MailDataItem. The mail message to delete.</param>
     ''' <remarks>This method always returns NotImplementedException</remarks>
     Public Overrides Sub Rename(ByVal item As IDataItem)
         Throw New NotImplementedException
@@ -166,11 +166,11 @@ Public Class ImapMonitor
     ''' <summary>
     ''' Prepares the data before if it processed.
     ''' </summary>
-    ''' <param name="item">ImapDataItem. The imap message to prepare.</param>
+    ''' <param name="item">MailDataItem. The mail message to prepare.</param>
     ''' <remarks></remarks>
     Public Overrides Sub Prepare(ByVal item As IDataItem)
-        Dim imapItem As ImapDataItem = item
-        Dim tempFile As String = IO.Path.Combine(Me.DownloadPath, String.Format("{0}.eml", imapItem.UID))
+        Dim mailItem As MailDataItem = item
+        Dim tempFile As String = IO.Path.Combine(Me.DownloadPath, String.Format("{0}.eml", mailItem.UID))
 
         Log.DebugFormat("Downloading {0} to {1}", item.Name, tempFile)
 
@@ -185,8 +185,8 @@ Public Class ImapMonitor
                     client.SelectFolder(folder)
                     Dim m As New LumiSoft.Net.IMAP.IMAP_BODY
                     Using stream As FileStream = File.Create(tempFile)
-                        client.FetchMessage(imapItem.UID, stream)
-                        imapItem.LocalFile = New FileInfo(tempFile)
+                        client.FetchMessage(mailItem.UID, stream)
+                        mailItem.LocalFile = New FileInfo(tempFile)
                     End Using
                 End If
             End If
@@ -222,7 +222,7 @@ Public Class ImapMonitor
                         Log.DebugFormat("Message Flags: {0}", item.MessageFlags)
 
                         If (item.MessageFlags And IMAP_MessageFlags.Deleted) <> IMAP_MessageFlags.Deleted Then
-                            items.Add(New ImapDataItem(New Uri(String.Format("{0}/;UID={1}", Me.Uri, item.UID))))
+                            items.Add(New MailDataItem(Me.Uri, item.UID))
                         End If
                     Next
                 End If
