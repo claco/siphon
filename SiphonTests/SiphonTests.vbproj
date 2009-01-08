@@ -71,6 +71,7 @@
     <Compile Include="Console\ConsoleTests.vb" />
     <Compile Include="FtpTestBase.vb" />
     <Compile Include="ImapTestBase.vb" />
+    <Compile Include="Monitors\DataItemTests.vb" />
     <Compile Include="Monitors\FtpDirectoryMonitorTests.vb" />
     <Compile Include="Monitors\ImapMonitorTests.vb" />
     <Compile Include="Monitors\MessageQueueMonitorTests.vb" />
