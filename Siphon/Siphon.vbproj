@@ -79,11 +79,14 @@
     <Compile Include="Items\IDataItem.vb" />
     <Compile Include="Items\MailDataItem.vb" />
     <Compile Include="Items\QueueMessageDataItem.vb" />
+    <Compile Include="Items\RecordDataItem.vb" />
     <Compile Include="Items\UriDataItem.vb" />
     <Compile Include="Monitors\DataActions.vb" />
+    <Compile Include="Monitors\DatabaseMonitor.vb" />
     <Compile Include="Monitors\DataMonitor.vb" />
     <Compile Include="Monitors\DirectoryMonitor.vb" />
     <Compile Include="Monitors\FtpDirectoryMonitor.vb" />
+    <Compile Include="Monitors\IDatabaseMonitor.vb" />
     <Compile Include="Monitors\IDataMonitor.vb" />
     <Compile Include="Monitors\ImapMonitor.vb" />
     <Compile Include="Monitors\IRemoteDirectoryMonitor.vb" />
