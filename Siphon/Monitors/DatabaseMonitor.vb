@@ -16,11 +16,48 @@ Public Class DatabaseMonitor
     Private _connection As IDbConnection = Nothing
     Private _connectionStringName As String = String.Empty
     Private _providerFactory As DbProviderFactory = Nothing
-    Private _filter As String = String.Empty
     Private _selectCommand As IDbCommand = Nothing
     Private Const SETTING_CONNECTION_STRING_NAME As String = "ConnectionStringName"
     Private Const SETTING_FILTER As String = "Filter"
     Private Const SETTING_SELECT_COMMAND As String = "SelectCommand"
+
+    ''' <summary>
+    ''' Protected constructor for reflection.
+    ''' </summary>
+    ''' <remarks></remarks>
+    Protected Sub New()
+
+    End Sub
+
+    ''' <summary>
+    ''' Creates a new database monitor.
+    ''' </summary>
+    ''' <param name="name">String. The friendly name for the monitor.</param>
+    ''' <param name="connectionStringName">String. The name of the connection string from config to use.</param>
+    ''' <param name="selectCommand">String. The select command to run to find new records.</param>
+    ''' <param name="schedule">IMonitorSchedule. The schedule used to monitor the directory.</param>
+    ''' <param name="processor">IDataProcessor. The data processor to use to process new files.</param>
+    ''' <remarks></remarks>
+    Public Sub New(ByVal name As String, ByVal connectionStringName As String, ByVal selectCommand As String, ByVal schedule As IMonitorSchedule, ByVal processor As IDataProcessor)
+        MyBase.New(name, schedule, processor)
+        Me.ConnectionStringName = connectionStringName
+        Me.SelectCommand = Me.GetCommand(selectCommand)
+    End Sub
+
+    ''' <summary>
+    ''' Creates a new database monitor.
+    ''' </summary>
+    ''' <param name="name">String. The friendly name for the monitor.</param>
+    ''' <param name="connectionStringName">String. The name of the connection string from config to use.</param>
+    ''' <param name="selectCommand">IDbCommand. The select command to run to find new records.</param>
+    ''' <param name="schedule">IMonitorSchedule. The schedule used to monitor the directory.</param>
+    ''' <param name="processor">IDataProcessor. The data processor to use to process new files.</param>
+    ''' <remarks></remarks>
+    Public Sub New(ByVal name As String, ByVal connectionStringName As String, ByVal selectCommand As IDbCommand, ByVal schedule As IMonitorSchedule, ByVal processor As IDataProcessor)
+        MyBase.New(name, schedule, processor)
+        Me.ConnectionStringName = connectionStringName
+        Me.SelectCommand = selectCommand
+    End Sub
 
     ''' <summary>
     ''' Gets the connection from the current provider.
@@ -34,6 +71,7 @@ Public Class DatabaseMonitor
                 Dim connectionString As ConnectionStringSettings = ConfigurationManager.ConnectionStrings.Item(Me.ConnectionStringName)
                 _connection = Me.ProviderFactory.CreateConnection
                 _connection.ConnectionString = connectionString.ConnectionString
+                Log.Debug(_connection.ToString)
             End If
 
             Return _connection
@@ -51,6 +89,7 @@ Public Class DatabaseMonitor
             If _providerFactory Is Nothing Then
                 Dim connectionString As ConnectionStringSettings = ConfigurationManager.ConnectionStrings.Item(Me.ConnectionStringName)
                 _providerFactory = DbProviderFactories.GetFactory(connectionString.ProviderName)
+                Log.Debug(_providerFactory.ToString)
             End If
 
             Return _providerFactory
@@ -89,28 +128,10 @@ Public Class DatabaseMonitor
         If settings.AllKeys.Contains(SETTING_CONNECTION_STRING_NAME) Then
             Me.ConnectionStringName = settings(SETTING_CONNECTION_STRING_NAME).Value
         End If
-        If settings.AllKeys.Contains(SETTING_FILTER) Then
-            Me.Filter = settings(SETTING_FILTER).Value
-        End If
         If settings.AllKeys.Contains(SETTING_SELECT_COMMAND) Then
             Me.SelectCommand = Me.GetCommand(settings(SETTING_SELECT_COMMAND).Value)
         End If
     End Sub
-
-    ''' <summary>
-    ''' Gets/sets the filter to apply to the records being monitored.
-    ''' </summary>
-    ''' <value></value>
-    ''' <returns>String</returns>
-    ''' <remarks></remarks>
-    Public Overridable Property Filter() As String Implements IDatabaseMonitor.Filter
-        Get
-            Return _filter
-        End Get
-        Set(ByVal value As String)
-            _filter = value.Trim
-        End Set
-    End Property
 
     ''' <summary>
     ''' Deletes the data item after processing.
@@ -144,7 +165,38 @@ Public Class DatabaseMonitor
     ''' </summary>
     ''' <remarks></remarks>
     Public Overrides Function Scan() As Collection(Of IDataItem)
+        Dim items As New Collection(Of IDataItem)
 
+        Try
+            Using connection As IDbConnection = Me.Connection
+                connection.Open()
+
+                Using command As IDbCommand = Me.SelectCommand
+                    command.Connection = connection
+                    Dim reader As IDataReader = command.ExecuteReader(CommandBehavior.KeyInfo)
+                    Log.Debug(reader.FieldCount)
+                    Dim t As DataTable = reader.GetSchemaTable
+                    For Each r As DataRow In t.Rows
+                        For Each c As DataColumn In t.Columns
+                            Log.DebugFormat("{0}={1}", c.ColumnName, r.Item(c.Ordinal))
+                        Next
+                        Log.Debug("-----------------------")
+                    Next
+
+
+                    While reader.Read
+                        Log.Debug("Result Row")
+                    End While
+
+                    command.Connection = Nothing
+                End Using
+
+                connection.Close()
+            End Using
+        Catch ex As Exception
+        End Try
+
+        Return items
     End Function
 
     ''' <summary>
@@ -169,7 +221,10 @@ Public Class DatabaseMonitor
     ''' <returns>IDbCommand</returns>
     ''' <remarks></remarks>
     Protected Overridable Function GetCommand(ByVal commandText As String) As IDbCommand
+        Dim command As IDbCommand = Me.ProviderFactory.CreateCommand
+        command.CommandText = commandText
 
+        Return command
     End Function
 
 End Class

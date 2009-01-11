@@ -17,14 +17,6 @@ Public Interface IDatabaseMonitor
     Property ConnectionStringName() As String
 
     ''' <summary>
-    ''' Gets/sets the filter to apply to the records being monitored.
-    ''' </summary>
-    ''' <value></value>
-    ''' <returns>String</returns>
-    ''' <remarks>The default should be String.Empty or all records.</remarks>
-    Property Filter() As String
-
-    ''' <summary>
     ''' Gets/sets the command to run to select new data records.
     ''' </summary>
     ''' <value></value>
