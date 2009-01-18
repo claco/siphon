@@ -22,22 +22,20 @@ Imports ChrisLaco.Siphon
 
     <Test(Description:="Test successful database monitor")> _
     Public Sub DatabaseMonitor()
-        Using txn As New TransactionScope
-            CreateSuccessRecord()
+        CreateSuccessRecord()
 
-            Using schedule = New DailySchedule(DateTime.Now.AddSeconds(3).TimeOfDay)
-                Using processor = New MockProcessor
-                    Using monitor As IDatabaseMonitor = New DatabaseMonitor("DatabaseMonitor", "SiphonTests", "Select * From DatabaseMonitor", schedule, processor)
-                        AddHandler monitor.ProcessComplete, AddressOf Monitor_ProcessComplete
-                        AddHandler monitor.ProcessFailure, AddressOf Monitor_ProcessFailure
-                        monitor.Start()
-                        Threading.Thread.Sleep(5000)
-                        monitor.Stop()
+        Using schedule = New DailySchedule(DateTime.Now.AddSeconds(3).TimeOfDay)
+            Using processor = New MockProcessor
+                Using monitor As IDatabaseMonitor = New DatabaseMonitor("DatabaseMonitor", "SiphonTests", "Select * From DatabaseMonitor", schedule, processor)
+                    AddHandler monitor.ProcessComplete, AddressOf Monitor_ProcessComplete
+                    AddHandler monitor.ProcessFailure, AddressOf Monitor_ProcessFailure
+                    monitor.Start()
+                    Threading.Thread.Sleep(5000)
+                    monitor.Stop()
 
-                        Assert.AreEqual(1, processor.Count, "Has processed 1 file")
-                        Assert.IsTrue(Me.ProcessComplete)
-                        Assert.IsFalse(Me.ProcessFailure)
-                    End Using
+                    Assert.AreEqual(1, processor.Count, "Has processed 1 file")
+                    Assert.IsTrue(Me.ProcessComplete)
+                    Assert.IsFalse(Me.ProcessFailure)
                 End Using
             End Using
         End Using

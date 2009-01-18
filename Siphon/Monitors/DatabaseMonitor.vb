@@ -70,8 +70,7 @@ Public Class DatabaseMonitor
             If _connection Is Nothing Then
                 Dim connectionString As ConnectionStringSettings = ConfigurationManager.ConnectionStrings.Item(Me.ConnectionStringName)
                 _connection = Me.ProviderFactory.CreateConnection
-                _connection.ConnectionString = connectionString.ConnectionString
-                Log.Debug(_connection.ToString)
+                _connection.ConnectionString = connectionString.ConnectionString()
             End If
 
             Return _connection
@@ -89,7 +88,6 @@ Public Class DatabaseMonitor
             If _providerFactory Is Nothing Then
                 Dim connectionString As ConnectionStringSettings = ConfigurationManager.ConnectionStrings.Item(Me.ConnectionStringName)
                 _providerFactory = DbProviderFactories.GetFactory(connectionString.ProviderName)
-                Log.Debug(_providerFactory.ToString)
             End If
 
             Return _providerFactory
@@ -166,14 +164,18 @@ Public Class DatabaseMonitor
     ''' <remarks></remarks>
     Public Overrides Function Scan() As Collection(Of IDataItem)
         Dim items As New Collection(Of IDataItem)
-
+        Log.Debug("Scanning")
         Try
             Using connection As IDbConnection = Me.Connection
+                Log.Debug("Connection")
                 connection.Open()
-
+                Log.Debug("Open")
                 Using command As IDbCommand = Me.SelectCommand
+                    Log.Debug("Command")
                     command.Connection = connection
-                    Dim reader As IDataReader = command.ExecuteReader(CommandBehavior.KeyInfo)
+
+                    Dim reader As IDataReader = command.ExecuteReader REM (CommandBehavior.KeyInfo)
+
                     Log.Debug(reader.FieldCount)
                     Dim t As DataTable = reader.GetSchemaTable
                     For Each r As DataRow In t.Rows
@@ -185,7 +187,8 @@ Public Class DatabaseMonitor
 
 
                     While reader.Read
-                        Log.Debug("Result Row")
+                        Log.Debug("*********Result Row")
+                        Log.Debug(reader.GetString(reader.GetOrdinal("Name")))
                     End While
 
                     command.Connection = Nothing
@@ -194,6 +197,7 @@ Public Class DatabaseMonitor
                 connection.Close()
             End Using
         Catch ex As Exception
+            Log.Debug(ex)
         End Try
 
         Return items

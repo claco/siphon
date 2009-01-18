@@ -41,6 +41,7 @@
     <Reference Include="log4net, Version=1.2.10.0, Culture=neutral, PublicKeyToken=1b44e1d426115821, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>bin\log4net.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="LumiSoft.Net, Version=2.0.3202.18210, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
