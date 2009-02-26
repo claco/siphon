@@ -60,7 +60,7 @@ Public Class ImapMonitorTests
                     monitor.ProcessCompleteActions = DataActions.Delete
                     monitor.Credentials = Me.Credentials
                     monitor.Start()
-                    Threading.Thread.Sleep(3000)
+                    Threading.Thread.Sleep(5000)
                     monitor.Stop()
 
                     Assert.AreEqual(1, processor.Count, "Has processed 1 file")
@@ -76,7 +76,7 @@ Public Class ImapMonitorTests
     Public Sub ImapMonitorProcessorCompleteMoveMessage()
         CreateSuccessFile("SUCCESS")
 
-        Using schedule = New DailySchedule(DateTime.Now.AddSeconds(2).TimeOfDay)
+        Using schedule = New DailySchedule(DateTime.Now.AddSeconds(3).TimeOfDay)
             Using processor = New MockProcessor
                 Using monitor As ImapMonitor = New ImapMonitor("ImapMonitor", Path.Combine(Uri.AbsoluteUri, TestDirectory.Name), schedule, processor)
                     AddHandler monitor.ProcessComplete, AddressOf Monitor_ProcessComplete
@@ -88,7 +88,7 @@ Public Class ImapMonitorTests
                     monitor.CreateMissingFolders = True
                     monitor.Credentials = Me.Credentials
                     monitor.Start()
-                    Threading.Thread.Sleep(3000)
+                    Threading.Thread.Sleep(5000)
                     monitor.Stop()
 
                     Assert.AreEqual(1, processor.Count, "Has processed 1 file")
@@ -116,7 +116,7 @@ Public Class ImapMonitorTests
                     Assert.IsTrue(File.Exists(Path.Combine(TestDirectory.FullName, "FAILURE")))
                     monitor.Credentials = Me.Credentials
                     monitor.Start()
-                    Threading.Thread.Sleep(3000)
+                    Threading.Thread.Sleep(5000)
                     monitor.Stop()
 
                     Assert.AreEqual(1, processor.Count, "Has processed 1 file")
@@ -142,7 +142,7 @@ Public Class ImapMonitorTests
                     monitor.ProcessFailureActions = DataActions.Delete
                     monitor.Credentials = Me.Credentials
                     monitor.Start()
-                    Threading.Thread.Sleep(3000)
+                    Threading.Thread.Sleep(5000)
                     monitor.Stop()
 
                     Assert.AreEqual(1, processor.Count, "Has processed 1 file")
@@ -158,7 +158,7 @@ Public Class ImapMonitorTests
     Public Sub ImapMonitorProcessorFailureMoveMessage()
         CreateFailureFile("FAILURE")
 
-        Using schedule = New DailySchedule(DateTime.Now.AddSeconds(2).TimeOfDay)
+        Using schedule = New DailySchedule(DateTime.Now.AddSeconds(3).TimeOfDay)
             Using processor = New MockProcessor
                 Using monitor As ImapMonitor = New ImapMonitor("ImapMonitor", Path.Combine(Uri.AbsoluteUri, TestDirectory.Name), schedule, processor)
                     AddHandler monitor.ProcessComplete, AddressOf Monitor_ProcessComplete
@@ -170,7 +170,7 @@ Public Class ImapMonitorTests
                     monitor.CreateMissingFolders = True
                     monitor.Credentials = Me.Credentials
                     monitor.Start()
-                    Threading.Thread.Sleep(3000)
+                    Threading.Thread.Sleep(5000)
                     monitor.Stop()
 
                     Assert.AreEqual(1, processor.Count, "Has processed 1 file")
@@ -196,7 +196,7 @@ Public Class ImapMonitorTests
                     AddHandler monitor.ProcessFailure, AddressOf Monitor_ProcessFailure
                     monitor.Credentials = Me.Credentials
                     monitor.Start()
-                    Threading.Thread.Sleep(3000)
+                    Threading.Thread.Sleep(5000)
                     monitor.Stop()
 
                     Assert.AreEqual(1, processor.Count, "Has processed 1 file")
@@ -283,7 +283,7 @@ Public Class ImapMonitorTests
                     monitor.Credentials = Me.Credentials
 
                     monitor.Start()
-                    Threading.Thread.Sleep(3000)
+                    Threading.Thread.Sleep(5000)
                     monitor.Stop()
 
                     Assert.AreEqual(1, processor.Count, "Has processed 1 files")
@@ -298,7 +298,7 @@ Public Class ImapMonitorTests
     Public Sub ImapMonitorStillProcessing()
         CreateSuccessFile()
 
-        Using schedule = New IntervalSchedule(2)
+        Using schedule = New DailySchedule(DateTime.Now.AddSeconds(2).TimeOfDay)
             Using processor = New MockProcessor
                 Using monitor As ImapMonitor = New ImapMonitor("ImapMonitor", Path.Combine(Uri.AbsoluteUri, TestDirectory.Name), schedule, processor)
                     AddHandler monitor.ProcessComplete, AddressOf Monitor_ProcessComplete
@@ -306,7 +306,7 @@ Public Class ImapMonitorTests
                     monitor.Credentials = Me.Credentials
                     processor.Delay = 10
                     monitor.Start()
-                    Threading.Thread.Sleep(3000)
+                    Threading.Thread.Sleep(5000)
 
                     Assert.IsTrue(monitor.Processing, "Processing is true when a worker processor is still running")
                     Dim pre As DateTime = DateTime.Now
@@ -514,7 +514,7 @@ Public Class ImapMonitorTests
     Public Sub ImapMonitorDownloadPath()
         CreateSuccessFile()
 
-        Using schedule = New DailySchedule(DateTime.Now.AddSeconds(2).TimeOfDay)
+        Using schedule = New DailySchedule(DateTime.Now.AddSeconds(3).TimeOfDay)
             Using processor = New MockProcessor
                 Using monitor As ImapMonitor = New ImapMonitor("ImapMonitor", Path.Combine(Uri.AbsoluteUri, TestDirectory.Name), schedule, processor)
                     AddHandler monitor.ProcessComplete, AddressOf Monitor_ProcessComplete
@@ -525,7 +525,7 @@ Public Class ImapMonitorTests
                     monitor.Filter = String.Empty
                     monitor.Credentials = Me.Credentials
                     monitor.Start()
-                    Threading.Thread.Sleep(3000)
+                    Threading.Thread.Sleep(5000)
                     monitor.Stop()
 
                     Assert.AreEqual(1, processor.Count, "Has processed 1 file")
@@ -541,7 +541,7 @@ Public Class ImapMonitorTests
     Public Sub ImapMonitorDownloadUri()
         CreateSuccessFile()
 
-        Using schedule = New DailySchedule(DateTime.Now.AddSeconds(2).TimeOfDay)
+        Using schedule = New DailySchedule(DateTime.Now.AddSeconds(3).TimeOfDay)
             Using processor = New MockProcessor
                 Using monitor As ImapMonitor = New ImapMonitor("ImapMonitorDownloadUri", Path.Combine(Uri.AbsoluteUri, TestDirectory.Name), schedule, processor)
                     AddHandler monitor.ProcessComplete, AddressOf Monitor_ProcessComplete
@@ -552,7 +552,7 @@ Public Class ImapMonitorTests
                     monitor.Filter = String.Empty
                     monitor.Credentials = Me.Credentials
                     monitor.Start()
-                    Threading.Thread.Sleep(3000)
+                    Threading.Thread.Sleep(5000)
                     monitor.Stop()
 
                     Assert.AreEqual(1, processor.Count, "Has processed 1 file")

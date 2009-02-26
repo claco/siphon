@@ -33,7 +33,7 @@ Imports ChrisLaco.Siphon
                     AddHandler monitor.ProcessFailure, AddressOf Monitor_ProcessFailure
                     monitor.Filter = String.Empty
                     monitor.Start()
-                    Threading.Thread.Sleep(3000)
+                    Threading.Thread.Sleep(5000)
                     monitor.Stop()
 
                     Assert.AreEqual(1, processor.Count, "Has processed 1 file")
@@ -57,7 +57,7 @@ Imports ChrisLaco.Siphon
                     Assert.IsTrue(File.Exists(Path.Combine(TestDirectory.FullName, "SUCCESS")))
                     monitor.ProcessCompleteActions = DataActions.Delete
                     monitor.Start()
-                    Threading.Thread.Sleep(3000)
+                    Threading.Thread.Sleep(5000)
                     monitor.Stop()
 
                     Assert.AreEqual(1, processor.Count, "Has processed 1 file")
@@ -82,7 +82,7 @@ Imports ChrisLaco.Siphon
                     Assert.IsTrue(File.Exists(Path.Combine(TestDirectory.FullName, "SUCCESS")))
                     monitor.ProcessCompleteActions = DataActions.Rename
                     monitor.Start()
-                    Threading.Thread.Sleep(3000)
+                    Threading.Thread.Sleep(5000)
                     monitor.Stop()
 
                     Assert.AreEqual(1, processor.Count, "Has processed 1 file")
@@ -113,7 +113,7 @@ Imports ChrisLaco.Siphon
                     monitor.ProcessCompleteActions = DataActions.Move
                     monitor.CreateMissingFolders = True
                     monitor.Start()
-                    Threading.Thread.Sleep(3000)
+                    Threading.Thread.Sleep(5000)
                     monitor.Stop()
 
                     Assert.AreEqual(1, processor.Count, "Has processed 1 file")
@@ -143,7 +143,7 @@ Imports ChrisLaco.Siphon
                     monitor.ProcessCompleteActions = DataActions.Move Or DataActions.Rename
                     monitor.CreateMissingFolders = True
                     monitor.Start()
-                    Threading.Thread.Sleep(3000)
+                    Threading.Thread.Sleep(5000)
                     monitor.Stop()
 
                     Assert.AreEqual(1, processor.Count, "Has processed 1 file")
@@ -173,7 +173,7 @@ Imports ChrisLaco.Siphon
 
                     Assert.IsTrue(File.Exists(Path.Combine(TestDirectory.FullName, "FAILURE")))
                     monitor.Start()
-                    Threading.Thread.Sleep(3000)
+                    Threading.Thread.Sleep(5000)
                     monitor.Stop()
 
                     Assert.AreEqual(1, processor.Count, "Has processed 1 file")
@@ -198,7 +198,7 @@ Imports ChrisLaco.Siphon
                     Assert.IsTrue(File.Exists(Path.Combine(TestDirectory.FullName, "FAILURE")))
                     monitor.ProcessFailureActions = DataActions.Delete
                     monitor.Start()
-                    Threading.Thread.Sleep(3000)
+                    Threading.Thread.Sleep(5000)
                     monitor.Stop()
 
                     Assert.AreEqual(1, processor.Count, "Has processed 1 file")
@@ -223,7 +223,7 @@ Imports ChrisLaco.Siphon
                     Assert.IsTrue(File.Exists(Path.Combine(TestDirectory.FullName, "FAILURE")))
                     monitor.ProcessFailureActions = DataActions.Rename
                     monitor.Start()
-                    Threading.Thread.Sleep(3000)
+                    Threading.Thread.Sleep(5000)
                     monitor.Stop()
 
                     Assert.AreEqual(1, processor.Count, "Has processed 1 file")
@@ -254,7 +254,7 @@ Imports ChrisLaco.Siphon
                     monitor.ProcessFailureActions = DataActions.Move
                     monitor.CreateMissingFolders = True
                     monitor.Start()
-                    Threading.Thread.Sleep(3000)
+                    Threading.Thread.Sleep(5000)
                     monitor.Stop()
 
                     Assert.AreEqual(1, processor.Count, "Has processed 1 file")
@@ -284,7 +284,7 @@ Imports ChrisLaco.Siphon
                     monitor.ProcessFailureActions = DataActions.Move Or DataActions.Rename
                     monitor.CreateMissingFolders = True
                     monitor.Start()
-                    Threading.Thread.Sleep(3000)
+                    Threading.Thread.Sleep(5000)
                     monitor.Stop()
 
                     Assert.AreEqual(1, processor.Count, "Has processed 1 file")
@@ -312,7 +312,7 @@ Imports ChrisLaco.Siphon
                     AddHandler monitor.ProcessComplete, AddressOf Monitor_ProcessComplete
                     AddHandler monitor.ProcessFailure, AddressOf Monitor_ProcessFailure
                     monitor.Start()
-                    Threading.Thread.Sleep(3000)
+                    Threading.Thread.Sleep(5000)
                     monitor.Stop()
 
                     Assert.AreEqual(1, processor.Count, "Has processed 1 file")
@@ -327,57 +327,69 @@ Imports ChrisLaco.Siphon
     Public Sub DirectoryMonitorCreateDirectoriesNested()
         Dim tempdir As String = Path.Combine(Path.GetTempPath, Path.GetRandomFileName)
 
-        Using schedule = New DailySchedule(DateTime.Now.AddSeconds(1).TimeOfDay)
-            Using processor = New MockProcessor
-                Using monitor As LocalDirectoryMonitor = New LocalDirectoryMonitor("LocalMonitor", tempdir, schedule, processor)
-                    AddHandler monitor.ProcessComplete, AddressOf Monitor_ProcessComplete
-                    AddHandler monitor.ProcessFailure, AddressOf Monitor_ProcessFailure
+        Try
+            Using schedule = New DailySchedule(DateTime.Now.AddSeconds(1).TimeOfDay)
+                Using processor = New MockProcessor
+                    Using monitor As LocalDirectoryMonitor = New LocalDirectoryMonitor("LocalMonitor", tempdir, schedule, processor)
+                        AddHandler monitor.ProcessComplete, AddressOf Monitor_ProcessComplete
+                        AddHandler monitor.ProcessFailure, AddressOf Monitor_ProcessFailure
 
-                    monitor.CreateMissingFolders = True
-                    monitor.CompletePath = "Processed"
-                    monitor.FailurePath = "Failed"
+                        monitor.CreateMissingFolders = True
+                        monitor.CompletePath = "Processed"
+                        monitor.FailurePath = "Failed"
 
-                    monitor.Start()
-                    monitor.Stop()
+                        monitor.Start()
+                        monitor.Stop()
 
-                    Assert.IsTrue(Directory.Exists(tempdir), "Monitor path exista")
-                    Assert.IsTrue(Directory.Exists(Path.Combine(tempdir, "Processed")), "Processed child path exists")
-                    Assert.IsTrue(Directory.Exists(Path.Combine(tempdir, "Failed")), "Failed child path exists")
-                    Assert.IsTrue(Directory.Exists(tempdir), "Monitor path exista")
-                    Assert.IsFalse(Me.ProcessComplete)
-                    Assert.IsFalse(Me.ProcessFailure)
+                        Assert.IsTrue(Directory.Exists(tempdir), "Monitor path exista")
+                        Assert.IsTrue(Directory.Exists(Path.Combine(tempdir, "Processed")), "Processed child path exists")
+                        Assert.IsTrue(Directory.Exists(Path.Combine(tempdir, "Failed")), "Failed child path exists")
+                        Assert.IsTrue(Directory.Exists(tempdir), "Monitor path exista")
+                        Assert.IsFalse(Me.ProcessComplete)
+                        Assert.IsFalse(Me.ProcessFailure)
+                    End Using
                 End Using
             End Using
-        End Using
+        Catch
+            Throw
+        Finally
+            Directory.Delete(tempdir, True)
+        End Try
     End Sub
 
     <Test(Description:="Test directory monitor create missing directories")> _
     Public Sub DirectoryMonitorCreateDirectories()
         Dim tempdir As String = Path.Combine(Path.Combine(Path.GetTempPath, Path.GetRandomFileName), "New")
 
-        Using schedule = New DailySchedule(DateTime.Now.AddSeconds(1).TimeOfDay)
-            Using processor = New MockProcessor
-                Using monitor As LocalDirectoryMonitor = New LocalDirectoryMonitor("LocalMonitor", tempdir, schedule, processor)
-                    AddHandler monitor.ProcessComplete, AddressOf Monitor_ProcessComplete
-                    AddHandler monitor.ProcessFailure, AddressOf Monitor_ProcessFailure
+        Try
+            Using schedule = New DailySchedule(DateTime.Now.AddSeconds(1).TimeOfDay)
+                Using processor = New MockProcessor
+                    Using monitor As LocalDirectoryMonitor = New LocalDirectoryMonitor("LocalMonitor", tempdir, schedule, processor)
+                        AddHandler monitor.ProcessComplete, AddressOf Monitor_ProcessComplete
+                        AddHandler monitor.ProcessFailure, AddressOf Monitor_ProcessFailure
 
-                    monitor.CreateMissingFolders = True
-                    monitor.CompletePath = "../Processed"
-                    monitor.FailurePath = "../Failed"
+                        monitor.CreateMissingFolders = True
+                        monitor.CompletePath = "../Processed"
+                        monitor.FailurePath = "../Failed"
 
-                    monitor.Start()
-                    monitor.Stop()
+                        monitor.Start()
+                        monitor.Stop()
 
-                    Dim temp As New DirectoryInfo(tempdir)
-                    Assert.IsTrue(Directory.Exists(tempdir), "Monitor path exista")
-                    Assert.IsTrue(Directory.Exists(Path.Combine(temp.Parent.FullName, "Processed")), "Processed child path exists")
-                    Assert.IsTrue(Directory.Exists(Path.Combine(temp.Parent.FullName, "Failed")), "Failed child path exists")
-                    Assert.IsTrue(Directory.Exists(tempdir), "Monitor path exista")
-                    Assert.IsFalse(Me.ProcessComplete)
-                    Assert.IsFalse(Me.ProcessFailure)
+                        Dim temp As New DirectoryInfo(tempdir)
+                        Assert.IsTrue(Directory.Exists(tempdir), "Monitor path exista")
+                        Assert.IsTrue(Directory.Exists(Path.Combine(temp.Parent.FullName, "Processed")), "Processed child path exists")
+                        Assert.IsTrue(Directory.Exists(Path.Combine(temp.Parent.FullName, "Failed")), "Failed child path exists")
+                        Assert.IsTrue(Directory.Exists(tempdir), "Monitor path exista")
+                        Assert.IsFalse(Me.ProcessComplete)
+                        Assert.IsFalse(Me.ProcessFailure)
+                    End Using
                 End Using
             End Using
-        End Using
+        Catch
+            Throw
+        Finally
+            Directory.GetParent(tempdir).Delete(True)
+        End Try
     End Sub
 
     <Test(Description:="Test directory monitor with filter")> _
@@ -393,7 +405,7 @@ Imports ChrisLaco.Siphon
                     monitor.Filter = "*.csv"
 
                     monitor.Start()
-                    Threading.Thread.Sleep(3000)
+                    Threading.Thread.Sleep(5000)
                     monitor.Stop()
 
                     Assert.AreEqual(1, processor.Count, "Has processed 1 files")
@@ -415,7 +427,7 @@ Imports ChrisLaco.Siphon
                     AddHandler monitor.ProcessFailure, AddressOf Monitor_ProcessFailure
                     processor.Delay = 10
                     monitor.Start()
-                    Threading.Thread.Sleep(3000)
+                    Threading.Thread.Sleep(5000)
 
                     Assert.IsTrue(monitor.Processing, "Processing is true when a worker processor is still running")
                     Dim pre As DateTime = DateTime.Now

@@ -11,16 +11,6 @@ Imports ChrisLaco.Siphon
     Public Class FtpDirectoryMonitorTests
     Inherits FtpTestBase
 
-    Protected Overrides Sub CreateTestDirectory()
-        TestDirectory = System.IO.Directory.CreateDirectory(Path.Combine(FtpDirectory.FullName, Path.GetRandomFileName))
-    End Sub
-
-    Protected Overridable ReadOnly Property FtpDirectory() As DirectoryInfo
-        Get
-            Return New DirectoryInfo(ConfigurationManager.AppSettings("FtpDirectory"))
-        End Get
-    End Property
-
     <Test(Description:="Path throws exception when empty")> _
     <ExpectedException(GetType(ArgumentException))> _
     Public Sub DirectoryMonitorPathException()
@@ -39,14 +29,14 @@ Imports ChrisLaco.Siphon
 
         Using schedule = New DailySchedule(DateTime.Now.AddSeconds(2).TimeOfDay)
             Using processor = New MockProcessor
-                Using monitor As FtpDirectoryMonitor = New FtpDirectoryMonitor("FtpMonitor", Path.Combine(Uri.AbsoluteUri, TestDirectory.Name), schedule, processor)
+                Using monitor As FtpDirectoryMonitor = New FtpDirectoryMonitor("FtpMonitor", Uri.AbsoluteUri, schedule, processor)
                     AddHandler monitor.ProcessComplete, AddressOf Monitor_ProcessComplete
                     AddHandler monitor.ProcessFailure, AddressOf Monitor_ProcessFailure
 
                     monitor.Credentials = Me.Credentials
                     monitor.Filter = String.Empty
                     monitor.Start()
-                    Threading.Thread.Sleep(3000)
+                    Threading.Thread.Sleep(5000)
                     monitor.Stop()
 
                     Assert.AreEqual(1, processor.Count, "Has processed 1 file")
@@ -63,7 +53,7 @@ Imports ChrisLaco.Siphon
 
         Using schedule = New DailySchedule(DateTime.Now.AddSeconds(2).TimeOfDay)
             Using processor = New MockProcessor
-                Using monitor As FtpDirectoryMonitor = New FtpDirectoryMonitor("FtpMonitor", Path.Combine(Uri.AbsoluteUri, TestDirectory.Name), schedule, processor)
+                Using monitor As FtpDirectoryMonitor = New FtpDirectoryMonitor("FtpMonitor", Uri.AbsoluteUri, schedule, processor)
                     AddHandler monitor.ProcessComplete, AddressOf Monitor_ProcessComplete
                     AddHandler monitor.ProcessFailure, AddressOf Monitor_ProcessFailure
 
@@ -71,7 +61,7 @@ Imports ChrisLaco.Siphon
                     monitor.ProcessCompleteActions = DataActions.Delete
                     monitor.Credentials = New NetworkCredential("anonymous", "claco@chrislaco.com")
                     monitor.Start()
-                    Threading.Thread.Sleep(3000)
+                    Threading.Thread.Sleep(5000)
                     monitor.Stop()
 
                     Assert.AreEqual(1, processor.Count, "Has processed 1 file")
@@ -93,14 +83,14 @@ Imports ChrisLaco.Siphon
                 builder.UserName = Me.Credentials.UserName
                 builder.Password = Me.Credentials.Password
 
-                Using monitor As FtpDirectoryMonitor = New FtpDirectoryMonitor("FtpMonitor", Path.Combine(builder.Uri.AbsoluteUri, TestDirectory.Name), schedule, processor)
+                Using monitor As FtpDirectoryMonitor = New FtpDirectoryMonitor("FtpMonitor", builder.Uri.AbsoluteUri, schedule, processor)
                     AddHandler monitor.ProcessComplete, AddressOf Monitor_ProcessComplete
                     AddHandler monitor.ProcessFailure, AddressOf Monitor_ProcessFailure
 
                     Assert.IsTrue(File.Exists(Path.Combine(TestDirectory.FullName, "SUCCESS")))
                     monitor.ProcessCompleteActions = DataActions.Rename
                     monitor.Start()
-                    Threading.Thread.Sleep(3000)
+                    Threading.Thread.Sleep(5000)
                     monitor.Stop()
 
                     Assert.AreEqual(1, processor.Count, "Has processed 1 file")
@@ -120,9 +110,9 @@ Imports ChrisLaco.Siphon
     Public Sub DirectoryMonitorProcessorCompleteMoveFile()
         CreateSuccessFile("SUCCESS")
 
-        Using schedule = New DailySchedule(DateTime.Now.AddSeconds(2).TimeOfDay)
+        Using schedule = New DailySchedule(DateTime.Now.AddSeconds(4).TimeOfDay)
             Using processor = New MockProcessor
-                Using monitor As FtpDirectoryMonitor = New FtpDirectoryMonitor("FtpMonitor", Path.Combine(Uri.AbsoluteUri, TestDirectory.Name), schedule, processor)
+                Using monitor As FtpDirectoryMonitor = New FtpDirectoryMonitor("FtpMonitor", Uri.AbsoluteUri, schedule, processor)
                     AddHandler monitor.ProcessComplete, AddressOf Monitor_ProcessComplete
                     AddHandler monitor.ProcessFailure, AddressOf Monitor_ProcessFailure
 
@@ -130,8 +120,9 @@ Imports ChrisLaco.Siphon
                     monitor.CompletePath = "Processed"
                     monitor.ProcessCompleteActions = DataActions.Move
                     monitor.CreateMissingFolders = True
+                    monitor.Credentials = Me.Credentials
                     monitor.Start()
-                    Threading.Thread.Sleep(3000)
+                    Threading.Thread.Sleep(7000)
                     monitor.Stop()
 
                     Assert.AreEqual(1, processor.Count, "Has processed 1 file")
@@ -150,9 +141,9 @@ Imports ChrisLaco.Siphon
     Public Sub DirectoryMonitorProcessorCompleteMoveRenameFile()
         CreateSuccessFile("SUCCESS")
 
-        Using schedule = New DailySchedule(DateTime.Now.AddSeconds(2).TimeOfDay)
+        Using schedule = New DailySchedule(DateTime.Now.AddSeconds(4).TimeOfDay)
             Using processor = New MockProcessor
-                Using monitor As FtpDirectoryMonitor = New FtpDirectoryMonitor("FtpMonitor", Path.Combine(Uri.AbsoluteUri, TestDirectory.Name), schedule, processor)
+                Using monitor As FtpDirectoryMonitor = New FtpDirectoryMonitor("FtpMonitor", Uri.AbsoluteUri, schedule, processor)
                     AddHandler monitor.ProcessComplete, AddressOf Monitor_ProcessComplete
                     AddHandler monitor.ProcessFailure, AddressOf Monitor_ProcessFailure
 
@@ -160,8 +151,9 @@ Imports ChrisLaco.Siphon
                     monitor.CompletePath = "Processed"
                     monitor.ProcessCompleteActions = DataActions.Move Or DataActions.Rename
                     monitor.CreateMissingFolders = True
+                    monitor.Credentials = Me.Credentials
                     monitor.Start()
-                    Threading.Thread.Sleep(3000)
+                    Threading.Thread.Sleep(7000)
                     monitor.Stop()
 
                     Assert.AreEqual(1, processor.Count, "Has processed 1 file")
@@ -185,13 +177,14 @@ Imports ChrisLaco.Siphon
 
         Using schedule = New DailySchedule(DateTime.Now.AddSeconds(2).TimeOfDay)
             Using processor = New MockProcessor
-                Using monitor As FtpDirectoryMonitor = New FtpDirectoryMonitor("FtpMonitor", Path.Combine(Uri.AbsoluteUri, TestDirectory.Name), schedule, processor)
+                Using monitor As FtpDirectoryMonitor = New FtpDirectoryMonitor("FtpMonitor", Uri.AbsoluteUri, schedule, processor)
                     AddHandler monitor.ProcessComplete, AddressOf Monitor_ProcessComplete
                     AddHandler monitor.ProcessFailure, AddressOf Monitor_ProcessFailure
 
                     Assert.IsTrue(File.Exists(Path.Combine(TestDirectory.FullName, "FAILURE")))
+                    monitor.Credentials = Me.Credentials
                     monitor.Start()
-                    Threading.Thread.Sleep(3000)
+                    Threading.Thread.Sleep(5000)
                     monitor.Stop()
 
                     Assert.AreEqual(1, processor.Count, "Has processed 1 file")
@@ -209,14 +202,15 @@ Imports ChrisLaco.Siphon
 
         Using schedule = New DailySchedule(DateTime.Now.AddSeconds(2).TimeOfDay)
             Using processor = New MockProcessor
-                Using monitor As IDirectoryMonitor = New FtpDirectoryMonitor("FtpMonitor", Path.Combine(Uri.AbsoluteUri, TestDirectory.Name), schedule, processor)
+                Using monitor As IDirectoryMonitor = New FtpDirectoryMonitor("FtpMonitor", Uri.AbsoluteUri, schedule, processor)
                     AddHandler monitor.ProcessComplete, AddressOf Monitor_ProcessComplete
                     AddHandler monitor.ProcessFailure, AddressOf Monitor_ProcessFailure
 
                     Assert.IsTrue(File.Exists(Path.Combine(TestDirectory.FullName, "FAILURE")))
                     monitor.ProcessFailureActions = DataActions.Delete
+                    monitor.Credentials = Me.Credentials
                     monitor.Start()
-                    Threading.Thread.Sleep(3000)
+                    Threading.Thread.Sleep(5000)
                     monitor.Stop()
 
                     Assert.AreEqual(1, processor.Count, "Has processed 1 file")
@@ -234,14 +228,15 @@ Imports ChrisLaco.Siphon
 
         Using schedule = New DailySchedule(DateTime.Now.AddSeconds(2).TimeOfDay)
             Using processor = New MockProcessor
-                Using monitor As IDirectoryMonitor = New FtpDirectoryMonitor("FtpMonitor", Path.Combine(Uri.AbsoluteUri, TestDirectory.Name), schedule, processor)
+                Using monitor As IDirectoryMonitor = New FtpDirectoryMonitor("FtpMonitor", Uri.AbsoluteUri, schedule, processor)
                     AddHandler monitor.ProcessComplete, AddressOf Monitor_ProcessComplete
                     AddHandler monitor.ProcessFailure, AddressOf Monitor_ProcessFailure
 
                     Assert.IsTrue(File.Exists(Path.Combine(TestDirectory.FullName, "FAILURE")))
                     monitor.ProcessFailureActions = DataActions.Rename
+                    monitor.Credentials = Me.Credentials
                     monitor.Start()
-                    Threading.Thread.Sleep(3000)
+                    Threading.Thread.Sleep(5000)
                     monitor.Stop()
 
                     Assert.AreEqual(1, processor.Count, "Has processed 1 file")
@@ -261,9 +256,9 @@ Imports ChrisLaco.Siphon
     Public Sub DirectoryMonitorProcessorFailureMoveFile()
         CreateFailureFile("FAILURE")
 
-        Using schedule = New DailySchedule(DateTime.Now.AddSeconds(2).TimeOfDay)
+        Using schedule = New DailySchedule(DateTime.Now.AddSeconds(4).TimeOfDay)
             Using processor = New MockProcessor
-                Using monitor As FtpDirectoryMonitor = New FtpDirectoryMonitor("FtpMonitor", Path.Combine(Uri.AbsoluteUri, TestDirectory.Name), schedule, processor)
+                Using monitor As FtpDirectoryMonitor = New FtpDirectoryMonitor("FtpMonitor", Uri.AbsoluteUri, schedule, processor)
                     AddHandler monitor.ProcessComplete, AddressOf Monitor_ProcessComplete
                     AddHandler monitor.ProcessFailure, AddressOf Monitor_ProcessFailure
 
@@ -271,8 +266,9 @@ Imports ChrisLaco.Siphon
                     monitor.FailurePath = "Failed"
                     monitor.ProcessFailureActions = DataActions.Move
                     monitor.CreateMissingFolders = True
+                    monitor.Credentials = Me.Credentials
                     monitor.Start()
-                    Threading.Thread.Sleep(3000)
+                    Threading.Thread.Sleep(7000)
                     monitor.Stop()
 
                     Assert.AreEqual(1, processor.Count, "Has processed 1 file")
@@ -291,9 +287,9 @@ Imports ChrisLaco.Siphon
     Public Sub DirectoryMonitorProcessorFailureMoveRenameFile()
         CreateFailureFile("FAILURE")
 
-        Using schedule = New DailySchedule(DateTime.Now.AddSeconds(2).TimeOfDay)
+        Using schedule = New DailySchedule(DateTime.Now.AddSeconds(4).TimeOfDay)
             Using processor = New MockProcessor
-                Using monitor As FtpDirectoryMonitor = New FtpDirectoryMonitor("FtpMonitor", Path.Combine(Uri.AbsoluteUri, TestDirectory.Name), schedule, processor)
+                Using monitor As FtpDirectoryMonitor = New FtpDirectoryMonitor("FtpMonitor", Uri.AbsoluteUri, schedule, processor)
                     AddHandler monitor.ProcessComplete, AddressOf Monitor_ProcessComplete
                     AddHandler monitor.ProcessFailure, AddressOf Monitor_ProcessFailure
 
@@ -301,8 +297,9 @@ Imports ChrisLaco.Siphon
                     monitor.FailurePath = "Failed"
                     monitor.ProcessFailureActions = DataActions.Move Or DataActions.Rename
                     monitor.CreateMissingFolders = True
+                    monitor.Credentials = Me.Credentials
                     monitor.Start()
-                    Threading.Thread.Sleep(3000)
+                    Threading.Thread.Sleep(7000)
                     monitor.Stop()
 
                     Assert.AreEqual(1, processor.Count, "Has processed 1 file")
@@ -326,11 +323,12 @@ Imports ChrisLaco.Siphon
 
         Using schedule = New DailySchedule(DateTime.Now.AddSeconds(2).TimeOfDay)
             Using processor = New MockProcessor
-                Using monitor As FtpDirectoryMonitor = New FtpDirectoryMonitor("FtpMonitor", Path.Combine(Uri.AbsoluteUri, TestDirectory.Name), schedule, processor)
+                Using monitor As FtpDirectoryMonitor = New FtpDirectoryMonitor("FtpMonitor", Uri.AbsoluteUri, schedule, processor)
                     AddHandler monitor.ProcessComplete, AddressOf Monitor_ProcessComplete
                     AddHandler monitor.ProcessFailure, AddressOf Monitor_ProcessFailure
+                    monitor.Credentials = Me.Credentials
                     monitor.Start()
-                    Threading.Thread.Sleep(3000)
+                    Threading.Thread.Sleep(5000)
                     monitor.Stop()
 
                     Assert.AreEqual(1, processor.Count, "Has processed 1 file")
@@ -346,25 +344,36 @@ Imports ChrisLaco.Siphon
         Dim newdir As String = Path.GetRandomFileName
         Dim tempdir As String = Path.Combine(TestDirectory.FullName, newdir)
 
-        Using schedule = New DailySchedule(DateTime.Now.AddSeconds(1).TimeOfDay)
+        Using schedule = New DailySchedule(DateTime.Now.AddSeconds(6).TimeOfDay)
             Using processor = New MockProcessor
-                Using monitor As FtpDirectoryMonitor = New FtpDirectoryMonitor("FtpMonitor", Path.Combine(Path.Combine(Uri.AbsoluteUri, TestDirectory.Name), newdir), schedule, processor)
+                Using monitor As FtpDirectoryMonitor = New FtpDirectoryMonitor("FtpMonitor", Path.Combine(Uri.AbsoluteUri, newdir), schedule, processor)
                     AddHandler monitor.ProcessComplete, AddressOf Monitor_ProcessComplete
                     AddHandler monitor.ProcessFailure, AddressOf Monitor_ProcessFailure
 
                     monitor.CreateMissingFolders = True
                     monitor.CompletePath = "Processed"
                     monitor.FailurePath = "Failed"
+                    monitor.ProcessFailureActions = DataActions.Move
+                    monitor.Credentials = Me.Credentials
 
                     monitor.Start()
+                    CreateFailureFile(tempdir & "\FAILURE")
+                    Threading.Thread.Sleep(10000)
                     monitor.Stop()
+
+                    Assert.AreEqual(1, processor.Count, "Has processed 1 file")
+                    Assert.IsFalse(Me.ProcessComplete)
+                    Assert.IsTrue(Me.ProcessFailure)
 
                     Assert.IsTrue(Directory.Exists(tempdir), "Monitor path exista")
                     Assert.IsTrue(Directory.Exists(Path.Combine(tempdir, "Processed")), "Processed child path exists")
                     Assert.IsTrue(Directory.Exists(Path.Combine(tempdir, "Failed")), "Failed child path exists")
                     Assert.IsTrue(Directory.Exists(tempdir), "Monitor path exista")
-                    Assert.IsFalse(Me.ProcessComplete)
-                    Assert.IsFalse(Me.ProcessFailure)
+
+                    Assert.IsFalse(File.Exists(Path.Combine(tempdir, "FAILURE")))
+                    Assert.IsTrue(File.Exists(Path.Combine(Path.Combine(tempdir, "Failed"), "FAILURE")))
+                    Assert.AreEqual(0, Directory.GetFiles(tempdir).Length)
+                    Assert.AreEqual(1, Directory.GetFiles(Path.Combine(tempdir, "Failed")).Length)
                 End Using
             End Using
         End Using

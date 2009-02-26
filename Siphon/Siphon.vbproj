@@ -43,10 +43,6 @@
       <HintPath>bin\log4net.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="LumiSoft.Net, Version=2.0.3202.18210, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>bin\LumiSoft.Net.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.configuration" />
     <Reference Include="System.Core">
@@ -138,6 +134,12 @@
       <CustomToolNamespace>My</CustomToolNamespace>
       <LastGenOutput>Settings.Designer.vb</LastGenOutput>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\LumiSoft.Net\Net\Net\Net.csproj">
+      <Project>{7AB36CCF-5FFD-4780-A54E-A102ECA028B5}</Project>
+      <Name>Net</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

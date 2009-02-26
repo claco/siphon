@@ -2,3 +2,4 @@
 - Rename Monitor.Processing to IsProcessing to match IsRunning?
 - FTP Move to different server should delete source, upload to remote
 - Add code to pull user/pass from uri into Credential
+- Add active/passive mode config for FTP Monitor

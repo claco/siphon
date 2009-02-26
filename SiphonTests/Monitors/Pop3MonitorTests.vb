@@ -60,12 +60,13 @@ Public Class Pop3MonitorTests
                     monitor.ProcessCompleteActions = DataActions.Delete
                     monitor.Credentials = Me.Credentials
                     monitor.Start()
-                    Threading.Thread.Sleep(3000)
+                    Threading.Thread.Sleep(5000)
                     monitor.Stop()
 
                     Assert.AreEqual(1, processor.Count, "Has processed 1 file")
                     Assert.IsTrue(Me.ProcessComplete)
                     Assert.IsFalse(Me.ProcessFailure)
+                    Threading.Thread.Sleep(2000)
                     Assert.IsFalse(File.Exists(Path.Combine(TestDirectory.FullName, "SUCCESS")))
                 End Using
             End Using
@@ -85,7 +86,7 @@ Public Class Pop3MonitorTests
                     Assert.IsTrue(File.Exists(Path.Combine(TestDirectory.FullName, "FAILURE")))
                     monitor.Credentials = Me.Credentials
                     monitor.Start()
-                    Threading.Thread.Sleep(3000)
+                    Threading.Thread.Sleep(5000)
                     monitor.Stop()
 
                     Assert.AreEqual(1, processor.Count, "Has processed 1 file")
@@ -111,12 +112,13 @@ Public Class Pop3MonitorTests
                     monitor.ProcessFailureActions = DataActions.Delete
                     monitor.Credentials = Me.Credentials
                     monitor.Start()
-                    Threading.Thread.Sleep(3000)
+                    Threading.Thread.Sleep(5000)
                     monitor.Stop()
 
                     Assert.AreEqual(1, processor.Count, "Has processed 1 file")
                     Assert.IsFalse(Me.ProcessComplete)
                     Assert.IsTrue(Me.ProcessFailure)
+                    Threading.Thread.Sleep(2000)
                     Assert.IsFalse(File.Exists(Path.Combine(TestDirectory.FullName, "FAILURE")))
                 End Using
             End Using
@@ -134,7 +136,7 @@ Public Class Pop3MonitorTests
                     AddHandler monitor.ProcessFailure, AddressOf Monitor_ProcessFailure
                     monitor.Credentials = Me.Credentials
                     monitor.Start()
-                    Threading.Thread.Sleep(3000)
+                    Threading.Thread.Sleep(5000)
                     monitor.Stop()
 
                     Assert.AreEqual(1, processor.Count, "Has processed 1 file")
@@ -160,7 +162,7 @@ Public Class Pop3MonitorTests
                     monitor.Credentials = Me.Credentials
 
                     monitor.Start()
-                    Threading.Thread.Sleep(3000)
+                    Threading.Thread.Sleep(5000)
                     monitor.Stop()
 
                     Assert.AreEqual(1, processor.Count, "Has processed 1 files")
@@ -175,7 +177,7 @@ Public Class Pop3MonitorTests
     Public Sub Pop3MonitorStillProcessing()
         CreateSuccessFile()
 
-        Using schedule = New IntervalSchedule(2)
+        Using schedule = New DailySchedule(DateTime.Now.AddSeconds(2).TimeOfDay)
             Using processor = New MockProcessor
                 Using monitor As Pop3Monitor = New Pop3Monitor("Pop3Monitor", Path.Combine(Uri.AbsoluteUri, TestDirectory.Name), schedule, processor)
                     AddHandler monitor.ProcessComplete, AddressOf Monitor_ProcessComplete
@@ -183,7 +185,7 @@ Public Class Pop3MonitorTests
                     monitor.Credentials = Me.Credentials
                     processor.Delay = 10
                     monitor.Start()
-                    Threading.Thread.Sleep(3000)
+                    Threading.Thread.Sleep(5000)
 
                     Assert.IsTrue(monitor.Processing, "Processing is true when a worker processor is still running")
                     Dim pre As DateTime = DateTime.Now
@@ -397,7 +399,7 @@ Public Class Pop3MonitorTests
                     monitor.Filter = String.Empty
                     monitor.Credentials = Me.Credentials
                     monitor.Start()
-                    Threading.Thread.Sleep(3000)
+                    Threading.Thread.Sleep(5000)
                     monitor.Stop()
 
                     Assert.AreEqual(1, processor.Count, "Has processed 1 file")
@@ -424,7 +426,7 @@ Public Class Pop3MonitorTests
                     monitor.Filter = String.Empty
                     monitor.Credentials = Me.Credentials
                     monitor.Start()
-                    Threading.Thread.Sleep(3000)
+                    Threading.Thread.Sleep(5000)
                     monitor.Stop()
 
                     Assert.AreEqual(1, processor.Count, "Has processed 1 file")

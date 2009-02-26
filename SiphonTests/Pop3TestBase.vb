@@ -22,9 +22,9 @@ Public Class Pop3TestBase
 
     <TearDown()> _
     Protected Overrides Sub TearDown()
-        MyBase.TearDown()
-
         Server.StopServer()
+
+        MyBase.TearDown()
     End Sub
 
     Protected Overridable Sub Authenticate(ByVal sender As Object, ByVal e As AuthUser_EventArgs)
@@ -33,6 +33,11 @@ Public Class Pop3TestBase
 
     Protected Overrides Sub CreateTestDirectory()
         TestDirectory = System.IO.Directory.CreateDirectory(Path.Combine(Path.Combine(Path.GetTempPath, Path.GetRandomFileName), "INBOX"))
+    End Sub
+
+    Protected Overrides Sub DeleteTestDirectory()
+        TestDirectory.Parent.Delete(True)
+        TestDirectory = Nothing
     End Sub
 
     Protected Overrides ReadOnly Property Credentials() As System.Net.NetworkCredential

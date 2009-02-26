@@ -1,12 +1,22 @@
 ﻿Imports System.Collections.ObjectModel
+Imports System.Configuration
 Imports System.IO
 Imports System.Net
+Imports LumiSoft.Net.FTP
+Imports LumiSoft.Net.FTP.Client
 Imports log4net
 
 Public Class FtpDirectoryMonitor
     Inherits RemoteDirectoryMonitor
 
     Private Shared ReadOnly Log As ILog = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod.DeclaringType)
+    Private Const SCHEME_FTP As String = "ftp"
+    Private Const SCHEME_FTPS As String = "ftps"
+    Private Const PORT_FTP As Integer = 21
+    Private Const PORT_FTPS As Integer = 990
+    Private Const SETTING_PASSIVE As String = "Passive"
+
+    Private _passive As Boolean = True
 
     ''' <summary>
     ''' Protected constructor for reflection.
@@ -29,6 +39,20 @@ Public Class FtpDirectoryMonitor
     End Sub
 
     ''' <summary>
+    ''' Initializes the monitor using the supplied monitor configuration settings.
+    ''' </summary>
+    ''' <param name="config">MonitorElement. The configuration for the current monitor.</param>
+    ''' <remarks></remarks>
+    Public Overrides Sub Initialize(ByVal config As MonitorElement)
+        MyBase.Initialize(config)
+
+        Dim settings As NameValueConfigurationCollection = config.Settings
+        If settings.AllKeys.Contains(SETTING_PASSIVE) Then
+            Me.Passive = settings(SETTING_PASSIVE).Value
+        End If
+    End Sub
+
+    ''' <summary>
     ''' Create any missing folders during start.
     ''' </summary>
     ''' <remarks></remarks>
@@ -38,33 +62,39 @@ Public Class FtpDirectoryMonitor
         If Me.CreateMissingFolders Then
             Log.DebugFormat("Creating directory {0}", Me.Uri)
 
-            Try
-                Dim request As FtpWebRequest = FtpWebRequest.Create(Me.Uri)
-                request.Method = WebRequestMethods.Ftp.MakeDirectory
-                request.UsePassive = True
-                request.KeepAlive = False
-                If Me.Credentials IsNot Nothing Then
-                    request.Credentials = Me.Credentials
-                End If
+            If Not String.IsNullOrEmpty(Me.Uri.AbsolutePath.TrimStart("/")) Then
+                Try
+                    Using client As New FTP_Client
+                        client.Connect(Me.Uri.Host, Me.Uri.Port, IIf(Me.Uri.Scheme = SCHEME_FTPS, True, False))
+                        If client.IsConnected Then
+                            client.Authenticate(Me.Credentials.UserName, Me.Credentials.Password)
 
-                Dim response As FtpWebResponse = request.GetResponse
-            Catch ex As Exception
-                Log.Error(String.Format("Error creating {0}", Me.Uri), ex)
-            End Try
+                            If client.IsAuthenticated Then
+                                client.TransferMode = IIf(Me.Passive, FTP_TransferMode.Passive, FTP_TransferMode.Active)
+                                client.CreateDirectory(Me.Uri.AbsolutePath)
+                            End If
+                        End If
+                    End Using
+                Catch ex As Exception
+                    Log.Error(String.Format("Error creating {0}", Me.Uri), ex)
+                End Try
+            End If
 
             If Me.CompleteUri IsNot Nothing Then
                 Log.DebugFormat("Creating directory {0}", Me.CompleteUri)
 
                 Try
-                    Dim request As FtpWebRequest = FtpWebRequest.Create(Me.CompleteUri)
-                    request.Method = WebRequestMethods.Ftp.MakeDirectory
-                    request.UsePassive = True
-                    request.KeepAlive = False
-                    If Me.Credentials IsNot Nothing Then
-                        request.Credentials = Me.Credentials
-                    End If
+                    Using client As New FTP_Client
+                        client.Connect(Me.Uri.Host, Me.Uri.Port, IIf(Me.Uri.Scheme = SCHEME_FTPS, True, False))
+                        If client.IsConnected Then
+                            client.Authenticate(Me.Credentials.UserName, Me.Credentials.Password)
 
-                    Dim response As FtpWebResponse = request.GetResponse
+                            If client.IsAuthenticated Then
+                                client.TransferMode = IIf(Me.Passive, FTP_TransferMode.Passive, FTP_TransferMode.Active)
+                                client.CreateDirectory(Me.CompleteUri.AbsolutePath)
+                            End If
+                        End If
+                    End Using
                 Catch ex As Exception
                     Log.Error(String.Format("Error creating {0}", Me.CompleteUri), ex)
                 End Try
@@ -74,15 +104,17 @@ Public Class FtpDirectoryMonitor
                 Log.DebugFormat("Creating directory {0}", Me.FailureUri)
 
                 Try
-                    Dim request As FtpWebRequest = FtpWebRequest.Create(Me.FailureUri)
-                    request.Method = WebRequestMethods.Ftp.MakeDirectory
-                    request.UsePassive = True
-                    request.KeepAlive = False
-                    If Me.Credentials IsNot Nothing Then
-                        request.Credentials = Me.Credentials
-                    End If
+                    Using client As New FTP_Client
+                        client.Connect(Me.Uri.Host, Me.Uri.Port, IIf(Me.Uri.Scheme = SCHEME_FTPS, True, False))
+                        If client.IsConnected Then
+                            client.Authenticate(Me.Credentials.UserName, Me.Credentials.Password)
 
-                    Dim response As FtpWebResponse = request.GetResponse
+                            If client.IsAuthenticated Then
+                                client.TransferMode = IIf(Me.Passive, FTP_TransferMode.Passive, FTP_TransferMode.Active)
+                                client.CreateDirectory(Me.FailureUri.AbsolutePath)
+                            End If
+                        End If
+                    End Using
                 Catch ex As Exception
                     Log.Error(String.Format("Error creating {0}", Me.FailureUri), ex)
                 End Try
@@ -100,25 +132,29 @@ Public Class FtpDirectoryMonitor
         Dim items As New System.Collections.ObjectModel.Collection(Of IDataItem)
 
         Try
-            Dim uri As New Uri(IO.Path.Combine(Me.Uri.AbsoluteUri, Me.Filter))
-            Dim request As FtpWebRequest = FtpWebRequest.Create(Uri)
-            request.Method = WebRequestMethods.Ftp.ListDirectory
-            request.UsePassive = True
-            request.KeepAlive = False
-            If Me.Credentials IsNot Nothing Then
-                request.Credentials = Me.Credentials
-            End If
+            Using client As New FTP_Client
+                client.Connect(Me.Uri.Host, Me.Uri.Port, IIf(Me.Uri.Scheme = SCHEME_FTPS, True, False))
+                If client.IsConnected Then
+                    client.Authenticate(Me.Credentials.UserName, Me.Credentials.Password)
 
-            Dim response As FtpWebResponse = request.GetResponse
-            Using reader As New StreamReader(response.GetResponseStream)
-                Dim fileName As String = reader.ReadLine.Trim
-                Dim fileUri As Uri = New Uri(IO.Path.Combine(Me.Uri.AbsoluteUri, fileName))
+                    If client.IsAuthenticated Then
+                        client.TransferMode = IIf(Me.Passive, FTP_TransferMode.Passive, FTP_TransferMode.Active)
 
-                Log.DebugFormat("Found remote file {0}", fileUri.AbsoluteUri)
+                        Dim uri As New Uri(IO.Path.Combine(Me.Uri.AbsoluteUri, Me.Filter))
+                        Dim list() As FTP_ListItem = client.GetList(uri.AbsolutePath)
 
-                items.Add(New UriDataItem(fileUri))
+                        For Each item As FTP_ListItem In list
+                            If item.IsFile Then
+                                Dim fileUri As Uri = New Uri(IO.Path.Combine(Me.Uri.AbsoluteUri, item.Name))
+
+                                Log.DebugFormat("Found remote file {0}", fileUri.AbsoluteUri)
+
+                                items.Add(New UriDataItem(fileUri))
+                            End If
+                        Next
+                    End If
+                End If
             End Using
-            response.Close()
         Catch ex As Exception
             Log.Error(String.Format("Error scanning {0}", Me.Uri), ex)
         End Try
@@ -139,35 +175,20 @@ Public Class FtpDirectoryMonitor
         Log.DebugFormat("Downloading {0} to {1}", item.Name, tempFile)
 
         Try
-            Dim request As FtpWebRequest = FtpWebRequest.Create(uriItem.Data)
-            request.Method = WebRequestMethods.Ftp.DownloadFile
-            request.UsePassive = True
-            request.KeepAlive = False
-            request.UseBinary = True
-            If Me.Credentials IsNot Nothing Then
-                request.Credentials = Me.Credentials
-            End If
+            Using client As New FTP_Client
+                client.Connect(Me.Uri.Host, Me.Uri.Port, IIf(Me.Uri.Scheme = SCHEME_FTPS, True, False))
+                If client.IsConnected Then
+                    client.Authenticate(Me.Credentials.UserName, Me.Credentials.Password)
 
-            Dim response As FtpWebResponse = request.GetResponse
-            Using stream As IO.Stream = response.GetResponseStream
-                Using fs As New IO.FileStream(tempFile, IO.FileMode.Create)
-                    Dim buffer(2047) As Byte
-                    Dim read As Integer = 0
-                    Do
-                        read = stream.Read(buffer, 0, buffer.Length)
-                        fs.Write(buffer, 0, read)
-                    Loop Until read = 0
+                    If client.IsAuthenticated Then
+                        client.TransferMode = IIf(Me.Passive, FTP_TransferMode.Passive, FTP_TransferMode.Active)
+                        client.GetFile(uriItem.Data.AbsolutePath, tempFile)
 
-                    stream.Close()
-                    fs.Flush()
-                    fs.Close()
-                End Using
-                stream.Close()
+                        uriItem.LocalFile = New FileInfo(tempFile)
+                        uriItem.Name += " (" & tempFile & ")"
+                    End If
+                End If
             End Using
-            response.Close()
-
-            uriItem.LocalFile = New FileInfo(tempFile)
-            uriItem.Name += " (" & tempFile & ")"
         Catch ex As Exception
             Log.Error(String.Format("Error downloading {0}", uriItem.Data), ex)
         End Try
@@ -184,15 +205,17 @@ Public Class FtpDirectoryMonitor
         Log.DebugFormat("Deleting {0}", uriItem.Data)
 
         Try
-            Dim request As FtpWebRequest = FtpWebRequest.Create(uriItem.Data)
-            request.Method = WebRequestMethods.Ftp.DeleteFile
-            request.UsePassive = True
-            request.KeepAlive = False
-            If Me.Credentials IsNot Nothing Then
-                request.Credentials = Me.Credentials
-            End If
+            Using client As New FTP_Client
+                client.Connect(Me.Uri.Host, Me.Uri.Port, IIf(Me.Uri.Scheme = SCHEME_FTPS, True, False))
+                If client.IsConnected Then
+                    client.Authenticate(Me.Credentials.UserName, Me.Credentials.Password)
 
-            Dim response As FtpWebResponse = request.GetResponse
+                    If client.IsAuthenticated Then
+                        client.TransferMode = IIf(Me.Passive, FTP_TransferMode.Passive, FTP_TransferMode.Active)
+                        client.DeleteFile(uriItem.Data.AbsolutePath)
+                    End If
+                End If
+            End Using
         Catch ex As Exception
             Log.Error(String.Format("Error deleting {0}", uriItem.Data), ex)
         End Try
@@ -219,16 +242,17 @@ Public Class FtpDirectoryMonitor
         Log.DebugFormat("Moving {0} to {1}", uriItem.Data, newFile)
 
         Try
-            Dim request As FtpWebRequest = FtpWebRequest.Create(uriItem.Data)
-            request.Method = WebRequestMethods.Ftp.Rename
-            request.UsePassive = True
-            request.KeepAlive = False
-            request.RenameTo = newFile.AbsolutePath
-            If Me.Credentials IsNot Nothing Then
-                request.Credentials = Me.Credentials
-            End If
+            Using client As New FTP_Client
+                client.Connect(Me.Uri.Host, Me.Uri.Port, IIf(Me.Uri.Scheme = SCHEME_FTPS, True, False))
+                If client.IsConnected Then
+                    client.Authenticate(Me.Credentials.UserName, Me.Credentials.Password)
 
-            Dim response As FtpWebResponse = request.GetResponse
+                    If client.IsAuthenticated Then
+                        client.TransferMode = IIf(Me.Passive, FTP_TransferMode.Passive, FTP_TransferMode.Active)
+                        client.Rename(uriItem.Data.AbsolutePath, newFile.AbsolutePath)
+                    End If
+                End If
+            End Using
         Catch ex As Exception
             Log.Error(String.Format("Error moving {0}", uriItem.Data), ex)
         End Try
@@ -249,18 +273,19 @@ Public Class FtpDirectoryMonitor
         Log.DebugFormat("Renaming {0} to {1}", uriItem.Data, newUri.Uri)
 
         Try
-            Dim request As FtpWebRequest = FtpWebRequest.Create(uriItem.Data)
-            request.Method = WebRequestMethods.Ftp.Rename
-            request.UsePassive = True
-            request.KeepAlive = False
-            request.RenameTo = newFile
-            If Me.Credentials IsNot Nothing Then
-                request.Credentials = Me.Credentials
-            End If
+            Using client As New FTP_Client
+                client.Connect(Me.Uri.Host, Me.Uri.Port, IIf(Me.Uri.Scheme = SCHEME_FTPS, True, False))
+                If client.IsConnected Then
+                    client.Authenticate(Me.Credentials.UserName, Me.Credentials.Password)
 
-            Dim response As FtpWebResponse = request.GetResponse
+                    If client.IsAuthenticated Then
+                        client.TransferMode = IIf(Me.Passive, FTP_TransferMode.Passive, FTP_TransferMode.Active)
+                        client.Rename(uriItem.Data.AbsolutePath, newUri.Uri.AbsolutePath)
 
-            uriItem.Data = newUri.Uri
+                        uriItem.Data = newUri.Uri
+                    End If
+                End If
+            End Using
         Catch ex As Exception
             Log.Error(String.Format("Error renaming {0}", uriItem.Data), ex)
         End Try
@@ -280,4 +305,19 @@ Public Class FtpDirectoryMonitor
                 Return False
         End Select
     End Function
+
+    ''' <summary>
+    ''' Gets/sets whether ftp should use passive or active mode.
+    ''' </summary>
+    ''' <value></value>
+    ''' <returns>Boolean. True to use Passive mode. False to use Active mode.</returns>
+    ''' <remarks></remarks>
+    Public Property Passive()
+        Get
+            Return _passive
+        End Get
+        Set(ByVal value)
+            _passive = value
+        End Set
+    End Property
 End Class

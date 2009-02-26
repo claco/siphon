@@ -43,6 +43,11 @@ Public Class ImapTestBase
         TestDirectory = System.IO.Directory.CreateDirectory(Path.Combine(Path.Combine(Path.GetTempPath, Path.GetRandomFileName), "INBOX"))
     End Sub
 
+    Protected Overrides Sub DeleteTestDirectory()
+        TestDirectory.Parent.Delete(True)
+        TestDirectory = Nothing
+    End Sub
+
     Protected Overridable Sub CreateFolder(ByVal sender As Object, ByVal e As Mailbox_EventArgs)
         TestDirectory.Parent.CreateSubdirectory(e.Folder)
     End Sub

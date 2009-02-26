@@ -23,7 +23,7 @@ Imports ChrisLaco.Siphon
                         AddHandler monitor.ProcessComplete, AddressOf Monitor_ProcessComplete
                         AddHandler monitor.ProcessFailure, AddressOf Monitor_ProcessFailure
                         monitor.Start()
-                        Threading.Thread.Sleep(3000)
+                        Threading.Thread.Sleep(5000)
                         monitor.Stop()
 
                         Assert.AreEqual(1, processor.Count, "Has processed 1 queue message")
@@ -69,7 +69,7 @@ Imports ChrisLaco.Siphon
 
                         monitor.Queue.Send("SUCCESS")
 
-                        Threading.Thread.Sleep(3000)
+                        Threading.Thread.Sleep(5000)
                         monitor.Stop()
 
                         Assert.AreEqual(1, processor.Count, "Has processed 1 queue message")
@@ -101,7 +101,7 @@ Imports ChrisLaco.Siphon
                         AddHandler monitor.ProcessComplete, AddressOf Monitor_ProcessComplete
                         AddHandler monitor.ProcessFailure, AddressOf Monitor_ProcessFailure
                         monitor.Start()
-                        Threading.Thread.Sleep(3000)
+                        Threading.Thread.Sleep(5000)
                         monitor.Stop()
 
                         Assert.AreEqual(1, processor.Count, "Has processed 1 queue message")
@@ -131,7 +131,7 @@ Imports ChrisLaco.Siphon
                         AddHandler monitor.ProcessComplete, AddressOf Monitor_ProcessComplete
                         AddHandler monitor.ProcessFailure, AddressOf Monitor_ProcessFailure
                         monitor.Start()
-                        Threading.Thread.Sleep(3000)
+                        Threading.Thread.Sleep(5000)
                         monitor.Stop()
 
                         Assert.AreEqual(1, processor.Count, "Has processed 1 queue message")
@@ -162,7 +162,7 @@ Imports ChrisLaco.Siphon
                         AddHandler monitor.ProcessFailure, AddressOf Monitor_ProcessFailure
                         monitor.ProcessCompleteActions = DataActions.Delete
                         monitor.Start()
-                        Threading.Thread.Sleep(3000)
+                        Threading.Thread.Sleep(5000)
                         monitor.Stop()
 
                         Assert.AreEqual(1, processor.Count, "Has processed 1 queue message")
@@ -196,7 +196,7 @@ Imports ChrisLaco.Siphon
                         monitor.CompleteQueue = completeQueue
 
                         monitor.Start()
-                        Threading.Thread.Sleep(3000)
+                        Threading.Thread.Sleep(5000)
                         monitor.Stop()
 
                         Assert.AreEqual(1, processor.Count, "Has processed 1 queue message")
@@ -229,7 +229,7 @@ Imports ChrisLaco.Siphon
                         AddHandler monitor.ProcessFailure, AddressOf Monitor_ProcessFailure
                         monitor.ProcessFailureActions = DataActions.Delete
                         monitor.Start()
-                        Threading.Thread.Sleep(3000)
+                        Threading.Thread.Sleep(5000)
                         monitor.Stop()
 
                         Assert.AreEqual(1, processor.Count, "Has processed 1 queue message")
@@ -263,7 +263,7 @@ Imports ChrisLaco.Siphon
                         monitor.FailureQueue = failureQueue
 
                         monitor.Start()
-                        Threading.Thread.Sleep(3000)
+                        Threading.Thread.Sleep(5000)
                         monitor.Stop()
 
                         Assert.AreEqual(1, processor.Count, "Has processed 1 queue message")
