@@ -53,6 +53,25 @@ Public Class FtpDirectoryMonitor
     End Sub
 
     ''' <summary>
+    ''' Gets/sets the credentials to use to connect to the ftp server.
+    ''' </summary>
+    ''' <value></value>
+    ''' <returns>NetworkCredential</returns>
+    ''' <remarks>If no credentials are set in code or in config, the user "anonymous" will be sent.</remarks>
+    Public Overrides Property Credentials() As System.Net.NetworkCredential
+        Get
+            If MyBase.Credentials Is Nothing Then
+                Me.Credentials = New NetworkCredential("anonymous", "anonymous")
+            End If
+
+            Return MyBase.Credentials
+        End Get
+        Set(ByVal value As System.Net.NetworkCredential)
+            MyBase.Credentials = value
+        End Set
+    End Property
+
+    ''' <summary>
     ''' Create any missing folders during start.
     ''' </summary>
     ''' <remarks></remarks>
