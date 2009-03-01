@@ -32,6 +32,30 @@ Public Class DatabaseTestBase
         End Using
     End Sub
 
+    Protected Overridable Function GetRecords() As DataTable
+        Dim connectionString As ConnectionStringSettings = ConfigurationManager.ConnectionStrings("SiphonTests")
+        Dim factory As DbProviderFactory = DbProviderFactories.GetFactory(connectionString.ProviderName)
+        Dim adapter As DbDataAdapter = factory.CreateDataAdapter
+        Dim table As New DataTable
+
+        Using connection As IDbConnection = factory.CreateConnection
+            connection.ConnectionString = connectionString.ConnectionString
+
+            Using command As IDbCommand = factory.CreateCommand
+                command.CommandText = "Select * From DatabaseMonitor"
+                command.CommandType = CommandType.Text
+                command.Connection = connection
+                adapter.SelectCommand = command
+                adapter.MissingSchemaAction = MissingSchemaAction.AddWithKey
+                connection.Open()
+                adapter.Fill(table)
+                connection.Close()
+            End Using
+        End Using
+
+        Return table
+    End Function
+
     Protected Overridable Sub CreateRecord(ByVal record As Dictionary(Of String, Object))
         Dim connectionString As ConnectionStringSettings = ConfigurationManager.ConnectionStrings("SiphonTests")
         Dim factory As DbProviderFactory = DbProviderFactories.GetFactory(connectionString.ProviderName)

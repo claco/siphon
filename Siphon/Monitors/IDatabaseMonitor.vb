@@ -23,4 +23,20 @@ Public Interface IDatabaseMonitor
     ''' <returns>IDbCommand</returns>
     ''' <remarks></remarks>
     Property SelectCommand() As IDbCommand
+
+    ''' <summary>
+    ''' Gets/sets the format string used to create a friendly name representation of a record.
+    ''' </summary>
+    ''' <value></value>
+    ''' <returns>String</returns>
+    ''' <remarks></remarks>
+    Property NameFormat() As String
+
+    ''' <summary>
+    ''' Gets/sets the format string used to create a string representation of a record.
+    ''' </summary>
+    ''' <value></value>
+    ''' <returns>String</returns>
+    ''' <remarks></remarks>
+    Property RecordFormat() As String
 End Interface

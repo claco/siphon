@@ -15,10 +15,14 @@ Public Class DatabaseMonitor
     Private Shared ReadOnly Log As ILog = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod.DeclaringType)
     Private _connection As IDbConnection = Nothing
     Private _connectionStringName As String = String.Empty
+    Private _recordFormat As String = String.Empty
+    Private _nameFormat As String = String.Empty
     Private _providerFactory As DbProviderFactory = Nothing
     Private _selectCommand As IDbCommand = Nothing
     Private Const SETTING_CONNECTION_STRING_NAME As String = "ConnectionStringName"
     Private Const SETTING_FILTER As String = "Filter"
+    Private Const SETTING_NAME_FORMAT As String = "NameFormat"
+    Private Const SETTING_RECORD_FORMAT As String = "RecordFormat"
     Private Const SETTING_SELECT_COMMAND As String = "SelectCommand"
 
     ''' <summary>
@@ -129,6 +133,12 @@ Public Class DatabaseMonitor
         If settings.AllKeys.Contains(SETTING_SELECT_COMMAND) Then
             Me.SelectCommand = Me.GetCommand(settings(SETTING_SELECT_COMMAND).Value)
         End If
+        If settings.AllKeys.Contains(SETTING_NAME_FORMAT) Then
+            Me.SelectCommand = Me.GetCommand(settings(SETTING_NAME_FORMAT).Value)
+        End If
+        If settings.AllKeys.Contains(SETTING_RECORD_FORMAT) Then
+            Me.SelectCommand = Me.GetCommand(settings(SETTING_RECORD_FORMAT).Value)
+        End If
     End Sub
 
     ''' <summary>
@@ -137,6 +147,26 @@ Public Class DatabaseMonitor
     ''' <param name="item">IDataItem. The item to delete.</param>
     ''' <remarks></remarks>
     Public Overrides Sub Delete(ByVal item As IDataItem)
+        Dim recordItem As RecordDataItem = item
+
+        Log.DebugFormat("Deleting {0}", recordItem.Name)
+
+        Try
+            Using builder As DbCommandBuilder = ProviderFactory.CreateCommandBuilder
+                builder.DataAdapter = Me.ProviderFactory.CreateDataAdapter
+                builder.DataAdapter.SelectCommand = Me.SelectCommand
+                builder.DataAdapter.SelectCommand.Connection = Me.Connection
+
+                recordItem.Data.Delete()
+                Dim rows() As DataRow = {recordItem.Data}
+                builder.DataAdapter.Update(rows)
+            End Using
+        Catch ex As Exception
+            Log.Error(ex)
+        Finally
+            Me.Connection.Close()
+            Me.SelectCommand.Connection = Nothing
+        End Try
 
     End Sub
 
@@ -148,6 +178,36 @@ Public Class DatabaseMonitor
     Public Overrides Sub Move(ByVal item As IDataItem)
 
     End Sub
+
+    ''' <summary>
+    ''' Gets/sets the format string to use when creating a name representation of a record.
+    ''' </summary>
+    ''' <value></value>
+    ''' <returns>String</returns>
+    ''' <remarks></remarks>
+    Public Overridable Property NameFormat() As String Implements IDatabaseMonitor.NameFormat
+        Get
+            Return _nameFormat
+        End Get
+        Set(ByVal value As String)
+            _nameFormat = value.Trim
+        End Set
+    End Property
+
+    ''' <summary>
+    ''' Gets/sets the format string to use when creating a string representation of a record.
+    ''' </summary>
+    ''' <value></value>
+    ''' <returns>String</returns>
+    ''' <remarks></remarks>
+    Public Overridable Property RecordFormat() As String Implements IDatabaseMonitor.RecordFormat
+        Get
+            Return _recordFormat
+        End Get
+        Set(ByVal value As String)
+            _recordFormat = value.Trim
+        End Set
+    End Property
 
     ''' <summary>
     ''' Renames the data item after processing.
@@ -164,40 +224,27 @@ Public Class DatabaseMonitor
     ''' <remarks></remarks>
     Public Overrides Function Scan() As Collection(Of IDataItem)
         Dim items As New Collection(Of IDataItem)
-        Log.Debug("Scanning")
+
         Try
-            Using connection As IDbConnection = Me.Connection
-                Log.Debug("Connection")
-                connection.Open()
-                Log.Debug("Open")
-                Using command As IDbCommand = Me.SelectCommand
-                    Log.Debug("Command")
-                    command.Connection = connection
+            Using dataSet As New DataSet
+                Using adapter As DbDataAdapter = Me.ProviderFactory.CreateDataAdapter
+                    Me.SelectCommand.Connection = Me.Connection
 
-                    Dim reader As IDataReader = command.ExecuteReader REM (CommandBehavior.KeyInfo)
-
-                    Log.Debug(reader.FieldCount)
-                    Dim t As DataTable = reader.GetSchemaTable
-                    For Each r As DataRow In t.Rows
-                        For Each c As DataColumn In t.Columns
-                            Log.DebugFormat("{0}={1}", c.ColumnName, r.Item(c.Ordinal))
-                        Next
-                        Log.Debug("-----------------------")
-                    Next
-
-
-                    While reader.Read
-                        Log.Debug("*********Result Row")
-                        Log.Debug(reader.GetString(reader.GetOrdinal("Name")))
-                    End While
-
-                    command.Connection = Nothing
+                    adapter.SelectCommand = Me.SelectCommand
+                    adapter.MissingSchemaAction = MissingSchemaAction.AddWithKey
+                    adapter.Fill(dataSet)
                 End Using
 
-                connection.Close()
+                Log.DebugFormat("Found {0} records", dataSet.Tables(0).Rows.Count)
+                For Each row As DataRow In dataSet.Tables(0).Rows
+                    items.Add(New RecordDataItem(row, Me.NameFormat, Me.RecordFormat))
+                Next
             End Using
         Catch ex As Exception
-            Log.Debug(ex)
+            Log.Error(ex)
+        Finally
+            Me.Connection.Close()
+            Me.SelectCommand.Connection = Nothing
         End Try
 
         Return items
@@ -209,7 +256,7 @@ Public Class DatabaseMonitor
     ''' <value></value>
     ''' <returns>IDbCommand</returns>
     ''' <remarks></remarks>
-    Public Property SelectCommand() As IDbCommand Implements IDatabaseMonitor.SelectCommand
+    Public Overridable Property SelectCommand() As IDbCommand Implements IDatabaseMonitor.SelectCommand
         Get
             Return _selectCommand
         End Get
@@ -227,8 +274,22 @@ Public Class DatabaseMonitor
     Protected Overridable Function GetCommand(ByVal commandText As String) As IDbCommand
         Dim command As IDbCommand = Me.ProviderFactory.CreateCommand
         command.CommandText = commandText
+        command.CommandType = CommandType.Text
 
         Return command
     End Function
 
+    ''' <summary>
+    ''' Validates the current monitors configuration for errors before processing/starting.
+    ''' </summary>
+    ''' <remarks></remarks>
+    Protected Overrides Sub Validate()
+        Log.Debug("Validating monitor configuration")
+
+        MyBase.Validate()
+
+        If String.IsNullOrEmpty(Me.RecordFormat) Then
+            Throw New ApplicationException("No record format is defined")
+        End If
+    End Sub
 End Class

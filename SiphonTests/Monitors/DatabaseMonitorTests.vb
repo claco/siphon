@@ -29,13 +29,89 @@ Imports ChrisLaco.Siphon
                 Using monitor As IDatabaseMonitor = New DatabaseMonitor("DatabaseMonitor", "SiphonTests", "Select * From DatabaseMonitor", schedule, processor)
                     AddHandler monitor.ProcessComplete, AddressOf Monitor_ProcessComplete
                     AddHandler monitor.ProcessFailure, AddressOf Monitor_ProcessFailure
+
+                    monitor.RecordFormat = "%Name%"
                     monitor.Start()
                     Threading.Thread.Sleep(5000)
                     monitor.Stop()
 
-                    Assert.AreEqual(1, processor.Count, "Has processed 1 file")
+                    Assert.AreEqual(1, processor.Count, "Has processed 1 record")
                     Assert.IsTrue(Me.ProcessComplete)
                     Assert.IsFalse(Me.ProcessFailure)
+                End Using
+            End Using
+        End Using
+    End Sub
+
+    <Test(Description:="Test successful database monitor process complete deletes record")> _
+    Public Sub DatabaseMonitorProcessorCompleteDeleteRecord()
+        CreateSuccessRecord()
+
+        Using schedule = New DailySchedule(DateTime.Now.AddSeconds(2).TimeOfDay)
+            Using processor = New MockProcessor
+                Using monitor As IDatabaseMonitor = New DatabaseMonitor("DatabaseMonitor", "SiphonTests", "Select * From DatabaseMonitor", schedule, processor)
+                    AddHandler monitor.ProcessComplete, AddressOf Monitor_ProcessComplete
+                    AddHandler monitor.ProcessFailure, AddressOf Monitor_ProcessFailure
+
+                    monitor.RecordFormat = "%Name%"
+                    monitor.ProcessCompleteActions = DataActions.Delete
+                    monitor.Start()
+                    Threading.Thread.Sleep(5000)
+                    monitor.Stop()
+
+                    Assert.AreEqual(1, processor.Count, "Has processed 1 record")
+                    Assert.IsTrue(Me.ProcessComplete)
+                    Assert.IsFalse(Me.ProcessFailure)
+                    Assert.AreEqual(0, Me.GetRecords.Rows.Count)
+                End Using
+            End Using
+        End Using
+    End Sub
+
+    <Test(Description:="Test directory monitor with processor failure")> _
+    Public Sub DatabaseMonitorProcessorFailure()
+        CreateFailureRecord()
+
+        Using schedule = New DailySchedule(DateTime.Now.AddSeconds(2).TimeOfDay)
+            Using processor = New MockProcessor
+                Using monitor As IDatabaseMonitor = New DatabaseMonitor("DatabaseMonitor", "SiphonTests", "Select * From DatabaseMonitor", schedule, processor)
+                    AddHandler monitor.ProcessComplete, AddressOf Monitor_ProcessComplete
+                    AddHandler monitor.ProcessFailure, AddressOf Monitor_ProcessFailure
+
+                    monitor.RecordFormat = "%Name%"
+                    monitor.Start()
+                    Threading.Thread.Sleep(5000)
+                    monitor.Stop()
+
+                    Assert.AreEqual(1, processor.Count, "Has processed 1 record")
+                    Assert.IsFalse(Me.ProcessComplete)
+                    Assert.IsTrue(Me.ProcessFailure)
+                End Using
+            End Using
+        End Using
+    End Sub
+
+    <Test(Description:="Test directory monitor with processor failure deletes record")> _
+    Public Sub DatabaseMonitorProcessorFailureDeleteRecord()
+        CreateFailureRecord()
+
+        Using schedule = New DailySchedule(DateTime.Now.AddSeconds(2).TimeOfDay)
+            Using processor = New MockProcessor
+                Using monitor As IDatabaseMonitor = New DatabaseMonitor("DatabaseMonitor", "SiphonTests", "Select * From DatabaseMonitor", schedule, processor)
+                    AddHandler monitor.ProcessComplete, AddressOf Monitor_ProcessComplete
+                    AddHandler monitor.ProcessFailure, AddressOf Monitor_ProcessFailure
+
+                    monitor.RecordFormat = "%Name%"
+                    monitor.ProcessFailureActions = DataActions.Delete
+                    monitor.Start()
+                    Threading.Thread.Sleep(5000)
+                    monitor.Stop()
+
+                    Assert.AreEqual(1, processor.Count, "Has processed 1 record")
+                    Assert.IsFalse(Me.ProcessComplete)
+                    Assert.IsTrue(Me.ProcessFailure)
+                    Threading.Thread.Sleep(2000)
+                    Assert.AreEqual(0, Me.GetRecords.Rows.Count)
                 End Using
             End Using
         End Using
