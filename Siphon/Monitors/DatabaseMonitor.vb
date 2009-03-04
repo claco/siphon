@@ -91,7 +91,12 @@ Public Class DatabaseMonitor
         Get
             If _providerFactory Is Nothing Then
                 Dim connectionString As ConnectionStringSettings = ConfigurationManager.ConnectionStrings.Item(Me.ConnectionStringName)
-                _providerFactory = DbProviderFactories.GetFactory(connectionString.ProviderName)
+
+                If connectionString Is Nothing Then
+                    Throw New ArgumentException(String.Format("The connection string {0} could not be found", Me.ConnectionStringName))
+                Else
+                    _providerFactory = DbProviderFactories.GetFactory(connectionString.ProviderName)
+                End If
             End If
 
             Return _providerFactory
@@ -109,11 +114,22 @@ Public Class DatabaseMonitor
             Return _connectionStringName
         End Get
         Set(ByVal value As String)
-            _connectionStringName = value.Trim
+            If String.IsNullOrEmpty(value) Then
+                Throw New ArgumentException("ConnectionStringName can not be null or empty")
+            Else
+                _connectionStringName = value.Trim
 
-            If _connection IsNot Nothing Then
-                _connection.Dispose()
-                _connection = Nothing
+                If _connection IsNot Nothing Then
+                    _connection.Dispose()
+                    _connection = Nothing
+                End If
+                _providerFactory = Nothing
+                If _selectCommand IsNot Nothing Then
+                    Dim commandText As String = _selectCommand.CommandText
+                    _selectCommand.Dispose()
+                    _selectCommand = Nothing
+                    Me.SelectCommand = GetCommand(commandText)
+                End If
             End If
         End Set
     End Property
@@ -134,10 +150,10 @@ Public Class DatabaseMonitor
             Me.SelectCommand = Me.GetCommand(settings(SETTING_SELECT_COMMAND).Value)
         End If
         If settings.AllKeys.Contains(SETTING_NAME_FORMAT) Then
-            Me.SelectCommand = Me.GetCommand(settings(SETTING_NAME_FORMAT).Value)
+            Me.NameFormat = settings(SETTING_NAME_FORMAT).Value
         End If
         If settings.AllKeys.Contains(SETTING_RECORD_FORMAT) Then
-            Me.SelectCommand = Me.GetCommand(settings(SETTING_RECORD_FORMAT).Value)
+            Me.RecordFormat = settings(SETTING_RECORD_FORMAT).Value
         End If
     End Sub
 
@@ -205,7 +221,12 @@ Public Class DatabaseMonitor
             Return _recordFormat
         End Get
         Set(ByVal value As String)
-            _recordFormat = value.Trim
+            If String.IsNullOrEmpty(value) Then
+                Throw New ArgumentException("RecordFormat can not be null or empty")
+            Else
+                _recordFormat = value.Trim
+            End If
+
         End Set
     End Property
 
@@ -223,6 +244,8 @@ Public Class DatabaseMonitor
     ''' </summary>
     ''' <remarks></remarks>
     Public Overrides Function Scan() As Collection(Of IDataItem)
+        Log.DebugFormat("Scanning {0} for {1}", Me.ConnectionStringName, Me.SelectCommand.CommandText)
+
         Dim items As New Collection(Of IDataItem)
 
         Try
@@ -261,7 +284,11 @@ Public Class DatabaseMonitor
             Return _selectCommand
         End Get
         Set(ByVal value As System.Data.IDbCommand)
-            _selectCommand = value
+            If value Is Nothing Then
+                Throw New ArgumentException("The select command can not be null or empty")
+            Else
+                _selectCommand = value
+            End If
         End Set
     End Property
 
@@ -272,11 +299,15 @@ Public Class DatabaseMonitor
     ''' <returns>IDbCommand</returns>
     ''' <remarks></remarks>
     Protected Overridable Function GetCommand(ByVal commandText As String) As IDbCommand
-        Dim command As IDbCommand = Me.ProviderFactory.CreateCommand
-        command.CommandText = commandText
-        command.CommandType = CommandType.Text
+        If String.IsNullOrEmpty(commandText) Then
+            Throw New ArgumentException("The select command can not be null or empty")
+        Else
+            Dim command As IDbCommand = Me.ProviderFactory.CreateCommand
+            command.CommandText = commandText
+            command.CommandType = CommandType.Text
 
-        Return command
+            Return command
+        End If
     End Function
 
     ''' <summary>
