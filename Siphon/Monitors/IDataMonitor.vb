@@ -121,6 +121,13 @@ Public Interface IDataMonitor
     Sub Rename(ByVal item As IDataItem)
 
     ''' <summary>
+    ''' Updates the data item after processing.
+    ''' </summary>
+    ''' <param name="item">IDataItem. The item to be updated.</param>
+    ''' <remarks></remarks>
+    Sub Update(ByVal item As IDataItem)
+
+    ''' <summary>
     ''' Prepares the data before if it processed.
     ''' </summary>
     ''' <param name="item">IDataItem. The item to prepare.</param>

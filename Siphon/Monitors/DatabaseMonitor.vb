@@ -19,11 +19,13 @@ Public Class DatabaseMonitor
     Private _nameFormat As String = String.Empty
     Private _providerFactory As DbProviderFactory = Nothing
     Private _selectCommand As IDbCommand = Nothing
+    Private _updateCommand As IDbCommand = Nothing
     Private Const SETTING_CONNECTION_STRING_NAME As String = "ConnectionStringName"
     Private Const SETTING_FILTER As String = "Filter"
     Private Const SETTING_NAME_FORMAT As String = "NameFormat"
     Private Const SETTING_RECORD_FORMAT As String = "RecordFormat"
     Private Const SETTING_SELECT_COMMAND As String = "SelectCommand"
+    Private Const SETTING_UPDATE_COMMAND As String = "UpdateCommand"
 
     ''' <summary>
     ''' Protected constructor for reflection.
@@ -149,6 +151,9 @@ Public Class DatabaseMonitor
         If settings.AllKeys.Contains(SETTING_SELECT_COMMAND) Then
             Me.SelectCommand = Me.GetCommand(settings(SETTING_SELECT_COMMAND).Value)
         End If
+        If settings.AllKeys.Contains(SETTING_UPDATE_COMMAND) Then
+            Me.UpdateCommand = Me.GetCommand(settings(SETTING_UPDATE_COMMAND).Value)
+        End If
         If settings.AllKeys.Contains(SETTING_NAME_FORMAT) Then
             Me.NameFormat = settings(SETTING_NAME_FORMAT).Value
         End If
@@ -183,7 +188,6 @@ Public Class DatabaseMonitor
             Me.Connection.Close()
             Me.SelectCommand.Connection = Nothing
         End Try
-
     End Sub
 
     ''' <summary>
@@ -192,7 +196,7 @@ Public Class DatabaseMonitor
     ''' <param name="item">IDataItem. The item to move.</param>
     ''' <remarks></remarks>
     Public Overrides Sub Move(ByVal item As IDataItem)
-
+        Throw New NotImplementedException
     End Sub
 
     ''' <summary>
@@ -236,7 +240,32 @@ Public Class DatabaseMonitor
     ''' <param name="item">IDataItem. The item to renamed.</param>
     ''' <remarks></remarks>
     Public Overrides Sub Rename(ByVal item As IDataItem)
+        Throw New NotImplementedException
+    End Sub
 
+    ''' <summary>
+    ''' Update the data item after processing.
+    ''' </summary>
+    ''' <param name="item">IDataItem. The item to update.</param>
+    ''' <remarks></remarks>
+    Public Overrides Sub Update(ByVal item As IDataItem)
+        If Me.UpdateCommand IsNot Nothing Then
+            Dim recordItem As RecordDataItem = item
+
+            Log.DebugFormat("Updating {0}", recordItem.Name)
+
+            Try
+                Me.UpdateCommand.Connection = Me.Connection
+                Me.Connection.Open()
+                Me.UpdateCommand.ExecuteNonQuery()
+                Me.Connection.Close()
+            Catch ex As Exception
+                Log.Error(ex)
+            Finally
+                Me.Connection.Close()
+                Me.UpdateCommand.Connection = Nothing
+            End Try
+        End If
     End Sub
 
     ''' <summary>
@@ -293,6 +322,21 @@ Public Class DatabaseMonitor
     End Property
 
     ''' <summary>
+    ''' Gets/sets the command to run to update processed data records.
+    ''' </summary>
+    ''' <value></value>
+    ''' <returns>IDbCommand</returns>
+    ''' <remarks></remarks>
+    Public Overridable Property UpdateCommand() As IDbCommand Implements IDatabaseMonitor.UpdatedCommand
+        Get
+            Return _updateCommand
+        End Get
+        Set(ByVal value As System.Data.IDbCommand)
+            _updateCommand = value
+        End Set
+    End Property
+
+    ''' <summary>
     ''' Converts the SelectCommand configuration parameter into the appropriate select command.
     ''' </summary>
     ''' <param name="commandText">String. The select command string from app.config</param>
@@ -321,6 +365,10 @@ Public Class DatabaseMonitor
 
         If String.IsNullOrEmpty(Me.RecordFormat) Then
             Throw New ApplicationException("No record format is defined")
+        ElseIf Me.UpdateCommand Is Nothing And (Me.ProcessCompleteActions And DataActions.Update) <> DataActions.None Then
+            Throw New ApplicationException("UpdateCommand must be defined to use the Update action on process completion")
+        ElseIf Me.UpdateCommand Is Nothing And (Me.ProcessFailureActions And DataActions.Update) <> DataActions.None Then
+            Throw New ApplicationException("UpdateCommand must be defined to use the Update action on process failure")
         End If
     End Sub
 End Class

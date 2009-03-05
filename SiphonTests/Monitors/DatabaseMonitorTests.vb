@@ -98,6 +98,38 @@ Imports ChrisLaco.Siphon
         End Using
     End Sub
 
+    <Test(Description:="Test successful database monitor process complete updates record")> _
+    Public Sub DatabaseMonitorProcessorCompleteUpdateRecord()
+        CreateSuccessRecord()
+
+        Dim connectionString As ConnectionStringSettings = ConfigurationManager.ConnectionStrings("SiphonTests")
+        Dim factory As DbProviderFactory = DbProviderFactories.GetFactory(connectionString.ProviderName)
+        Dim command As DbCommand = factory.CreateCommand
+        command.CommandText = "Update DatabaseMonitor Set Status=1"
+
+        Using schedule = New DailySchedule(DateTime.Now.AddSeconds(2).TimeOfDay)
+            Using processor = New MockProcessor
+                Using monitor As IDatabaseMonitor = New DatabaseMonitor("DatabaseMonitor", "SiphonTests", "Select * From DatabaseMonitor", schedule, processor)
+                    AddHandler monitor.ProcessComplete, AddressOf Monitor_ProcessComplete
+                    AddHandler monitor.ProcessFailure, AddressOf Monitor_ProcessFailure
+
+                    monitor.RecordFormat = "%Name%"
+                    monitor.ProcessCompleteActions = DataActions.Update
+                    monitor.UpdatedCommand = command
+                    monitor.Start()
+                    Threading.Thread.Sleep(5000)
+                    monitor.Stop()
+
+                    Assert.AreEqual(1, processor.Count, "Has processed 1 record")
+                    Assert.IsTrue(Me.ProcessComplete)
+                    Assert.IsFalse(Me.ProcessFailure)
+                    Assert.AreEqual(1, Me.GetRecords.Rows.Count)
+                    Assert.AreEqual(1, Me.GetRecords.Rows(0).Item("Status"))
+                End Using
+            End Using
+        End Using
+    End Sub
+
     <Test(Description:="Test database monitor with processor failure")> _
     Public Sub DatabaseMonitorProcessorFailure()
         CreateFailureRecord()
@@ -116,6 +148,38 @@ Imports ChrisLaco.Siphon
                     Assert.AreEqual(1, processor.Count, "Has processed 1 record")
                     Assert.IsFalse(Me.ProcessComplete)
                     Assert.IsTrue(Me.ProcessFailure)
+                End Using
+            End Using
+        End Using
+    End Sub
+
+    <Test(Description:="Test successful database monitor process failure updates record")> _
+    Public Sub DatabaseMonitorProcessorFailureUpdateRecord()
+        CreateFailureRecord()
+
+        Dim connectionString As ConnectionStringSettings = ConfigurationManager.ConnectionStrings("SiphonTests")
+        Dim factory As DbProviderFactory = DbProviderFactories.GetFactory(connectionString.ProviderName)
+        Dim command As DbCommand = factory.CreateCommand
+        command.CommandText = "Update DatabaseMonitor Set Status=1"
+
+        Using schedule = New DailySchedule(DateTime.Now.AddSeconds(2).TimeOfDay)
+            Using processor = New MockProcessor
+                Using monitor As IDatabaseMonitor = New DatabaseMonitor("DatabaseMonitor", "SiphonTests", "Select * From DatabaseMonitor", schedule, processor)
+                    AddHandler monitor.ProcessComplete, AddressOf Monitor_ProcessComplete
+                    AddHandler monitor.ProcessFailure, AddressOf Monitor_ProcessFailure
+
+                    monitor.RecordFormat = "%Name%"
+                    monitor.ProcessFailureActions = DataActions.Update
+                    monitor.UpdatedCommand = command
+                    monitor.Start()
+                    Threading.Thread.Sleep(5000)
+                    monitor.Stop()
+
+                    Assert.AreEqual(1, processor.Count, "Has processed 1 record")
+                    Assert.IsFalse(Me.ProcessComplete)
+                    Assert.IsTrue(Me.ProcessFailure)
+                    Assert.AreEqual(1, Me.GetRecords.Rows.Count)
+                    Assert.AreEqual(1, Me.GetRecords.Rows(0).Item("Status"))
                 End Using
             End Using
         End Using
@@ -288,6 +352,34 @@ Imports ChrisLaco.Siphon
         End Using
     End Sub
 
+    <Test(Description:="Start throws exception for update action without command")> _
+    <ExpectedException(GetType(ApplicationException))> _
+    Public Sub StartFailureUpdateCompleteActionException()
+        Using monitor As New DatabaseMonitor("DatabaseMonitor", "SiphonTests", "Select * From DatabaseMonitor", New IntervalSchedule, New MockProcessor)
+            Dim newMonitor As DatabaseMonitor = monitor.GetType.Assembly.CreateInstance("ChrisLaco.Siphon.DatabaseMonitor", True, BindingFlags.CreateInstance Or BindingFlags.Static Or BindingFlags.Public Or BindingFlags.NonPublic, Nothing, Nothing, Nothing, Nothing)
+            newMonitor.ConnectionStringName = monitor.ConnectionStringName
+            newMonitor.RecordFormat = "%Name%"
+            newMonitor.SelectCommand = monitor.SelectCommand
+            newMonitor.Name = "DatabaseMonitor"
+            newMonitor.ProcessCompleteActions = DataActions.Update
+            newMonitor.Start()
+        End Using
+    End Sub
+
+    <Test(Description:="Start throws exception for update action without command")> _
+    <ExpectedException(GetType(ApplicationException))> _
+    Public Sub StartFailureUpdateFailureActionException()
+        Using monitor As New DatabaseMonitor("DatabaseMonitor", "SiphonTests", "Select * From DatabaseMonitor", New IntervalSchedule, New MockProcessor)
+            Dim newMonitor As DatabaseMonitor = monitor.GetType.Assembly.CreateInstance("ChrisLaco.Siphon.DatabaseMonitor", True, BindingFlags.CreateInstance Or BindingFlags.Static Or BindingFlags.Public Or BindingFlags.NonPublic, Nothing, Nothing, Nothing, Nothing)
+            newMonitor.ConnectionStringName = monitor.ConnectionStringName
+            newMonitor.RecordFormat = "%Name%"
+            newMonitor.SelectCommand = monitor.SelectCommand
+            newMonitor.Name = "DatabaseMonitor"
+            newMonitor.ProcessFailureActions = DataActions.Update
+            newMonitor.Start()
+        End Using
+    End Sub
+
     <Test(Description:="Create monitor from configuration")> _
     Public Sub CreateFromConfiguration()
         Dim monitorElement As New MonitorElement("TestDatabaseMonitor", "ChrisLaco.Siphon.DatabaseMonitor, Siphon")
@@ -298,6 +390,7 @@ Imports ChrisLaco.Siphon
         monitorElement.Processor = processorElement
         monitorElement.Settings.Add(New NameValueConfigurationElement("ConnectionStringName", "SiphonTests"))
         monitorElement.Settings.Add(New NameValueConfigurationElement("SelectCommand", "Select * From DatabaseMonitor"))
+        monitorElement.Settings.Add(New NameValueConfigurationElement("UpdateCommand", "Update DatabaseMonitor Set Status=1"))
         monitorElement.Settings.Add(New NameValueConfigurationElement("NameFormat", "Record Id %Id%"))
         monitorElement.Settings.Add(New NameValueConfigurationElement("RecordFormat", "<Name>%Name%</Name>"))
 
@@ -305,6 +398,7 @@ Imports ChrisLaco.Siphon
             Assert.IsInstanceOfType(GetType(DatabaseMonitor), monitor)
             Assert.AreEqual("SiphonTests", monitor.ConnectionStringName)
             Assert.AreEqual("Select * From DatabaseMonitor", monitor.SelectCommand.CommandText)
+            Assert.AreEqual("Update DatabaseMonitor Set Status=1", monitor.UpdateCommand.CommandText)
             Assert.AreEqual("Record Id %Id%", monitor.NameFormat)
             Assert.AreEqual("<Name>%Name%</Name>", monitor.RecordFormat)
         End Using
@@ -329,6 +423,78 @@ Imports ChrisLaco.Siphon
                     Assert.AreEqual(1, processor.Count, "Has processed 1 record")
                     Assert.IsTrue(Me.ProcessComplete)
                     Assert.IsFalse(Me.ProcessFailure)
+                End Using
+            End Using
+        End Using
+    End Sub
+
+    <Test(Description:="Test successful database monitor")> _
+    Public Sub DatabaseMonitorMoveExceptionComplete()
+        CreateSuccessRecord()
+
+        Using schedule = New DailySchedule(DateTime.Now.AddSeconds(3).TimeOfDay)
+            Using processor = New MockProcessor
+                Using monitor As IDatabaseMonitor = New DatabaseMonitor("DatabaseMonitor", "SiphonTests", "Select * From DatabaseMonitor", schedule, processor)
+                    AddHandler monitor.ProcessComplete, AddressOf Monitor_ProcessComplete
+                    AddHandler monitor.ProcessFailure, AddressOf Monitor_ProcessFailure
+
+                    monitor.ProcessCompleteActions = DataActions.Move
+                    monitor.RecordFormat = "%Name%"
+                    monitor.Start()
+                    Threading.Thread.Sleep(5000)
+                    monitor.Stop()
+
+                    Assert.AreEqual(1, processor.Count, "Has processed 1 record")
+                    Assert.IsTrue(Me.ProcessComplete)
+                    Assert.IsFalse(Me.ProcessFailure)
+                End Using
+            End Using
+        End Using
+    End Sub
+
+    <Test(Description:="Test successful database monitor")> _
+    Public Sub DatabaseMonitorMoveExceptionFailure()
+        CreateFailureRecord()
+
+        Using schedule = New DailySchedule(DateTime.Now.AddSeconds(3).TimeOfDay)
+            Using processor = New MockProcessor
+                Using monitor As IDatabaseMonitor = New DatabaseMonitor("DatabaseMonitor", "SiphonTests", "Select * From DatabaseMonitor", schedule, processor)
+                    AddHandler monitor.ProcessComplete, AddressOf Monitor_ProcessComplete
+                    AddHandler monitor.ProcessFailure, AddressOf Monitor_ProcessFailure
+
+                    monitor.ProcessFailureActions = DataActions.Move
+                    monitor.RecordFormat = "%Name%"
+                    monitor.Start()
+                    Threading.Thread.Sleep(5000)
+                    monitor.Stop()
+
+                    Assert.AreEqual(1, processor.Count, "Has processed 1 record")
+                    Assert.IsFalse(Me.ProcessComplete)
+                    Assert.IsTrue(Me.ProcessFailure)
+                End Using
+            End Using
+        End Using
+    End Sub
+
+    <Test(Description:="Test successful database monitor")> _
+    Public Sub DatabaseMonitorRenameExceptionFailure()
+        CreateFailureRecord()
+
+        Using schedule = New DailySchedule(DateTime.Now.AddSeconds(3).TimeOfDay)
+            Using processor = New MockProcessor
+                Using monitor As IDatabaseMonitor = New DatabaseMonitor("DatabaseMonitor", "SiphonTests", "Select * From DatabaseMonitor", schedule, processor)
+                    AddHandler monitor.ProcessComplete, AddressOf Monitor_ProcessComplete
+                    AddHandler monitor.ProcessFailure, AddressOf Monitor_ProcessFailure
+
+                    monitor.ProcessFailureActions = DataActions.Rename
+                    monitor.RecordFormat = "%Name%"
+                    monitor.Start()
+                    Threading.Thread.Sleep(5000)
+                    monitor.Stop()
+
+                    Assert.AreEqual(1, processor.Count, "Has processed 1 record")
+                    Assert.IsFalse(Me.ProcessComplete)
+                    Assert.IsTrue(Me.ProcessFailure)
                 End Using
             End Using
         End Using

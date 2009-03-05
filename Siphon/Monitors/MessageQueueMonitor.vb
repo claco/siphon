@@ -246,6 +246,15 @@ Public Class MessageQueueMonitor
     End Sub
 
     ''' <summary>
+    ''' Updates the data item after processing.
+    ''' </summary>
+    ''' <param name="item">IDataItem. The item to update.</param>
+    ''' <remarks>Always throws a NotImplementedException</remarks>
+    Public Overrides Sub Update(ByVal item As IDataItem)
+        Throw New NotImplementedException
+    End Sub
+
+    ''' <summary>
     ''' Validates the current monitors configuration for errors before processing/starting.
     ''' </summary>
     ''' <remarks></remarks>

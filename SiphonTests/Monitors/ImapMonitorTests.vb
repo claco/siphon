@@ -46,6 +46,56 @@ Public Class ImapMonitorTests
         End Using
     End Sub
 
+    <Test(Description:="Test successful directory monitor with update exception")> _
+    Public Sub ImapMonitorUpdateException()
+        CreateSuccessFile()
+
+        Using schedule = New DailySchedule(DateTime.Now.AddSeconds(2).TimeOfDay)
+            Using processor = New MockProcessor
+                Using monitor As ImapMonitor = New ImapMonitor("ImapMonitor", Uri.AbsoluteUri, schedule, processor)
+                    AddHandler monitor.ProcessComplete, AddressOf Monitor_ProcessComplete
+                    AddHandler monitor.ProcessFailure, AddressOf Monitor_ProcessFailure
+
+                    monitor.Credentials = Me.Credentials
+                    monitor.ProcessCompleteActions = DataActions.Update
+                    monitor.Filter = String.Empty
+                    monitor.Start()
+                    Threading.Thread.Sleep(5000)
+                    monitor.Stop()
+
+                    Assert.AreEqual(1, processor.Count, "Has processed 1 file")
+                    Assert.IsTrue(Me.ProcessComplete)
+                    Assert.IsFalse(Me.ProcessFailure)
+                End Using
+            End Using
+        End Using
+    End Sub
+
+    <Test(Description:="Test successful directory monitor with rename exception")> _
+    Public Sub ImapMonitorRenameException()
+        CreateSuccessFile()
+
+        Using schedule = New DailySchedule(DateTime.Now.AddSeconds(2).TimeOfDay)
+            Using processor = New MockProcessor
+                Using monitor As ImapMonitor = New ImapMonitor("ImapMonitor", Uri.AbsoluteUri, schedule, processor)
+                    AddHandler monitor.ProcessComplete, AddressOf Monitor_ProcessComplete
+                    AddHandler monitor.ProcessFailure, AddressOf Monitor_ProcessFailure
+
+                    monitor.Credentials = Me.Credentials
+                    monitor.ProcessCompleteActions = DataActions.Rename
+                    monitor.Filter = String.Empty
+                    monitor.Start()
+                    Threading.Thread.Sleep(5000)
+                    monitor.Stop()
+
+                    Assert.AreEqual(1, processor.Count, "Has processed 1 file")
+                    Assert.IsTrue(Me.ProcessComplete)
+                    Assert.IsFalse(Me.ProcessFailure)
+                End Using
+            End Using
+        End Using
+    End Sub
+
     <Test(Description:="Test successful directory monitor process complete deletes message")> _
     Public Sub ImapMonitorProcessorCompleteDeleteMessage()
         CreateSuccessFile("SUCCESS")

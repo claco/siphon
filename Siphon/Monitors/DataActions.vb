@@ -23,8 +23,14 @@ Public Enum DataActions
     Move = 2
 
     ''' <summary>
-    ''' The data should be renamed
+    ''' The data should be renamed.
     ''' </summary>
     ''' <remarks></remarks>
     Rename = 4
+
+    ''' <summary>
+    ''' The data should be updated.
+    ''' </summary>
+    ''' <remarks></remarks>
+    Update = 8
 End Enum

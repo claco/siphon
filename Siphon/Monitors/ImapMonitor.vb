@@ -155,11 +155,20 @@ Public Class ImapMonitor
     End Sub
 
     ''' <summary>
-    ''' Deletes the data item after processing.
+    ''' Renames the data item after processing.
     ''' </summary>
-    ''' <param name="item">MailDataItem. The mail message to delete.</param>
+    ''' <param name="item">MailDataItem. The mail message to rename.</param>
     ''' <remarks>This method always returns NotSupportedException</remarks>
     Public Overrides Sub Rename(ByVal item As IDataItem)
+        Throw New NotSupportedException
+    End Sub
+
+    ''' <summary>
+    ''' Updates the data item after processing.
+    ''' </summary>
+    ''' <param name="item">MailDataItem. The mail message to update.</param>
+    ''' <remarks>This method always returns NotSupportedException</remarks>
+    Public Overrides Sub Update(ByVal item As IDataItem)
         Throw New NotSupportedException
     End Sub
 
@@ -305,8 +314,6 @@ Public Class ImapMonitor
 
         If Me.Credentials Is Nothing Then
             Throw New ApplicationException("Credentials required for this monitor")
-        ElseIf (Me.ProcessCompleteActions And DataActions.Rename) <> DataActions.None Or (Me.ProcessFailureActions And DataActions.Rename) <> DataActions.None Then
-            Throw New NotImplementedException("Rename is not supported for this monitor.")
         End If
     End Sub
 End Class

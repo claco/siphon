@@ -409,6 +409,13 @@ Public MustInherit Class DataMonitor
     Public MustOverride Sub Rename(ByVal item As IDataItem) Implements IDataMonitor.Rename
 
     ''' <summary>
+    ''' Updates the data item after processing.
+    ''' </summary>
+    ''' <param name="item">IDataItem. The item to updated.</param>
+    ''' <remarks></remarks>
+    Public MustOverride Sub Update(ByVal item As IDataItem) Implements IDataMonitor.Update
+
+    ''' <summary>
     ''' Prepares the data before if it processed.
     ''' </summary>
     ''' <param name="item">IDataItem. The item to prepare.</param>
@@ -441,17 +448,38 @@ Public MustInherit Class DataMonitor
         If (Me.ProcessFailureActions And DataActions.Delete) <> DataActions.None Then
             Log.InfoFormat("Deleting {0}", e.Item.Name)
 
-            Me.Delete(e.Item)
+            Try
+                Me.Delete(e.Item)
+            Catch ex As Exception
+                Log.Error(ex)
+            End Try
         Else
+            If (Me.ProcessFailureActions And DataActions.Update) <> DataActions.None Then
+                Log.InfoFormat("Updating {0}", e.Item.Name)
+
+                Try
+                    Me.Update(e.Item)
+                Catch ex As Exception
+                    Log.Error(ex)
+                End Try
+            End If
             If (Me.ProcessFailureActions And DataActions.Rename) <> DataActions.None Then
                 Log.InfoFormat("Renaming {0}", e.Item.Name)
 
-                Me.Rename(e.Item)
+                Try
+                    Me.Rename(e.Item)
+                Catch ex As Exception
+                    Log.Error(ex)
+                End Try
             End If
             If (Me.ProcessFailureActions And DataActions.Move) <> DataActions.None Then
                 Log.InfoFormat("Moving {0}", e.Item.Name)
 
-                Me.Move(e.Item)
+                Try
+                    Me.Move(e.Item)
+                Catch ex As Exception
+                    Log.Error(ex)
+                End Try
             End If
         End If
 
@@ -468,17 +496,38 @@ Public MustInherit Class DataMonitor
         If (Me.ProcessCompleteActions And DataActions.Delete) <> DataActions.None Then
             Log.InfoFormat("Deleting {0}", e.Item.Name)
 
-            Me.Delete(e.Item)
+            Try
+                Me.Delete(e.Item)
+            Catch ex As Exception
+                Log.Error(ex)
+            End Try
         Else
+            If (Me.ProcessCompleteActions And DataActions.Update) <> DataActions.None Then
+                Log.InfoFormat("Updating {0}", e.Item.Name)
+
+                Try
+                    Me.Update(e.Item)
+                Catch ex As Exception
+                    Log.Error(ex)
+                End Try
+            End If
             If (Me.ProcessCompleteActions And DataActions.Rename) <> DataActions.None Then
                 Log.InfoFormat("Renaming {0}", e.Item.Name)
 
-                Me.Rename(e.Item)
+                Try
+                    Me.Rename(e.Item)
+                Catch ex As Exception
+                    Log.Error(ex)
+                End Try
             End If
             If (Me.ProcessCompleteActions And DataActions.Move) <> DataActions.None Then
                 Log.InfoFormat("Moving {0}", e.Item.Name)
 
-                Me.Move(e.Item)
+                Try
+                    Me.Move(e.Item)
+                Catch ex As Exception
+                    Log.Error(ex)
+                End Try
             End If
         End If
 

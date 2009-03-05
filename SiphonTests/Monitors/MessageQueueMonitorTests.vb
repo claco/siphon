@@ -40,6 +40,38 @@ Imports ChrisLaco.Siphon
         End Try
     End Sub
 
+    <Test(Description:="Test successful message queue monitor update exception")> _
+    Public Sub MessageQueueMonitorUpdateException()
+        Dim queue As MessageQueue = MessageQueue.Create(".\Private$\SiphonTestQueue")
+
+        Try
+            queue.Send("SUCCESS")
+
+            Using schedule = New DailySchedule(DateTime.Now.AddSeconds(2).TimeOfDay)
+                Using processor = New MockProcessor
+                    Using monitor As MessageQueueMonitor = New MessageQueueMonitor("LocalMonitor", queue, schedule, processor)
+                        AddHandler monitor.ProcessComplete, AddressOf Monitor_ProcessComplete
+                        AddHandler monitor.ProcessFailure, AddressOf Monitor_ProcessFailure
+                        monitor.ProcessCompleteActions = DataActions.Update
+                        monitor.Start()
+                        Threading.Thread.Sleep(5000)
+                        monitor.Stop()
+
+                        Assert.AreEqual(1, processor.Count, "Has processed 1 queue message")
+                        Assert.IsTrue(Me.ProcessComplete)
+                        Assert.IsFalse(Me.ProcessFailure)
+                        Assert.AreEqual(1, monitor.Queue.GetAllMessages.Count)
+                    End Using
+                End Using
+            End Using
+        Catch ex As Exception
+            Throw
+        Finally
+            MessageQueue.Delete(queue.Path)
+        End Try
+    End Sub
+
+
     <Test(Description:="Test message queue monitor create missing queues")> _
     Public Sub MessageQueueMonitorCreateQueues()
         Dim queue As String = ".\Private$\SiphonTestQueue"

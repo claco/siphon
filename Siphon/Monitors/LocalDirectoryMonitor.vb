@@ -136,6 +136,15 @@ Public Class LocalDirectoryMonitor
     End Sub
 
     ''' <summary>
+    ''' Updates the data item after processing.
+    ''' </summary>
+    ''' <param name="item">IDataItem. The item to updated.</param>
+    ''' <remarks>This method always returns NotSupportedException</remarks>
+    Public Overrides Sub Update(ByVal item As IDataItem)
+        Throw New NotSupportedException
+    End Sub
+
+    ''' <summary>
     ''' Returns value indicating if the given uri scheme is supported or not.
     ''' </summary>
     ''' <param name="uri">Uri. The uri to validate.</param>

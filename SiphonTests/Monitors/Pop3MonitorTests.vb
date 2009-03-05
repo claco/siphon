@@ -46,6 +46,83 @@ Public Class Pop3MonitorTests
         End Using
     End Sub
 
+    <Test(Description:="Test successful mailbox monitor update exception")> _
+    Public Sub Pop3MonitorUpdateException()
+        CreateSuccessFile()
+
+        Using schedule = New DailySchedule(DateTime.Now.AddSeconds(2).TimeOfDay)
+            Using processor = New MockProcessor
+                Using monitor As Pop3Monitor = New Pop3Monitor("Pop3Monitor", Uri.AbsoluteUri, schedule, processor)
+                    AddHandler monitor.ProcessComplete, AddressOf Monitor_ProcessComplete
+                    AddHandler monitor.ProcessFailure, AddressOf Monitor_ProcessFailure
+
+                    monitor.ProcessCompleteActions = DataActions.Update
+                    monitor.Credentials = Me.Credentials
+                    monitor.Filter = String.Empty
+                    monitor.Start()
+                    Threading.Thread.Sleep(5000)
+                    monitor.Stop()
+
+                    Assert.AreEqual(1, processor.Count, "Has processed 1 file")
+                    Assert.IsTrue(Me.ProcessComplete)
+                    Assert.IsFalse(Me.ProcessFailure)
+                End Using
+            End Using
+        End Using
+    End Sub
+
+    <Test(Description:="Test successful mailbox monitor rename exception")> _
+    Public Sub Pop3MonitorRenameException()
+        CreateSuccessFile()
+
+        Using schedule = New DailySchedule(DateTime.Now.AddSeconds(2).TimeOfDay)
+            Using processor = New MockProcessor
+                Using monitor As Pop3Monitor = New Pop3Monitor("Pop3Monitor", Uri.AbsoluteUri, schedule, processor)
+                    AddHandler monitor.ProcessComplete, AddressOf Monitor_ProcessComplete
+                    AddHandler monitor.ProcessFailure, AddressOf Monitor_ProcessFailure
+
+                    monitor.ProcessCompleteActions = DataActions.Rename
+                    monitor.Credentials = Me.Credentials
+                    monitor.Filter = String.Empty
+                    monitor.Start()
+                    Threading.Thread.Sleep(5000)
+                    monitor.Stop()
+
+                    Assert.AreEqual(1, processor.Count, "Has processed 1 file")
+                    Assert.IsTrue(Me.ProcessComplete)
+                    Assert.IsFalse(Me.ProcessFailure)
+                End Using
+            End Using
+        End Using
+    End Sub
+
+    <Test(Description:="Test successful mailbox monitor move exception")> _
+    Public Sub Pop3MonitorMoveException()
+        CreateSuccessFile()
+
+        Using schedule = New DailySchedule(DateTime.Now.AddSeconds(2).TimeOfDay)
+            Using processor = New MockProcessor
+                Using monitor As Pop3Monitor = New Pop3Monitor("Pop3Monitor", Uri.AbsoluteUri, schedule, processor)
+                    AddHandler monitor.ProcessComplete, AddressOf Monitor_ProcessComplete
+                    AddHandler monitor.ProcessFailure, AddressOf Monitor_ProcessFailure
+
+                    monitor.CompletePath = "Foo"
+                    monitor.ProcessCompleteActions = DataActions.Move
+                    monitor.Credentials = Me.Credentials
+                    monitor.Filter = String.Empty
+                    monitor.Start()
+                    Threading.Thread.Sleep(5000)
+                    monitor.Stop()
+
+                    Assert.AreEqual(1, processor.Count, "Has processed 1 file")
+                    Assert.IsTrue(Me.ProcessComplete)
+                    Assert.IsFalse(Me.ProcessFailure)
+                End Using
+            End Using
+        End Using
+    End Sub
+
+
     <Test(Description:="Test successful directory monitor process complete deletes message")> _
     Public Sub Pop3MonitorProcessorCompleteDeleteMessage()
         CreateSuccessFile("SUCCESS")

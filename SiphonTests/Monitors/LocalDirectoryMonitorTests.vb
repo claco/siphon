@@ -44,6 +44,29 @@ Imports ChrisLaco.Siphon
         End Using
     End Sub
 
+    <Test(Description:="Test successful directory monitor update exception")> _
+    Public Sub DirectoryMonitorUpdateException()
+        CreateSuccessFile()
+
+        Using schedule = New DailySchedule(DateTime.Now.AddSeconds(2).TimeOfDay)
+            Using processor = New MockProcessor
+                Using monitor As LocalDirectoryMonitor = New LocalDirectoryMonitor("LocalMonitor", TestDirectory.FullName, schedule, processor)
+                    AddHandler monitor.ProcessComplete, AddressOf Monitor_ProcessComplete
+                    AddHandler monitor.ProcessFailure, AddressOf Monitor_ProcessFailure
+                    monitor.Filter = String.Empty
+                    monitor.ProcessCompleteActions = DataActions.Update
+                    monitor.Start()
+                    Threading.Thread.Sleep(5000)
+                    monitor.Stop()
+
+                    Assert.AreEqual(1, processor.Count, "Has processed 1 file")
+                    Assert.IsTrue(Me.ProcessComplete)
+                    Assert.IsFalse(Me.ProcessFailure)
+                End Using
+            End Using
+        End Using
+    End Sub
+
     <Test(Description:="Test successful directory monitor process complete deletes file")> _
     Public Sub DirectoryMonitorProcessorCompleteDeleteFile()
         CreateSuccessFile("SUCCESS")

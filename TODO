@@ -2,4 +2,3 @@
 - Rename Monitor.Processing to IsProcessing to match IsRunning?
 - FTP Move to different server should delete source, upload to remote
 - Refactor remote monitors to use less connections per scan/download/process/move/delete
-- Added Update as a complete/failure action, mostly for database monitors

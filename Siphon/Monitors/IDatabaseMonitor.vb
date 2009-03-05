@@ -25,6 +25,14 @@ Public Interface IDatabaseMonitor
     Property SelectCommand() As IDbCommand
 
     ''' <summary>
+    ''' Gets/sets the command to run to update processed data records.
+    ''' </summary>
+    ''' <value></value>
+    ''' <returns>IDbCommand</returns>
+    ''' <remarks></remarks>
+    Property UpdatedCommand() As IDbCommand
+
+    ''' <summary>
     ''' Gets/sets the format string used to create a friendly name representation of a record.
     ''' </summary>
     ''' <value></value>

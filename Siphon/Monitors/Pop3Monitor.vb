@@ -74,6 +74,15 @@ Public Class Pop3Monitor
     End Sub
 
     ''' <summary>
+    ''' Updates the data item after processing.
+    ''' </summary>
+    ''' <param name="item">MailDataItem. The mail message to update.</param>
+    ''' <remarks>This method always returns NotSupportedException</remarks>
+    Public Overrides Sub Update(ByVal item As IDataItem)
+        Throw New NotSupportedException
+    End Sub
+
+    ''' <summary>
     ''' Scans the specified Pop3 mailbox for new email messages to process.
     ''' </summary>
     ''' <returns>Collection(Of MailDataItem)</returns>
@@ -181,10 +190,6 @@ Public Class Pop3Monitor
 
         If Me.Credentials Is Nothing Then
             Throw New ApplicationException("Credentials required for this monitor")
-        ElseIf (Me.ProcessCompleteActions And DataActions.Rename) <> DataActions.None Or (Me.ProcessFailureActions And DataActions.Rename) <> DataActions.None Then
-            Throw New NotImplementedException("Rename is not supported for this monitor.")
-        ElseIf (Me.ProcessCompleteActions And DataActions.Move) <> DataActions.None Or (Me.ProcessFailureActions And DataActions.Move) <> DataActions.None Then
-            Throw New NotImplementedException("Move is not supported for this monitor.")
         End If
     End Sub
 End Class
