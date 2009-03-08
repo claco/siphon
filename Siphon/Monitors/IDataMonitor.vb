@@ -145,4 +145,26 @@ Public Interface IDataMonitor
     ''' </summary>
     ''' <remarks></remarks>
     Event ProcessComplete(ByVal sender As Object, ByVal e As ProcessEventArgs)
+
+    ''' <summary>
+    ''' Connects to the data source being monitored.
+    ''' </summary>
+    ''' <returns>Boolean</returns>
+    ''' <remarks>Returns True if the connection was established. Returns False is the connection failed.</remarks>
+    Function Connect() As Boolean
+
+    ''' <summary>
+    ''' Gets value indicating if the monitor is connected to the data source being monitored.
+    ''' </summary>
+    ''' <value></value>
+    ''' <returns>Boolean</returns>
+    ''' <remarks>True if connected. False otherwise</remarks>
+    Property IsConnected() As Boolean
+
+    ''' <summary>
+    ''' Disconnects from the data source being monitored.
+    ''' </summary>
+    ''' <remarks></remarks>
+    Sub Disconnect()
+
 End Interface

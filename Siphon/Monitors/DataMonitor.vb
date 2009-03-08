@@ -19,6 +19,7 @@ Public MustInherit Class DataMonitor
     Private Const SETTING_DOMAIN As String = "Domain"
 
     Private _credentials As NetworkCredential = Nothing
+    Private _isConnected As Boolean = False
     Private _disposed As Boolean
     Private _name As String = String.Empty
     Private _processing As Boolean
@@ -48,6 +49,37 @@ Public MustInherit Class DataMonitor
         Me.Name = name.Trim
         Me.Schedule = schedule
         Me.Processor = processor
+    End Sub
+
+    ''' <summary>
+    ''' Connects to the data source being monitored.
+    ''' </summary>
+    ''' <returns>Boolean</returns>
+    ''' <remarks>Returns True is the connection was established. Returns False is the connection failed.</remarks>
+    Public Overridable Function Connect() As Boolean Implements IDataMonitor.Connect
+        Return True
+    End Function
+
+    ''' <summary>
+    ''' Gets/sets value indicating if the monitor is connected to the data source being monitored.
+    ''' </summary>
+    ''' <value></value>
+    ''' <returns>Boolean</returns>
+    ''' <remarks>True if connected. False otherwise</remarks>
+    Public Overridable Property IsConnected() As Boolean Implements IDataMonitor.IsConnected
+        Get
+            Return _isConnected
+        End Get
+        Protected Set(ByVal value As Boolean)
+            _isConnected = value
+        End Set
+    End Property
+
+    ''' <summary>
+    ''' Disconnects from the data source being monitored.
+    ''' </summary>
+    Public Overridable Sub Disconnect() Implements IDataMonitor.Disconnect
+
     End Sub
 
     ''' <summary>
@@ -291,52 +323,69 @@ Public MustInherit Class DataMonitor
         Try
             Me.Validate()
 
-            Dim items As Collection(Of IDataItem) = Me.Scan
-            Log.DebugFormat("Scan returned {0} items", items.Count)
+            If Not Me.IsConnected Then
+                Log.Debug("Connecting to data source")
+                Me.IsConnected = Me.Connect
+            Else
+                Log.Debug("Already connected to data source")
+            End If
 
-            If items.Count > 0 Then
-                Log.DebugFormat("Pre Process Processing {0}", _processing)
+            If Me.IsConnected Then
+                Dim items As Collection(Of IDataItem) = Me.Scan
+                Log.DebugFormat("Scan returned {0} items", items.Count)
 
-                _processing = True
+                If items.Count > 0 Then
+                    Log.DebugFormat("Pre Process Processing {0}", _processing)
 
-                For Each item As IDataItem In items
-                    Dim prepared As Boolean = False
-                    Dim processed As Boolean = False
+                    _processing = True
 
-                    Try
-                        Me.Prepare(item)
-                        prepared = True
-                    Catch ex As Exception
-                        Log.Error(String.Format("Error preparing {0}", item.Name), ex)
-                    End Try
+                    For Each item As IDataItem In items
+                        Dim prepared As Boolean = False
+                        Dim processed As Boolean = False
 
-                    If Not prepared Then
-                        Log.DebugFormat("Skipping {0}", item.Name)
-                    Else
                         Try
-                            processed = Me.Processor.Process(item)
+                            Me.Prepare(item)
+                            prepared = True
                         Catch ex As Exception
-                            Log.Debug(String.Format("Processing {0} failed", item.Name), ex)
+                            Log.Error(String.Format("Error preparing {0}", item.Name), ex)
                         End Try
-                        Log.DebugFormat("Processed: {0}", processed)
 
-                        If processed Then
-                            item.Status = DataItemStatus.CompletedProcessing
-                            Me.OnProcessComplete(New ProcessEventArgs(item))
+                        If Not prepared Then
+                            Log.DebugFormat("Skipping {0}", item.Name)
                         Else
-                            item.Status = DataItemStatus.FailedProcessing
-                            Me.OnProcessFailure(New ProcessEventArgs(item))
+                            Try
+                                processed = Me.Processor.Process(item)
+                            Catch ex As Exception
+                                Log.Debug(String.Format("Processing {0} failed", item.Name), ex)
+                            End Try
+                            Log.DebugFormat("Processed: {0}", processed)
+
+                            If processed Then
+                                item.Status = DataItemStatus.CompletedProcessing
+                                Me.OnProcessComplete(New ProcessEventArgs(item))
+                            Else
+                                item.Status = DataItemStatus.FailedProcessing
+                                Me.OnProcessFailure(New ProcessEventArgs(item))
+                            End If
                         End If
-                    End If
-                Next
+                    Next
 
-                _processing = False
+                    _processing = False
 
-                Log.DebugFormat("Post Process Processing {0}", _processing)
+                    Log.DebugFormat("Post Process Processing {0}", _processing)
+                End If
+            Else
+                Log.Error("Could not connect to data source")
             End If
         Catch ex As Exception
             Log.Error("Exception", ex)
         Finally
+            If Me.IsConnected Then
+                Log.Debug("Disconnecting from data source")
+                Me.Disconnect()
+                Me.IsConnected = False
+            End If
+
             _eventWaitHandle.Set()
         End Try
     End Sub
