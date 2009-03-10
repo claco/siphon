@@ -16,6 +16,7 @@ Public Class FtpDirectoryMonitor
     Private Const PORT_FTPS As Integer = 990
     Private Const SETTING_PASSIVE As String = "Passive"
 
+    Private _client As New FTP_Client
     Private _passive As Boolean = True
 
     ''' <summary>
@@ -53,6 +54,18 @@ Public Class FtpDirectoryMonitor
     End Sub
 
     ''' <summary>
+    ''' Gets the ftp client instance for this monitor.
+    ''' </summary>
+    ''' <value></value>
+    ''' <returns>FTP_Client</returns>
+    ''' <remarks></remarks>
+    Protected ReadOnly Property Client() As FTP_Client
+        Get
+            Return _client
+        End Get
+    End Property
+
+    ''' <summary>
     ''' Gets/sets the credentials to use to connect to the ftp server.
     ''' </summary>
     ''' <value></value>
@@ -72,71 +85,96 @@ Public Class FtpDirectoryMonitor
     End Property
 
     ''' <summary>
+    ''' Connects to the data source being monitored.
+    ''' </summary>
+    ''' <returns>Boolean</returns>
+    ''' <remarks>Returns True if the connection was established. Returns False is the connection failed.</remarks>
+    Public Overrides Function Connect() As Boolean
+        If Me.IsConnected AndAlso Client.IsConnected Then
+            Return True
+        End If
+
+        Log.DebugFormat("Connecting to {0}", Me.Uri)
+
+        Try
+            Client.Connect(Me.Uri.Host, Me.Uri.Port, IIf(Me.Uri.Scheme = SCHEME_FTPS, True, False))
+            If Client.IsConnected Then
+                Client.Authenticate(Me.Credentials.UserName, Me.Credentials.Password)
+
+                If Client.IsAuthenticated Then
+                    Client.TransferMode = IIf(Me.Passive, FTP_TransferMode.Passive, FTP_TransferMode.Active)
+
+                    Me.IsConnected = True
+                    Return True
+                Else
+                    Return False
+                End If
+            Else
+                Return False
+            End If
+        Catch ex As Exception
+            Log.Error(ex)
+        End Try
+    End Function
+
+    ''' <summary>
+    ''' Disconnects from the data source being monitored.
+    ''' </summary>
+    ''' <remarks></remarks>
+    Public Overrides Sub Disconnect()
+        Log.DebugFormat("Disconnecting from {0}", Me.Uri)
+
+        Try
+            _client.Disconnect()
+        Catch ex As Exception
+            Log.Error(ex)
+        Finally
+            Me.IsConnected = False
+        End Try
+    End Sub
+
+    ''' <summary>
     ''' Create any missing folders during start.
     ''' </summary>
     ''' <remarks></remarks>
     Public Overrides Sub CreateFolders()
         MyBase.CreateFolders()
 
-        If Me.CreateMissingFolders Then
-            Log.DebugFormat("Creating directory {0}", Me.Uri)
+        If Me.CreateMissingFolders And (Not String.IsNullOrEmpty(Me.Uri.AbsolutePath.TrimStart("/")) Or Me.CompleteUri IsNot Nothing Or Me.FailureUri IsNot Nothing) Then
+            If Me.Connect Then
+                If Not String.IsNullOrEmpty(Me.Uri.AbsolutePath.TrimStart("/")) Then
+                    Log.DebugFormat("Creating directory {0}", Me.Uri)
 
-            If Not String.IsNullOrEmpty(Me.Uri.AbsolutePath.TrimStart("/")) Then
-                Try
-                    Using client As New FTP_Client
-                        client.Connect(Me.Uri.Host, Me.Uri.Port, IIf(Me.Uri.Scheme = SCHEME_FTPS, True, False))
-                        If client.IsConnected Then
-                            client.Authenticate(Me.Credentials.UserName, Me.Credentials.Password)
+                    Try
+                        Me.Client.CreateDirectory(Me.Uri.AbsolutePath)
+                    Catch ex As Exception
+                        Log.Error(String.Format("Error creating {0}", Me.Uri), ex)
+                    End Try
+                End If
 
-                            If client.IsAuthenticated Then
-                                client.TransferMode = IIf(Me.Passive, FTP_TransferMode.Passive, FTP_TransferMode.Active)
-                                client.CreateDirectory(Me.Uri.AbsolutePath)
-                            End If
-                        End If
-                    End Using
-                Catch ex As Exception
-                    Log.Error(String.Format("Error creating {0}", Me.Uri), ex)
-                End Try
-            End If
+                If Me.CompleteUri IsNot Nothing Then
+                    Log.DebugFormat("Creating directory {0}", Me.CompleteUri)
 
-            If Me.CompleteUri IsNot Nothing Then
-                Log.DebugFormat("Creating directory {0}", Me.CompleteUri)
+                    Try
+                        Me.Client.CreateDirectory(Me.CompleteUri.AbsolutePath)
+                    Catch ex As Exception
+                        Log.Error(String.Format("Error creating {0}", Me.CompleteUri), ex)
+                    End Try
+                End If
 
-                Try
-                    Using client As New FTP_Client
-                        client.Connect(Me.Uri.Host, Me.Uri.Port, IIf(Me.Uri.Scheme = SCHEME_FTPS, True, False))
-                        If client.IsConnected Then
-                            client.Authenticate(Me.Credentials.UserName, Me.Credentials.Password)
+                If Me.FailureUri IsNot Nothing Then
+                    Log.DebugFormat("Creating directory {0}", Me.FailureUri)
 
-                            If client.IsAuthenticated Then
-                                client.TransferMode = IIf(Me.Passive, FTP_TransferMode.Passive, FTP_TransferMode.Active)
-                                client.CreateDirectory(Me.CompleteUri.AbsolutePath)
-                            End If
-                        End If
-                    End Using
-                Catch ex As Exception
-                    Log.Error(String.Format("Error creating {0}", Me.CompleteUri), ex)
-                End Try
-            End If
+                    Try
+                        Me.Client.CreateDirectory(Me.FailureUri.AbsolutePath)
+                    Catch ex As Exception
+                        Log.Error(String.Format("Error creating {0}", Me.FailureUri), ex)
+                    End Try
+                End If
 
-            If Me.FailureUri IsNot Nothing Then
-                Log.DebugFormat("Creating directory {0}", Me.FailureUri)
-
-                Try
-                    Using client As New FTP_Client
-                        client.Connect(Me.Uri.Host, Me.Uri.Port, IIf(Me.Uri.Scheme = SCHEME_FTPS, True, False))
-                        If client.IsConnected Then
-                            client.Authenticate(Me.Credentials.UserName, Me.Credentials.Password)
-
-                            If client.IsAuthenticated Then
-                                client.TransferMode = IIf(Me.Passive, FTP_TransferMode.Passive, FTP_TransferMode.Active)
-                                client.CreateDirectory(Me.FailureUri.AbsolutePath)
-                            End If
-                        End If
-                    End Using
-                Catch ex As Exception
-                    Log.Error(String.Format("Error creating {0}", Me.FailureUri), ex)
-                End Try
+                Me.Disconnect()
+            Else
+                Log.ErrorFormat("Could not connect to {0}", Me.Uri)
             End If
         End If
     End Sub
@@ -151,29 +189,22 @@ Public Class FtpDirectoryMonitor
         Dim items As New System.Collections.ObjectModel.Collection(Of IDataItem)
 
         Try
-            Using client As New FTP_Client
-                client.Connect(Me.Uri.Host, Me.Uri.Port, IIf(Me.Uri.Scheme = SCHEME_FTPS, True, False))
-                If client.IsConnected Then
-                    client.Authenticate(Me.Credentials.UserName, Me.Credentials.Password)
+            If Me.Connect Then
+                Dim uri As New Uri(IO.Path.Combine(Me.Uri.AbsoluteUri, Me.Filter))
+                Dim list() As FTP_ListItem = Client.GetList(uri.AbsolutePath)
 
-                    If client.IsAuthenticated Then
-                        client.TransferMode = IIf(Me.Passive, FTP_TransferMode.Passive, FTP_TransferMode.Active)
+                For Each item As FTP_ListItem In list
+                    If item.IsFile Then
+                        Dim fileUri As Uri = New Uri(IO.Path.Combine(Me.Uri.AbsoluteUri, item.Name))
 
-                        Dim uri As New Uri(IO.Path.Combine(Me.Uri.AbsoluteUri, Me.Filter))
-                        Dim list() As FTP_ListItem = client.GetList(uri.AbsolutePath)
+                        Log.DebugFormat("Found remote file {0}", fileUri.AbsoluteUri)
 
-                        For Each item As FTP_ListItem In list
-                            If item.IsFile Then
-                                Dim fileUri As Uri = New Uri(IO.Path.Combine(Me.Uri.AbsoluteUri, item.Name))
-
-                                Log.DebugFormat("Found remote file {0}", fileUri.AbsoluteUri)
-
-                                items.Add(New UriDataItem(fileUri))
-                            End If
-                        Next
+                        items.Add(New UriDataItem(fileUri))
                     End If
-                End If
-            End Using
+                Next
+            Else
+                Log.ErrorFormat("Could not connect to {0}", Me.Uri)
+            End If
         Catch ex As Exception
             Log.Error(String.Format("Error scanning {0}", Me.Uri), ex)
         End Try
@@ -194,20 +225,14 @@ Public Class FtpDirectoryMonitor
         Log.DebugFormat("Downloading {0} to {1}", item.Name, tempFile)
 
         Try
-            Using client As New FTP_Client
-                client.Connect(Me.Uri.Host, Me.Uri.Port, IIf(Me.Uri.Scheme = SCHEME_FTPS, True, False))
-                If client.IsConnected Then
-                    client.Authenticate(Me.Credentials.UserName, Me.Credentials.Password)
+            If Me.Connect Then
+                Client.GetFile(uriItem.Data.AbsolutePath, tempFile)
 
-                    If client.IsAuthenticated Then
-                        client.TransferMode = IIf(Me.Passive, FTP_TransferMode.Passive, FTP_TransferMode.Active)
-                        client.GetFile(uriItem.Data.AbsolutePath, tempFile)
-
-                        uriItem.LocalFile = New FileInfo(tempFile)
-                        uriItem.Name += " (" & tempFile & ")"
-                    End If
-                End If
-            End Using
+                uriItem.LocalFile = New FileInfo(tempFile)
+                uriItem.Name += " (" & tempFile & ")"
+            Else
+                Log.ErrorFormat("Could not connect to {0}", Me.Uri)
+            End If
         Catch ex As Exception
             Log.Error(String.Format("Error downloading {0}", uriItem.Data), ex)
         End Try
@@ -224,17 +249,11 @@ Public Class FtpDirectoryMonitor
         Log.DebugFormat("Deleting {0}", uriItem.Data)
 
         Try
-            Using client As New FTP_Client
-                client.Connect(Me.Uri.Host, Me.Uri.Port, IIf(Me.Uri.Scheme = SCHEME_FTPS, True, False))
-                If client.IsConnected Then
-                    client.Authenticate(Me.Credentials.UserName, Me.Credentials.Password)
-
-                    If client.IsAuthenticated Then
-                        client.TransferMode = IIf(Me.Passive, FTP_TransferMode.Passive, FTP_TransferMode.Active)
-                        client.DeleteFile(uriItem.Data.AbsolutePath)
-                    End If
-                End If
-            End Using
+            If Me.Connect Then
+                Client.DeleteFile(uriItem.Data.AbsolutePath)
+            Else
+                Log.ErrorFormat("Could not connect to {0}", Me.Uri)
+            End If
         Catch ex As Exception
             Log.Error(String.Format("Error deleting {0}", uriItem.Data), ex)
         End Try
@@ -261,17 +280,11 @@ Public Class FtpDirectoryMonitor
         Log.DebugFormat("Moving {0} to {1}", uriItem.Data, newFile)
 
         Try
-            Using client As New FTP_Client
-                client.Connect(Me.Uri.Host, Me.Uri.Port, IIf(Me.Uri.Scheme = SCHEME_FTPS, True, False))
-                If client.IsConnected Then
-                    client.Authenticate(Me.Credentials.UserName, Me.Credentials.Password)
-
-                    If client.IsAuthenticated Then
-                        client.TransferMode = IIf(Me.Passive, FTP_TransferMode.Passive, FTP_TransferMode.Active)
-                        client.Rename(uriItem.Data.AbsolutePath, newFile.AbsolutePath)
-                    End If
-                End If
-            End Using
+            If Me.Connect Then
+                Client.Rename(uriItem.Data.AbsolutePath, newFile.AbsolutePath)
+            Else
+                Log.ErrorFormat("Could not connect to {0}", Me.Uri)
+            End If
         Catch ex As Exception
             Log.Error(String.Format("Error moving {0}", uriItem.Data), ex)
         End Try
@@ -292,19 +305,13 @@ Public Class FtpDirectoryMonitor
         Log.DebugFormat("Renaming {0} to {1}", uriItem.Data, newUri.Uri)
 
         Try
-            Using client As New FTP_Client
-                client.Connect(Me.Uri.Host, Me.Uri.Port, IIf(Me.Uri.Scheme = SCHEME_FTPS, True, False))
-                If client.IsConnected Then
-                    client.Authenticate(Me.Credentials.UserName, Me.Credentials.Password)
+            If Me.Connect Then
+                Client.Rename(uriItem.Data.AbsolutePath, newUri.Uri.AbsolutePath)
 
-                    If client.IsAuthenticated Then
-                        client.TransferMode = IIf(Me.Passive, FTP_TransferMode.Passive, FTP_TransferMode.Active)
-                        client.Rename(uriItem.Data.AbsolutePath, newUri.Uri.AbsolutePath)
-
-                        uriItem.Data = newUri.Uri
-                    End If
-                End If
-            End Using
+                uriItem.Data = newUri.Uri
+            Else
+                Log.ErrorFormat("Could not connect to {0}", Me.Uri)
+            End If
         Catch ex As Exception
             Log.Error(String.Format("Error renaming {0}", uriItem.Data), ex)
         End Try
@@ -348,4 +355,20 @@ Public Class FtpDirectoryMonitor
             _passive = value
         End Set
     End Property
+
+    ''' <summary>
+    ''' Disposes the current FtpDataMonitor and the client if it is still connected.
+    ''' </summary>
+    ''' <param name="disposing">Boolean. True if we're disposing. False if we're in the GC.</param>
+    ''' <remarks></remarks>
+    Protected Overrides Sub Dispose(ByVal disposing As Boolean)
+        MyBase.Dispose(disposing)
+
+        If disposing Then
+            If _client.IsConnected Then
+                _client.Disconnect()
+            End If
+            _client.Dispose()
+        End If
+    End Sub
 End Class

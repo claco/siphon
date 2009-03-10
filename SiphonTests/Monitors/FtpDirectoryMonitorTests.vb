@@ -8,7 +8,7 @@ Imports NUnit.Framework
 Imports ChrisLaco.Siphon
 
 <TestFixture(Description:="FTP Directory Monitor Tests")> _
-    Public Class FtpDirectoryMonitorTests
+Public Class FtpDirectoryMonitorTests
     Inherits FtpTestBase
 
     <Test(Description:="Path throws exception when empty")> _

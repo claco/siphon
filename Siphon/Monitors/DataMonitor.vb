@@ -57,7 +57,9 @@ Public MustInherit Class DataMonitor
     ''' <returns>Boolean</returns>
     ''' <remarks>Returns True is the connection was established. Returns False is the connection failed.</remarks>
     Public Overridable Function Connect() As Boolean Implements IDataMonitor.Connect
-        Return True
+        Me.IsConnected = True
+
+        Return Me.IsConnected
     End Function
 
     ''' <summary>
@@ -79,7 +81,7 @@ Public MustInherit Class DataMonitor
     ''' Disconnects from the data source being monitored.
     ''' </summary>
     Public Overridable Sub Disconnect() Implements IDataMonitor.Disconnect
-
+        Me.IsConnected = False
     End Sub
 
     ''' <summary>
@@ -325,7 +327,7 @@ Public MustInherit Class DataMonitor
 
             If Not Me.IsConnected Then
                 Log.Debug("Connecting to data source")
-                Me.IsConnected = Me.Connect
+                Me.Connect()
             Else
                 Log.Debug("Already connected to data source")
             End If
