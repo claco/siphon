@@ -12,6 +12,8 @@ Public Class Pop3Monitor
     Private Const PORT_POP As Integer = 110
     Private Const PORT_POPS As Integer = 995
 
+    Private _client As New POP3_Client
+
     ''' <summary>
     ''' Protected constructor for reflection.
     ''' </summary>
@@ -33,6 +35,64 @@ Public Class Pop3Monitor
     End Sub
 
     ''' <summary>
+    ''' Gets the imap client instance for this monitor.
+    ''' </summary>
+    ''' <value></value>
+    ''' <returns>IMAP_Client</returns>
+    ''' <remarks></remarks>
+    Protected ReadOnly Property Client() As POP3_Client
+        Get
+            Return _client
+        End Get
+    End Property
+
+    ''' <summary>
+    ''' Connects to the data source being monitored.
+    ''' </summary>
+    ''' <returns>Boolean</returns>
+    ''' <remarks>Returns True if the connection was established. Returns False is the connection failed.</remarks>
+    Public Overrides Function Connect() As Boolean
+        If Me.IsConnected AndAlso Client.IsConnected Then
+            Return True
+        End If
+        Log.DebugFormat("Connecting to {0}", Me.Uri)
+
+        Try
+            Client.Connect(Me.Uri.Host, Me.Uri.Port, IIf(Me.Uri.Scheme = SCHEME_POPS, True, False))
+            If Client.IsConnected Then
+                Client.Authenticate(Me.Credentials.UserName, Me.Credentials.Password, True)
+
+                If Client.IsAuthenticated Then
+                    Me.IsConnected = True
+                    Return True
+                Else
+                    Return False
+                End If
+            Else
+                Return False
+            End If
+        Catch ex As Exception
+            Log.Error(ex)
+        End Try
+    End Function
+
+    ''' <summary>
+    ''' Disconnects from the data source being monitored.
+    ''' </summary>
+    ''' <remarks></remarks>
+    Public Overrides Sub Disconnect()
+        Log.DebugFormat("Disconnecting from {0}", Me.Uri)
+
+        Try
+            Client.Disconnect()
+        Catch ex As Exception
+            Log.Error(ex)
+        Finally
+            Me.IsConnected = False
+        End Try
+    End Sub
+
+    ''' <summary>
     ''' Deletes the data item after processing.
     ''' </summary>
     ''' <param name="item">MailDataItem. The mail message to delete.</param>
@@ -42,17 +102,16 @@ Public Class Pop3Monitor
 
         Log.DebugFormat("Deleting {0}", mailItem.Data)
 
-        Using client As New POP3_Client
-            client.Connect(Me.Uri.Host, Me.Uri.Port, IIf(Me.Uri.Scheme = SCHEME_POPS, True, False))
-            If client.IsConnected Then
-                client.Authenticate(Me.Credentials.UserName, Me.Credentials.Password, True)
-
-                If client.IsAuthenticated Then
-                    Dim message As POP3_ClientMessage = client.Messages(mailItem.UID)
-                    message.MarkForDeletion()
-                End If
+        Try
+            If Me.Connect Then
+                Dim message As POP3_ClientMessage = Client.Messages(mailItem.UID)
+                message.MarkForDeletion()
+            Else
+                Log.ErrorFormat("Could not connect to {0}", Me.Uri)
             End If
-        End Using
+        Catch ex As Exception
+            Log.Error(String.Format("Error deleting {0}", mailItem.Data), ex)
+        End Try
     End Sub
 
     ''' <summary>
@@ -88,25 +147,26 @@ Public Class Pop3Monitor
     ''' <returns>Collection(Of MailDataItem)</returns>
     ''' <remarks></remarks>
     Public Overrides Function Scan() As Collection(Of IDataItem)
+        Log.DebugFormat("Scanning {0} for {1}", Me.Uri, Me.Filter)
+
         Dim items As New Collection(Of IDataItem)
 
-        Using client As New POP3_Client
-            client.Connect(Me.Uri.Host, Me.Uri.Port, IIf(Me.Uri.Scheme = SCHEME_POPS, True, False))
-            If client.IsConnected Then
-                client.Authenticate(Me.Credentials.UserName, Me.Credentials.Password, True)
+        Try
+            If Me.Connect Then
+                Dim messages As POP3_ClientMessageCollection = Client.Messages
+                Log.DebugFormat("Found {0} messages", messages.Count)
 
-                If client.IsAuthenticated Then
-                    Dim messages As POP3_ClientMessageCollection = client.Messages
-                    Log.DebugFormat("Found {0} messages", messages.Count)
-
-                    For Each item As POP3_ClientMessage In messages
-                        If Not item.IsMarkedForDeletion Then
-                            items.Add(New MailDataItem(Me.Uri, item.UID))
-                        End If
-                    Next
-                End If
+                For Each item As POP3_ClientMessage In messages
+                    If Not item.IsMarkedForDeletion Then
+                        items.Add(New MailDataItem(Me.Uri, item.UID))
+                    End If
+                Next
+            Else
+                Log.ErrorFormat("Could not connect to {0}", Me.Uri)
             End If
-        End Using
+        Catch ex As Exception
+            Log.Error(String.Format("Error scanning {0}", Me.Uri), ex)
+        End Try
 
         Return items
     End Function
@@ -122,21 +182,20 @@ Public Class Pop3Monitor
 
         Log.DebugFormat("Downloading {0} to {1}", item.Name, tempFile)
 
-        Using client As New POP3_Client
-            client.Connect(Me.Uri.Host, Me.Uri.Port, IIf(Me.Uri.Scheme = SCHEME_POPS, True, False))
-            If client.IsConnected Then
-                client.Authenticate(Me.Credentials.UserName, Me.Credentials.Password, True)
+        Try
+            If Me.Connect Then
+                Using stream As FileStream = File.Create(tempFile)
+                    Dim message As POP3_ClientMessage = Client.Messages(mailItem.UID)
 
-                If client.IsAuthenticated Then
-                    Using stream As FileStream = File.Create(tempFile)
-                        Dim message As POP3_ClientMessage = client.Messages(mailItem.UID)
-
-                        message.MessageToStream(stream)
-                        mailItem.LocalFile = New FileInfo(tempFile)
-                    End Using
-                End If
+                    message.MessageToStream(stream)
+                    mailItem.LocalFile = New FileInfo(tempFile)
+                End Using
+            Else
+                Log.ErrorFormat("Could not connect to {0}", Me.Uri)
             End If
-        End Using
+        Catch ex As Exception
+            Log.Error(String.Format("Error downloading {0}", item.Name), ex)
+        End Try
     End Sub
 
     ''' <summary>
@@ -190,6 +249,22 @@ Public Class Pop3Monitor
 
         If Me.Credentials Is Nothing Then
             Throw New ApplicationException("Credentials required for this monitor")
+        End If
+    End Sub
+
+    ''' <summary>
+    ''' Disposes the current DataMonitor and the client if it is still connected.
+    ''' </summary>
+    ''' <param name="disposing">Boolean. True if we're disposing. False if we're in the GC.</param>
+    ''' <remarks></remarks>
+    Protected Overrides Sub Dispose(ByVal disposing As Boolean)
+        MyBase.Dispose(disposing)
+
+        If disposing Then
+            If Client.IsConnected Then
+                Client.Disconnect()
+            End If
+            Client.Dispose()
         End If
     End Sub
 End Class

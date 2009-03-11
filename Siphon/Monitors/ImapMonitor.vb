@@ -15,6 +15,7 @@ Public Class ImapMonitor
     Private Const DEFAULT_FOLDER As String = "INBOX"
 
     Private _client As New IMAP_Client
+
     ''' <summary>
     ''' Protected constructor for reflection.
     ''' </summary>
@@ -53,11 +54,9 @@ Public Class ImapMonitor
     ''' <returns>Boolean</returns>
     ''' <remarks>Returns True if the connection was established. Returns False is the connection failed.</remarks>
     Public Overrides Function Connect() As Boolean
-        Log.Debug("Connect()")
         If Me.IsConnected AndAlso Client.IsConnected Then
             Return True
         End If
-        Log.Debug("Connect2()")
         Log.DebugFormat("Connecting to {0}", Me.Uri)
 
         Try
@@ -377,7 +376,7 @@ Public Class ImapMonitor
     End Sub
 
     ''' <summary>
-    ''' Disposes the current FtpDataMonitor and the client if it is still connected.
+    ''' Disposes the current DataMonitor and the client if it is still connected.
     ''' </summary>
     ''' <param name="disposing">Boolean. True if we're disposing. False if we're in the GC.</param>
     ''' <remarks></remarks>
