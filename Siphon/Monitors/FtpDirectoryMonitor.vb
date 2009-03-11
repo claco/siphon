@@ -125,7 +125,7 @@ Public Class FtpDirectoryMonitor
         Log.DebugFormat("Disconnecting from {0}", Me.Uri)
 
         Try
-            _client.Disconnect()
+            Client.Disconnect()
         Catch ex As Exception
             Log.Error(ex)
         Finally
@@ -141,41 +141,45 @@ Public Class FtpDirectoryMonitor
         MyBase.CreateFolders()
 
         If Me.CreateMissingFolders And (Not String.IsNullOrEmpty(Me.Uri.AbsolutePath.TrimStart("/")) Or Me.CompleteUri IsNot Nothing Or Me.FailureUri IsNot Nothing) Then
-            If Me.Connect Then
-                If Not String.IsNullOrEmpty(Me.Uri.AbsolutePath.TrimStart("/")) Then
-                    Log.DebugFormat("Creating directory {0}", Me.Uri)
+            Try
+                If Me.Connect Then
+                    If Not String.IsNullOrEmpty(Me.Uri.AbsolutePath.TrimStart("/")) Then
+                        Log.DebugFormat("Creating directory {0}", Me.Uri)
 
-                    Try
-                        Me.Client.CreateDirectory(Me.Uri.AbsolutePath)
-                    Catch ex As Exception
-                        Log.Error(String.Format("Error creating {0}", Me.Uri), ex)
-                    End Try
+                        Try
+                            Me.Client.CreateDirectory(Me.Uri.AbsolutePath)
+                        Catch ex As Exception
+                            Log.Error(String.Format("Error creating {0}", Me.Uri), ex)
+                        End Try
+                    End If
+
+                    If Me.CompleteUri IsNot Nothing Then
+                        Log.DebugFormat("Creating directory {0}", Me.CompleteUri)
+
+                        Try
+                            Me.Client.CreateDirectory(Me.CompleteUri.AbsolutePath)
+                        Catch ex As Exception
+                            Log.Error(String.Format("Error creating {0}", Me.CompleteUri), ex)
+                        End Try
+                    End If
+
+                    If Me.FailureUri IsNot Nothing Then
+                        Log.DebugFormat("Creating directory {0}", Me.FailureUri)
+
+                        Try
+                            Me.Client.CreateDirectory(Me.FailureUri.AbsolutePath)
+                        Catch ex As Exception
+                            Log.Error(String.Format("Error creating {0}", Me.FailureUri), ex)
+                        End Try
+                    End If
+
+                    Me.Disconnect()
+                Else
+                    Log.ErrorFormat("Could not connect to {0}", Me.Uri)
                 End If
-
-                If Me.CompleteUri IsNot Nothing Then
-                    Log.DebugFormat("Creating directory {0}", Me.CompleteUri)
-
-                    Try
-                        Me.Client.CreateDirectory(Me.CompleteUri.AbsolutePath)
-                    Catch ex As Exception
-                        Log.Error(String.Format("Error creating {0}", Me.CompleteUri), ex)
-                    End Try
-                End If
-
-                If Me.FailureUri IsNot Nothing Then
-                    Log.DebugFormat("Creating directory {0}", Me.FailureUri)
-
-                    Try
-                        Me.Client.CreateDirectory(Me.FailureUri.AbsolutePath)
-                    Catch ex As Exception
-                        Log.Error(String.Format("Error creating {0}", Me.FailureUri), ex)
-                    End Try
-                End If
-
-                Me.Disconnect()
-            Else
-                Log.ErrorFormat("Could not connect to {0}", Me.Uri)
-            End If
+            Catch ex As Exception
+                Log.Error("Error creating folders", ex)
+            End Try
         End If
     End Sub
 
@@ -365,10 +369,10 @@ Public Class FtpDirectoryMonitor
         MyBase.Dispose(disposing)
 
         If disposing Then
-            If _client.IsConnected Then
-                _client.Disconnect()
+            If Client.IsConnected Then
+                Client.Disconnect()
             End If
-            _client.Dispose()
+            Client.Dispose()
         End If
     End Sub
 End Class

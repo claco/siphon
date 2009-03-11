@@ -14,6 +14,7 @@ Public Class ImapMonitor
     Private Const PORT_IMAPS As Integer = 993
     Private Const DEFAULT_FOLDER As String = "INBOX"
 
+    Private _client As New IMAP_Client
     ''' <summary>
     ''' Protected constructor for reflection.
     ''' </summary>
@@ -35,6 +36,66 @@ Public Class ImapMonitor
     End Sub
 
     ''' <summary>
+    ''' Gets the imap client instance for this monitor.
+    ''' </summary>
+    ''' <value></value>
+    ''' <returns>IMAP_Client</returns>
+    ''' <remarks></remarks>
+    Protected ReadOnly Property Client() As IMAP_Client
+        Get
+            Return _client
+        End Get
+    End Property
+
+    ''' <summary>
+    ''' Connects to the data source being monitored.
+    ''' </summary>
+    ''' <returns>Boolean</returns>
+    ''' <remarks>Returns True if the connection was established. Returns False is the connection failed.</remarks>
+    Public Overrides Function Connect() As Boolean
+        Log.Debug("Connect()")
+        If Me.IsConnected AndAlso Client.IsConnected Then
+            Return True
+        End If
+        Log.Debug("Connect2()")
+        Log.DebugFormat("Connecting to {0}", Me.Uri)
+
+        Try
+            Client.Connect(Me.Uri.Host, Me.Uri.Port, IIf(Me.Uri.Scheme = SCHEME_IMAPS, True, False))
+            If Client.IsConnected Then
+                Client.Authenticate(Me.Credentials.UserName, Me.Credentials.Password)
+
+                If Client.IsAuthenticated Then
+                    Me.IsConnected = True
+                    Return True
+                Else
+                    Return False
+                End If
+            Else
+                Return False
+            End If
+        Catch ex As Exception
+            Log.Error(ex)
+        End Try
+    End Function
+
+    ''' <summary>
+    ''' Disconnects from the data source being monitored.
+    ''' </summary>
+    ''' <remarks></remarks>
+    Public Overrides Sub Disconnect()
+        Log.DebugFormat("Disconnecting from {0}", Me.Uri)
+
+        Try
+            Client.Disconnect()
+        Catch ex As Exception
+            Log.Error(ex)
+        Finally
+            Me.IsConnected = False
+        End Try
+    End Sub
+
+    ''' <summary>
     ''' Creates missing folders before starting the timer.
     ''' </summary>
     ''' <remarks></remarks>
@@ -42,48 +103,48 @@ Public Class ImapMonitor
         MyBase.CreateFolders()
 
         If Me.CreateMissingFolders Then
+            Try
+                If Me.Connect Then
+                    Dim folders() As String = Client.GetFolders()
 
-            Using client As New IMAP_Client
-                client.Connect(Me.Uri.Host, Me.Uri.Port, IIf(Me.Uri.Scheme = SCHEME_IMAPS, True, False))
-                If client.IsConnected Then
-                    client.Authenticate(Me.Credentials.UserName, Me.Credentials.Password)
+                    For Each folderName As String In folders
+                        Log.DebugFormat("Folder {0} Exists", folderName)
+                    Next
 
-                    If client.IsAuthenticated Then
-                        Dim folders() As String = client.GetFolders()
+                    Dim folder As String = Me.GetFolderName(Me.Uri, Client.GetFolderSeparator)
+                    If Not folders.Contains(folder) Then
+                        Log.DebugFormat("Creating folder {0}", Me.Uri)
 
-                        For Each folderName As String In folders
-                            Log.DebugFormat("Folder {0} Exists", folderName)
-                        Next
+                        Client.CreateFolder(folder)
+                    End If
 
-                        Dim folder As String = Me.GetFolderName(Me.Uri, client.GetFolderSeparator)
-                        If Not folders.Contains(folder) Then
-                            Log.DebugFormat("Creating folder {0}", Me.Uri)
+                    If Me.CompleteUri IsNot Nothing Then
+                        Dim completeFolder As String = Me.GetFolderName(Me.CompleteUri, Client.GetFolderSeparator)
 
-                            client.CreateFolder(folder)
-                        End If
+                        If Not folders.Contains(completeFolder) Then
+                            Log.DebugFormat("Creating folder {0}", Me.CompleteUri)
 
-                        If Me.CompleteUri IsNot Nothing Then
-                            Dim completeFolder As String = Me.GetFolderName(Me.CompleteUri, client.GetFolderSeparator)
-
-                            If Not folders.Contains(completeFolder) Then
-                                Log.DebugFormat("Creating folder {0}", Me.CompleteUri)
-
-                                client.CreateFolder(completeFolder)
-                            End If
-                        End If
-
-                        If Me.FailureUri IsNot Nothing Then
-                            Dim failureFolder As String = Me.GetFolderName(Me.FailureUri, client.GetFolderSeparator)
-
-                            If Not folders.Contains(failureFolder) Then
-                                Log.DebugFormat("Creating folder {0}", Me.FailureUri)
-
-                                client.CreateFolder(failureFolder)
-                            End If
+                            Client.CreateFolder(completeFolder)
                         End If
                     End If
+
+                    If Me.FailureUri IsNot Nothing Then
+                        Dim failureFolder As String = Me.GetFolderName(Me.FailureUri, Client.GetFolderSeparator)
+
+                        If Not folders.Contains(failureFolder) Then
+                            Log.DebugFormat("Creating folder {0}", Me.FailureUri)
+
+                            Client.CreateFolder(failureFolder)
+                        End If
+                    End If
+
+                    Me.Disconnect()
+                Else
+                    Log.ErrorFormat("Could not connect to {0}", Me.Uri)
                 End If
-            End Using
+            Catch ex As Exception
+                Log.Error("Error creating folders", ex)
+            End Try
         End If
     End Sub
 
@@ -97,23 +158,22 @@ Public Class ImapMonitor
 
         Log.DebugFormat("Deleting {0}", mailItem.Data)
 
-        Using client As New IMAP_Client
-            client.Connect(Me.Uri.Host, Me.Uri.Port, IIf(Me.Uri.Scheme = SCHEME_IMAPS, True, False))
-            If client.IsConnected Then
-                client.Authenticate(Me.Credentials.UserName, Me.Credentials.Password)
+        Try
+            If Me.Connect Then
+                Dim folder As String = Me.GetFolderName(Me.Uri, Client.GetFolderSeparator)
 
-                If client.IsAuthenticated Then
-                    Dim folder As String = Me.GetFolderName(Me.Uri, client.GetFolderSeparator)
+                Client.SelectFolder(folder)
 
-                    client.SelectFolder(folder)
+                Dim seq As New IMAP_SequenceSet
+                seq.Parse(mailItem.UID)
 
-                    Dim seq As New IMAP_SequenceSet
-                    seq.Parse(mailItem.UID)
-
-                    client.DeleteMessages(seq, True)
-                End If
+                Client.DeleteMessages(seq, True)
+            Else
+                Log.ErrorFormat("Could not connect to {0}", Me.Uri)
             End If
-        End Using
+        Catch ex As Exception
+            Log.Error(String.Format("Error deleting {0}", mailItem.Data), ex)
+        End Try
     End Sub
 
     ''' <summary>
@@ -124,34 +184,33 @@ Public Class ImapMonitor
     Public Overrides Sub Move(ByVal item As IDataItem)
         Dim mailItem As MailDataItem = item
 
-        Using client As New IMAP_Client
-            client.Connect(Me.Uri.Host, Me.Uri.Port, IIf(Me.Uri.Scheme = SCHEME_IMAPS, True, False))
-            If client.IsConnected Then
-                client.Authenticate(Me.Credentials.UserName, Me.Credentials.Password)
+        Try
+            If Me.Connect Then
+                Dim folder As String = Me.GetFolderName(Me.Uri, Client.GetFolderSeparator)
 
-                If client.IsAuthenticated Then
-                    Dim folder As String = Me.GetFolderName(Me.Uri, client.GetFolderSeparator)
+                Client.SelectFolder(folder)
 
-                    client.SelectFolder(folder)
+                Dim seq As New IMAP_SequenceSet
+                seq.Parse(mailItem.UID)
 
-                    Dim seq As New IMAP_SequenceSet
-                    seq.Parse(mailItem.UID)
+                Dim destination As String = String.Empty
+                If mailItem.Status = DataItemStatus.CompletedProcessing Then
+                    Log.DebugFormat("Moving {0} to {1}", mailItem.Data, Me.CompleteUri)
 
-                    Dim destination As String = String.Empty
-                    If mailItem.Status = DataItemStatus.CompletedProcessing Then
-                        Log.DebugFormat("Moving {0} to {1}", mailItem.Data, Me.CompleteUri)
+                    destination = Me.GetFolderName(Me.CompleteUri, Client.GetFolderSeparator)
+                ElseIf mailItem.Status = DataItemStatus.FailedProcessing Then
+                    Log.DebugFormat("Moving {0} to {1}", mailItem.Data, Me.FailureUri)
 
-                        destination = Me.GetFolderName(Me.CompleteUri, client.GetFolderSeparator)
-                    ElseIf mailItem.Status = DataItemStatus.FailedProcessing Then
-                        Log.DebugFormat("Moving {0} to {1}", mailItem.Data, Me.FailureUri)
-
-                        destination = Me.GetFolderName(Me.FailureUri, client.GetFolderSeparator)
-                    End If
-
-                    client.MoveMessages(seq, destination, True)
+                    destination = Me.GetFolderName(Me.FailureUri, Client.GetFolderSeparator)
                 End If
+
+                Client.MoveMessages(seq, destination, True)
+            Else
+                Log.ErrorFormat("Could not connect to {0}", Me.Uri)
             End If
-        End Using
+        Catch ex As Exception
+            Log.Error(String.Format("Error moving {0}", mailItem.Data), ex)
+        End Try
     End Sub
 
     ''' <summary>
@@ -183,23 +242,22 @@ Public Class ImapMonitor
 
         Log.DebugFormat("Downloading {0} to {1}", item.Name, tempFile)
 
-        Using client As New IMAP_Client
-            client.Connect(Me.Uri.Host, Me.Uri.Port, IIf(Me.Uri.Scheme = SCHEME_IMAPS, True, False))
-            If client.IsConnected Then
-                client.Authenticate(Me.Credentials.UserName, Me.Credentials.Password)
+        Try
+            If Me.Connect Then
+                Dim folder As String = Me.GetFolderName(Me.Uri, Client.GetFolderSeparator)
 
-                If client.IsAuthenticated Then
-                    Dim folder As String = Me.GetFolderName(Me.Uri, client.GetFolderSeparator)
-
-                    client.SelectFolder(folder)
-                    Dim m As New LumiSoft.Net.IMAP.IMAP_BODY
-                    Using stream As FileStream = File.Create(tempFile)
-                        client.FetchMessage(mailItem.UID, stream)
-                        mailItem.LocalFile = New FileInfo(tempFile)
-                    End Using
-                End If
+                Client.SelectFolder(folder)
+                Dim m As New LumiSoft.Net.IMAP.IMAP_BODY
+                Using stream As FileStream = File.Create(tempFile)
+                    Client.FetchMessage(mailItem.UID, stream)
+                    mailItem.LocalFile = New FileInfo(tempFile)
+                End Using
+            Else
+                Log.ErrorFormat("Could not connect to {0}", Me.Uri)
             End If
-        End Using
+        Catch ex As Exception
+            Log.Error(String.Format("Error downloading {0}", item.Name), ex)
+        End Try
     End Sub
 
     ''' <summary>
@@ -208,35 +266,36 @@ Public Class ImapMonitor
     ''' <returns>Collection(Of ImapDataItem)</returns>
     ''' <remarks></remarks>
     Public Overrides Function Scan() As Collection(Of IDataItem)
+        Log.DebugFormat("Scanning {0} for {1}", Me.Uri, Me.Filter)
+
         Dim items As New Collection(Of IDataItem)
 
-        Using client As New IMAP_Client
-            client.Connect(Me.Uri.Host, Me.Uri.Port, IIf(Me.Uri.Scheme = SCHEME_IMAPS, True, False))
-            If client.IsConnected Then
-                client.Authenticate(Me.Credentials.UserName, Me.Credentials.Password)
+        Try
+            If Me.Connect Then
+                Dim folder As String = Me.GetFolderName(Me.Uri, Client.GetFolderSeparator)
 
-                If client.IsAuthenticated Then
-                    Dim folder As String = Me.GetFolderName(Me.Uri, client.GetFolderSeparator)
+                Log.DebugFormat("Selecting Folder: {0}", folder)
+                Client.SelectFolder(folder)
 
-                    Log.DebugFormat("Selecting Folder: {0}", folder)
-                    client.SelectFolder(folder)
+                Dim seq As New IMAP_SequenceSet
+                seq.Parse("1:*")
 
-                    Dim seq As New IMAP_SequenceSet
-                    seq.Parse("1:*")
+                Dim messages() As IMAP_FetchItem = Client.FetchMessages(seq, IMAP_FetchItem_Flags.UID Or IMAP_FetchItem_Flags.MessageFlags, False, True)
+                Log.DebugFormat("Found {0} messages", messages.Length)
 
-                    Dim messages() As IMAP_FetchItem = client.FetchMessages(seq, IMAP_FetchItem_Flags.UID Or IMAP_FetchItem_Flags.MessageFlags, False, True)
-                    Log.DebugFormat("Found {0} messages", messages.Length)
+                For Each item As IMAP_FetchItem In messages
+                    Log.DebugFormat("Message Flags: {0}", item.MessageFlags)
 
-                    For Each item As IMAP_FetchItem In messages
-                        Log.DebugFormat("Message Flags: {0}", item.MessageFlags)
-
-                        If (item.MessageFlags And IMAP_MessageFlags.Deleted) <> IMAP_MessageFlags.Deleted Then
-                            items.Add(New MailDataItem(Me.Uri, item.UID))
-                        End If
-                    Next
-                End If
+                    If (item.MessageFlags And IMAP_MessageFlags.Deleted) <> IMAP_MessageFlags.Deleted Then
+                        items.Add(New MailDataItem(Me.Uri, item.UID))
+                    End If
+                Next
+            Else
+                Log.ErrorFormat("Could not connect to {0}", Me.Uri)
             End If
-        End Using
+        Catch ex As Exception
+            Log.Error(String.Format("Error scanning {0}", Me.Uri), ex)
+        End Try
 
         Return items
     End Function
@@ -314,6 +373,22 @@ Public Class ImapMonitor
 
         If Me.Credentials Is Nothing Then
             Throw New ApplicationException("Credentials required for this monitor")
+        End If
+    End Sub
+
+    ''' <summary>
+    ''' Disposes the current FtpDataMonitor and the client if it is still connected.
+    ''' </summary>
+    ''' <param name="disposing">Boolean. True if we're disposing. False if we're in the GC.</param>
+    ''' <remarks></remarks>
+    Protected Overrides Sub Dispose(ByVal disposing As Boolean)
+        MyBase.Dispose(disposing)
+
+        If disposing Then
+            If Client.IsConnected Then
+                Client.Disconnect()
+            End If
+            Client.Dispose()
         End If
     End Sub
 End Class
