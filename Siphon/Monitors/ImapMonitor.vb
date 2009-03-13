@@ -74,7 +74,7 @@ Public Class ImapMonitor
                 Return False
             End If
         Catch ex As Exception
-            Log.Error(String.Format("Error connecting to {0}", Me.Uri) ex)
+            Log.Error(String.Format("Error connecting to {0}", Me.Uri), ex)
         End Try
     End Function
 
@@ -88,7 +88,7 @@ Public Class ImapMonitor
         Try
             Client.Disconnect()
         Catch ex As Exception
-            Log.Error(String.Format("Error disconnecting from {0}") ex)
+            Log.Error(String.Format("Error disconnecting from {0}"), ex)
         Finally
             Me.IsConnected = False
         End Try

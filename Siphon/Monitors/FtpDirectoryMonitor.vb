@@ -127,7 +127,7 @@ Public Class FtpDirectoryMonitor
         Try
             Client.Disconnect()
         Catch ex As Exception
-            Log.Error(String.Format("Error disconnecting from {0}, Me.Uri") ex)
+            Log.Error(String.Format("Error disconnecting from {0}, Me.Uri"), ex)
         Finally
             Me.IsConnected = False
         End Try
