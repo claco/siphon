@@ -183,7 +183,7 @@ Public Class DatabaseMonitor
                 builder.DataAdapter.Update(rows)
             End Using
         Catch ex As Exception
-            Log.Error(ex)
+            Log.Error(String.Format("Error deleting {0}", recordItem.Name), ex)
         Finally
             Me.Connection.Close()
             Me.SelectCommand.Connection = Nothing
@@ -230,7 +230,6 @@ Public Class DatabaseMonitor
             Else
                 _recordFormat = value.Trim
             End If
-
         End Set
     End Property
 
@@ -260,7 +259,7 @@ Public Class DatabaseMonitor
                 Me.UpdateCommand.ExecuteNonQuery()
                 Me.Connection.Close()
             Catch ex As Exception
-                Log.Error(ex)
+                Log.Error(String.Format("Error updating {0}", recordItem.Name), ex)
             Finally
                 Me.Connection.Close()
                 Me.UpdateCommand.Connection = Nothing
@@ -293,7 +292,7 @@ Public Class DatabaseMonitor
                 Next
             End Using
         Catch ex As Exception
-            Log.Error(ex)
+            Log.Error(String.Format("Error scanning {0}", Me.SelectCommand.CommandText), ex)
         Finally
             Me.Connection.Close()
             Me.SelectCommand.Connection = Nothing

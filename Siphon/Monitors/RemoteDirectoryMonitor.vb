@@ -59,15 +59,24 @@ Public MustInherit Class RemoteDirectoryMonitor
     ''' <remarks></remarks>
     Public Overrides Sub CreateFolders()
         If Me.CreateMissingFolders Then
-            If Not String.IsNullOrEmpty(Me.DownloadPath) Then
-                Dim downloads As String = Me.DownloadUri.LocalPath
+            Try
+                If Not String.IsNullOrEmpty(Me.DownloadPath) Then
+                    Dim downloads As String = Me.DownloadUri.LocalPath
 
-                If Not Directory.Exists(downloads) Then
-                    Log.DebugFormat("Creating directory {0}", downloads)
+                    If Not Directory.Exists(downloads) Then
+                        Log.DebugFormat("Creating directory {0}", downloads)
 
-                    Directory.CreateDirectory(downloads)
+                        Try
+                            Directory.CreateDirectory(downloads)
+                        Catch ex As Exception
+                            Log.Error(String.Format("Error creating {0}", downloads), ex)
+                        End Try
+
+                    End If
                 End If
-            End If
+            Catch ex As Exception
+                Log.Error("Error creating directories", ex)
+            End Try
         End If
     End Sub
 

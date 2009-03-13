@@ -80,25 +80,41 @@ Public Class MessageQueueMonitor
     ''' </summary>
     ''' <remarks></remarks>
     Public Overridable Sub CreateQueues()
-        If Not MessageQueue.Exists(Me.Queue.Path) Then
-            Log.DebugFormat("Creating queue {0}", Me.Queue.Path)
+        Try
+            If Not MessageQueue.Exists(Me.Queue.Path) Then
+                Log.DebugFormat("Creating queue {0}", Me.Queue.Path)
 
-            Me.Queue = MessageQueue.Create(Me.Queue.Path)
-        End If
-        If Me.CompleteQueue IsNot Nothing Then
-            If Not MessageQueue.Exists(Me.CompleteQueue.Path) Then
-                Log.DebugFormat("Creating queue {0}", Me.CompleteQueue.Path)
-
-                Me.CompleteQueue = MessageQueue.Create(Me.CompleteQueue.Path)
+                Try
+                    Me.Queue = MessageQueue.Create(Me.Queue.Path)
+                Catch ex As Exception
+                    Log.Error(String.Format("Error creating {0}", Me.Queue.Path), ex)
+                End Try
             End If
-        End If
-        If Me.FailureQueue IsNot Nothing Then
-            If Not MessageQueue.Exists(Me.FailureQueue.Path) Then
-                Log.DebugFormat("Creating queue {0}", Me.FailureQueue.Path)
+            If Me.CompleteQueue IsNot Nothing Then
+                If Not MessageQueue.Exists(Me.CompleteQueue.Path) Then
+                    Log.DebugFormat("Creating queue {0}", Me.CompleteQueue.Path)
 
-                Me.FailureQueue = MessageQueue.Create(Me.FailureQueue.Path)
+                    Try
+                        Me.CompleteQueue = MessageQueue.Create(Me.CompleteQueue.Path)
+                    Catch ex As Exception
+                        Log.Error(String.Format("Error creating {0}", Me.CompleteQueue.Path), ex)
+                    End Try
+                End If
             End If
-        End If
+            If Me.FailureQueue IsNot Nothing Then
+                If Not MessageQueue.Exists(Me.FailureQueue.Path) Then
+                    Log.DebugFormat("Creating queue {0}", Me.FailureQueue.Path)
+
+                    Try
+                        Me.FailureQueue = MessageQueue.Create(Me.FailureQueue.Path)
+                    Catch ex As Exception
+                        Log.Error(String.Format("Error creating {0}", Me.FailureQueue.Path), ex)
+                    End Try
+                End If
+            End If
+        Catch ex As Exception
+            Log.Error("Error creating queues", ex)
+        End Try
     End Sub
 
     ''' <summary>
@@ -180,13 +196,19 @@ Public Class MessageQueueMonitor
     Public Overrides Function Scan() As System.Collections.ObjectModel.Collection(Of IDataItem)
         Log.DebugFormat("Scanning {0}", Me.Queue.Path)
 
-        Dim messages() As Message = Me.Queue.GetAllMessages
         Dim items As New Collection(Of IDataItem)
-        Log.DebugFormat("Found {0} messages in {1}", messages.Length, Me.Queue.Path)
 
-        For Each message As Message In messages
-            items.Add(New QueueMessageDataItem(message))
-        Next
+        Try
+            Dim messages() As Message = Me.Queue.GetAllMessages
+
+            Log.DebugFormat("Found {0} messages in {1}", messages.Length, Me.Queue.Path)
+
+            For Each message As Message In messages
+                items.Add(New QueueMessageDataItem(message))
+            Next
+        Catch ex As Exception
+            Log.Error(String.Format("Error scanning {0}", Me.Queue.Path), ex)
+        End Try
 
         Return items
     End Function
@@ -212,7 +234,14 @@ Public Class MessageQueueMonitor
     ''' <remarks></remarks>
     Public Overrides Sub Delete(ByVal item As IDataItem)
         Dim message As IDataItem(Of Message) = item
-        Me.Queue.ReceiveById(message.Data.Id)
+
+        Log.DebugFormat("Deleting {0}", message.Data.Label)
+
+        Try
+            Me.Queue.ReceiveById(message.Data.Id)
+        Catch ex As Exception
+            Log.Error(String.Format("Error deleting {0}", message.Data.Label), ex)
+        End Try
     End Sub
 
     ''' <summary>
@@ -223,17 +252,21 @@ Public Class MessageQueueMonitor
     Public Overrides Sub Move(ByVal item As IDataItem)
         Dim message As IDataItem(Of Message) = item
 
-        If item.Status = DataItemStatus.CompletedProcessing Then
-            Log.DebugFormat("Moving {0} to {1}", message.Data.Label, Me.CompleteQueue.Path)
+        Try
+            If item.Status = DataItemStatus.CompletedProcessing Then
+                Log.DebugFormat("Moving {0} to {1}", message.Data.Label, Me.CompleteQueue.Path)
 
-            Me.CompleteQueue.Send(Me.Queue.ReceiveById(message.Data.Id))
-        ElseIf item.Status = DataItemStatus.FailedProcessing Then
-            Log.DebugFormat("Moving {0} to {1}", message.Data.Label, Me.FailureQueue.Path)
+                Me.CompleteQueue.Send(Me.Queue.ReceiveById(message.Data.Id))
+            ElseIf item.Status = DataItemStatus.FailedProcessing Then
+                Log.DebugFormat("Moving {0} to {1}", message.Data.Label, Me.FailureQueue.Path)
 
-            Me.FailureQueue.Send(Me.Queue.ReceiveById(message.Data.Id))
-        Else
-            Throw New NotImplementedException("Unknown Item Status")
-        End If
+                Me.FailureQueue.Send(Me.Queue.ReceiveById(message.Data.Id))
+            Else
+                Throw New NotImplementedException("Unknown Item Status")
+            End If
+        Catch ex As Exception
+            Log.Error(String.Format("Error moving {0}", message.Data.Label), ex)
+        End Try
     End Sub
 
     ''' <summary>

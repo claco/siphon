@@ -74,7 +74,7 @@ Public Class ImapMonitor
                 Return False
             End If
         Catch ex As Exception
-            Log.Error(ex)
+            Log.Error(String.Format("Error connecting to {0}", Me.Uri) ex)
         End Try
     End Function
 
@@ -88,7 +88,7 @@ Public Class ImapMonitor
         Try
             Client.Disconnect()
         Catch ex As Exception
-            Log.Error(ex)
+            Log.Error(String.Format("Error disconnecting from {0}") ex)
         Finally
             Me.IsConnected = False
         End Try
@@ -114,7 +114,11 @@ Public Class ImapMonitor
                     If Not folders.Contains(folder) Then
                         Log.DebugFormat("Creating folder {0}", Me.Uri)
 
-                        Client.CreateFolder(folder)
+                        Try
+                            Client.CreateFolder(folder)
+                        Catch ex As Exception
+                            Log.Error(String.Format("Error creating {0}", Me.Uri), ex)
+                        End Try
                     End If
 
                     If Me.CompleteUri IsNot Nothing Then
@@ -123,7 +127,11 @@ Public Class ImapMonitor
                         If Not folders.Contains(completeFolder) Then
                             Log.DebugFormat("Creating folder {0}", Me.CompleteUri)
 
-                            Client.CreateFolder(completeFolder)
+                            Try
+                                Client.CreateFolder(completeFolder)
+                            Catch ex As Exception
+                                Log.Error(String.Format("Error creating {0}", Me.CompleteUri), ex)
+                            End Try
                         End If
                     End If
 
@@ -133,7 +141,11 @@ Public Class ImapMonitor
                         If Not folders.Contains(failureFolder) Then
                             Log.DebugFormat("Creating folder {0}", Me.FailureUri)
 
-                            Client.CreateFolder(failureFolder)
+                            Try
+                                Client.CreateFolder(failureFolder)
+                            Catch ex As Exception
+                                Log.Error(String.Format("Error creating {0}", Me.FailureUri), ex)
+                            End Try
                         End If
                     End If
 

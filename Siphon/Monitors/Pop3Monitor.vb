@@ -55,6 +55,7 @@ Public Class Pop3Monitor
         If Me.IsConnected AndAlso Client.IsConnected Then
             Return True
         End If
+
         Log.DebugFormat("Connecting to {0}", Me.Uri)
 
         Try
@@ -72,7 +73,7 @@ Public Class Pop3Monitor
                 Return False
             End If
         Catch ex As Exception
-            Log.Error(ex)
+            Log.Error(String.Format("Error connecting to {0}", Me.Uri), ex)
         End Try
     End Function
 
@@ -86,7 +87,7 @@ Public Class Pop3Monitor
         Try
             Client.Disconnect()
         Catch ex As Exception
-            Log.Error(ex)
+            Log.Error(String.Format("Error disconnecting from {0}", Me.Uri), ex)
         Finally
             Me.IsConnected = False
         End Try

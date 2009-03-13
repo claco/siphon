@@ -33,33 +33,49 @@ Public Class LocalDirectoryMonitor
     ''' <remarks></remarks>
     Public Overrides Sub CreateFolders()
         If Me.CreateMissingFolders Then
-            If Not Directory.Exists(Me.Path) Then
-                Dim root As String = Me.Path
+            Try
+                If Not Directory.Exists(Me.Path) Then
+                    Dim root As String = Me.Path
 
-                Log.DebugFormat("Creating directory {0}", root)
+                    Log.DebugFormat("Creating directory {0}", root)
 
-                Directory.CreateDirectory(root)
-            End If
-
-            If Not String.IsNullOrEmpty(Me.CompletePath) Then
-                Dim complete As String = Me.CompleteUri.LocalPath
-
-                If Not Directory.Exists(complete) Then
-                    Log.DebugFormat("Creating directory {0}", complete)
-
-                    Directory.CreateDirectory(complete)
+                    Try
+                        Directory.CreateDirectory(root)
+                    Catch ex As Exception
+                        Log.Error(String.Format("Error creating {0}", root), ex)
+                    End Try
                 End If
-            End If
 
-            If Not String.IsNullOrEmpty(Me.FailurePath) Then
-                Dim failure As String = Me.FailureUri.LocalPath
+                If Not String.IsNullOrEmpty(Me.CompletePath) Then
+                    Dim complete As String = Me.CompleteUri.LocalPath
 
-                If Not Directory.Exists(failure) Then
-                    Log.DebugFormat("Creating directory {0}", failure)
+                    If Not Directory.Exists(complete) Then
+                        Log.DebugFormat("Creating directory {0}", complete)
 
-                    Directory.CreateDirectory(failure)
+                        Try
+                            Directory.CreateDirectory(complete)
+                        Catch ex As Exception
+                            Log.Error(String.Format("Error creating {0}", complete), ex)
+                        End Try
+                    End If
                 End If
-            End If
+
+                If Not String.IsNullOrEmpty(Me.FailurePath) Then
+                    Dim failure As String = Me.FailureUri.LocalPath
+
+                    If Not Directory.Exists(failure) Then
+                        Log.DebugFormat("Creating directory {0}", failure)
+
+                        Try
+                            Directory.CreateDirectory(failure)
+                        Catch ex As Exception
+                            Log.Error(String.Format("Error creating {0}", failure), ex)
+                        End Try
+                    End If
+                End If
+            Catch ex As Exception
+                Log.Error("Error creating folders", ex)
+            End Try
         End If
     End Sub
 
@@ -70,13 +86,19 @@ Public Class LocalDirectoryMonitor
     Public Overrides Function Scan() As Collection(Of IDataItem)
         Log.DebugFormat("Scanning {0} for {1}", Me.Path, Me.Filter)
 
-        Dim files() As String = Directory.GetFiles(Me.Path, Me.Filter, SearchOption.TopDirectoryOnly)
         Dim items As New Collection(Of IDataItem)
-        Log.DebugFormat("Found {0} files in {1}", files.Length, Me.Path)
 
-        For Each file As String In files
-            items.Add(New FileDataItem(file))
-        Next
+        Try
+            Dim files() As String = Directory.GetFiles(Me.Path, Me.Filter, SearchOption.TopDirectoryOnly)
+
+            Log.DebugFormat("Found {0} files in {1}", files.Length, Me.Path)
+
+            For Each file As String In files
+                items.Add(New FileDataItem(file))
+            Next
+        Catch ex As Exception
+            Log.Error(String.Format("Error scanning {0}", Me.Path), ex)
+        End Try
 
         Return items
     End Function
@@ -91,7 +113,11 @@ Public Class LocalDirectoryMonitor
 
         Log.DebugFormat("Deleting {0}", file.Data.FullName)
 
-        file.Data.Delete()
+        Try
+            file.Data.Delete()
+        Catch ex As Exception
+            Log.Error(String.Format("Error deleting {0}", file.Data.FullName), ex)
+        End Try
     End Sub
 
     ''' <summary>
@@ -111,11 +137,15 @@ Public Class LocalDirectoryMonitor
             Throw New NotImplementedException("Unknown Item Status")
         End If
 
-        Dim moved As String = IO.Path.Combine(path, file.Data.Name)
-        file.Data.MoveTo(moved)
-        file.Data = New FileInfo(moved)
-
         Log.DebugFormat("Moving {0} to {1}", file.Data.FullName, path)
+
+        Try
+            Dim moved As String = IO.Path.Combine(path, file.Data.Name)
+            file.Data.MoveTo(moved)
+            file.Data = New FileInfo(moved)
+        Catch ex As Exception
+            Log.Error(String.Format("Error moving {0}", file.Data.FullName), ex)
+        End Try
     End Sub
 
     ''' <summary>
@@ -127,12 +157,17 @@ Public Class LocalDirectoryMonitor
         Dim file As IDataItem(Of FileInfo) = item
         Dim original As String = file.Data.Name
         Dim name As String = Me.GetNewFileName(original)
-        Dim renamed As String = IO.Path.Combine(file.Data.Directory.FullName, name)
-
-        file.Data.MoveTo(renamed)
-        file.Data = New FileInfo(renamed)
 
         Log.DebugFormat("Renaming {0} to {1}", original, name)
+
+        Try
+            Dim renamed As String = IO.Path.Combine(file.Data.Directory.FullName, name)
+
+            file.Data.MoveTo(renamed)
+            file.Data = New FileInfo(renamed)
+        Catch ex As Exception
+            Log.Error(String.Format("Error renaming {0}", file.Data.FullName), ex)
+        End Try
     End Sub
 
     ''' <summary>
