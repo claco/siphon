@@ -43,7 +43,7 @@ Public Class SiphonService
                 _monitors = New Collection(Of IDataMonitor)
 
                 For Each monitor As MonitorElement In Me.Configuration.Monitors
-                    Log.InfoFormat("Creating monitor {0}", monitor.Name)
+                    Log.DebugFormat("Creating monitor {0}", monitor.Name)
 
                     _monitors.Add(monitor.CreateInstance)
                 Next

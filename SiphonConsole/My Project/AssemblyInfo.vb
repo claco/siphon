@@ -13,7 +13,7 @@ Imports log4net
 <Assembly: AssemblyDescription("Console interface to run Siphon monitors/processors")> 
 <Assembly: AssemblyCompany("")> 
 <Assembly: AssemblyProduct("SiphonConsole")> 
-<Assembly: AssemblyCopyright("Copyright ©  2008")> 
+<Assembly: AssemblyCopyright("Copyright © 2008-2009")> 
 <Assembly: AssemblyTrademark("")> 
 <Assembly: log4net.Config.XmlConfigurator(Watch:=True)> 
 

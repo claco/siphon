@@ -13,7 +13,7 @@ Imports log4net
 <Assembly: AssemblyDescription("Siphon is a set of tools to automate data monitoring and processing")> 
 <Assembly: AssemblyCompany("")> 
 <Assembly: AssemblyProduct("Siphon")> 
-<Assembly: AssemblyCopyright("Copyright ©  2008")> 
+<Assembly: AssemblyCopyright("Copyright © 2008-2009")> 
 <Assembly: AssemblyTrademark("")> 
 <Assembly: log4net.Config.XmlConfigurator(Watch:=True)> 
 
