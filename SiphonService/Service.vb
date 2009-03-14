@@ -62,16 +62,22 @@ Public Class SiphonService
     Protected Overrides Sub OnStart(ByVal args() As String)
         Log.Info("Starting Siphon Service")
 
-        Try
-            If _host IsNot Nothing Then
-                _host.Close()
-            Else
-                _host = New ServiceModel.ServiceHost(GetType(SiphonServiceAdministration))
-            End If
-            _host.Open()
-        Catch ex As Exception
-            Log.Error(String.Format("Error starting administration {0}", ex))
-        End Try
+        If Me.Configuration.EnableRemoteAdministration Then
+            Log.Info("Starting remote administration")
+
+            Try
+                If _host IsNot Nothing Then
+                    _host.Close()
+                Else
+                    _host = New ServiceModel.ServiceHost(GetType(SiphonServiceAdministration))
+                End If
+                _host.Open()
+
+                Log.InfoFormat("Remote administration started on {0}", _host.BaseAddresses(0))
+            Catch ex As Exception
+                Log.Error(String.Format("Error starting remote administration {0}", ex))
+            End Try
+        End If
 
         For Each monitor As IDataMonitor In Me.Monitors
             Log.InfoFormat("Starting monitor {0}", monitor.Name)

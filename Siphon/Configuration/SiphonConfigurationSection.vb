@@ -51,6 +51,22 @@ Public Class SiphonConfigurationSection
     End Property
 
     ''' <summary>
+    ''' Gets/sets if remote administration should be enabled.
+    ''' </summary>ss
+    ''' <value></value>
+    ''' <returns>Boolean</returns>
+    ''' <remarks>If True, the remote administration will be started. Otherwise it will be disabled.</remarks>
+    <ConfigurationProperty("enableRemoteAdministration", DefaultValue:=False)> _
+    Public Overridable Property EnableRemoteAdministration() As Boolean
+        Get
+            Return Me.Item("enableRemoteAdministration")
+        End Get
+        Set(ByVal value As Boolean)
+            Me.Item("enableRemoteAdministration") = value
+        End Set
+    End Property
+
+    ''' <summary>
     ''' Returns a instance of the specified type from the given assembly.
     ''' </summary>
     ''' <param name="type">String. The type string, including the assembly name/path to create.</param>
