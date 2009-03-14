@@ -32,9 +32,13 @@ Imports ChrisLaco.Siphon
                     AddHandler monitor.ProcessComplete, AddressOf Monitor_ProcessComplete
                     AddHandler monitor.ProcessFailure, AddressOf Monitor_ProcessFailure
                     monitor.Filter = String.Empty
+
+                    Assert.IsFalse(monitor.IsRunning)
                     monitor.Start()
+                    Assert.IsTrue(monitor.IsRunning)
                     Threading.Thread.Sleep(5000)
                     monitor.Stop()
+                    Assert.IsFalse(monitor.IsRunning)
 
                     Assert.AreEqual(1, processor.Count, "Has processed 1 file")
                     Assert.IsTrue(Me.ProcessComplete)
@@ -452,7 +456,7 @@ Imports ChrisLaco.Siphon
                     monitor.Start()
                     Threading.Thread.Sleep(5000)
 
-                    Assert.IsTrue(monitor.Processing, "Processing is true when a worker processor is still running")
+                    Assert.IsTrue(monitor.IsProcessing, "Processing is true when a worker processor is still running")
                     Dim pre As DateTime = DateTime.Now
                     monitor.Stop()
                     Dim post As DateTime = DateTime.Now

@@ -20,9 +20,10 @@ Public MustInherit Class DataMonitor
 
     Private _credentials As NetworkCredential = Nothing
     Private _isConnected As Boolean = False
-    Private _disposed As Boolean
+    Private _disposed As Boolean = False
     Private _name As String = String.Empty
-    Private _processing As Boolean
+    Private _isProcessing As Boolean = False
+    Private _isRunning As Boolean = False
     Private _processFailureActions As DataActions = DataActions.None
     Private _processCompleteActions As DataActions = DataActions.None
     Private _processor As IDataProcessor = Nothing
@@ -152,9 +153,9 @@ Public MustInherit Class DataMonitor
     ''' <value></value>
     ''' <returns>Boolean. True if the monitor is processing new data. False otherwise.</returns>
     ''' <remarks></remarks>
-    Public Overridable ReadOnly Property Processing() As Boolean
+    Public Overridable ReadOnly Property IsProcessing() As Boolean Implements IDataMonitor.IsProcessing
         Get
-            Return _processing
+            Return _isProcessing
         End Get
     End Property
 
@@ -188,7 +189,20 @@ Public MustInherit Class DataMonitor
 
         Me.Validate()
         Me.Timer.Change(Me.GetNextInterval, Timeout.Infinite)
+        _isRunning = True
     End Sub
+
+    ''' <summary>
+    ''' Gets flag indicating if the current monitor is running/has been started.
+    ''' </summary>
+    ''' <value></value>
+    ''' <returns>Boolean. True if the monitor is running. False otherwise.</returns>
+    ''' <remarks></remarks>
+    Public Overridable ReadOnly Property IsRunning() As Boolean Implements IDataMonitor.IsRunning
+        Get
+            Return _isRunning
+        End Get
+    End Property
 
     ''' <summary>
     ''' Pauses data monitoring, usually while processing files.
@@ -198,6 +212,7 @@ Public MustInherit Class DataMonitor
         Log.InfoFormat("Pausing Monitor {0}", Me.Name)
 
         Me.Timer.Change(Timeout.Infinite, Timeout.Infinite)
+        _isRunning = False
     End Sub
 
     ''' <summary>
@@ -211,6 +226,7 @@ Public MustInherit Class DataMonitor
 
         Try
             Me.Timer.Change(Me.GetNextInterval, Timeout.Infinite)
+            _isRunning = True
         Catch ex As ObjectDisposedException
             REM If processing is going after main thread is done
         Catch ex As Exception
@@ -223,12 +239,17 @@ Public MustInherit Class DataMonitor
     ''' </summary>
     ''' <remarks></remarks>
     Public Overridable Sub [Stop]() Implements IDataMonitor.Stop
-        Log.InfoFormat("Stopping Monitor {0}", Me.Name)
-
-        If Me.Processing Then
+        If Me.IsProcessing Then
             Log.Debug("Waiting for processor to finish")
             Me.EventWaitHandle.WaitOne()
+
             Log.Debug("Done waiting for processor to finish")
+        End If
+    
+        If Me.IsRunning Then
+            Log.InfoFormat("Stopping Monitor {0}", Me.Name)
+
+            _isRunning = False
         End If
     End Sub
 
@@ -334,12 +355,12 @@ Public MustInherit Class DataMonitor
 
             If Me.IsConnected Then
                 Dim items As Collection(Of IDataItem) = Me.Scan
-                Log.DebugFormat("Scan returned {0} items", items.Count)
+                Log.InfoFormat("Scan returned {0} items", items.Count)
 
                 If items.Count > 0 Then
-                    Log.DebugFormat("Pre Process Processing {0}", _processing)
+                    Log.DebugFormat("Pre Process Processing {0}", _isProcessing)
 
-                    _processing = True
+                    _isProcessing = True
 
                     For Each item As IDataItem In items
                         Dim prepared As Boolean = False
@@ -356,6 +377,7 @@ Public MustInherit Class DataMonitor
                             Log.DebugFormat("Skipping {0}", item.Name)
                         Else
                             Try
+                                Log.InfoFormat("Processing {0}", item.Name)
                                 processed = Me.Processor.Process(item)
                             Catch ex As Exception
                                 Log.Debug(String.Format("Processing {0} failed", item.Name), ex)
@@ -372,9 +394,9 @@ Public MustInherit Class DataMonitor
                         End If
                     Next
 
-                    _processing = False
+                    _isProcessing = False
 
-                    Log.DebugFormat("Post Process Processing {0}", _processing)
+                    Log.DebugFormat("Post Process Processing {0}", _isProcessing)
                 End If
             Else
                 Log.Error("Could not connect to data source")

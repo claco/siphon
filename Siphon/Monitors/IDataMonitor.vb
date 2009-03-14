@@ -62,6 +62,22 @@ Public Interface IDataMonitor
     Sub Process()
 
     ''' <summary>
+    ''' Gets flag indicating if the current monitor is processing new data.
+    ''' </summary>
+    ''' <value></value>
+    ''' <returns>Boolean. True if the monitor is processing new data. False otherwise.</returns>
+    ''' <remarks></remarks>
+    ReadOnly Property IsProcessing() As Boolean
+
+    ''' <summary>
+    ''' Gets flag indicating if the current monitor is running/has been started.
+    ''' </summary>
+    ''' <value></value>
+    ''' <returns>Boolean. True if the monitor is running. False otherwise.</returns>
+    ''' <remarks></remarks>
+    ReadOnly Property IsRunning() As Boolean
+
+    ''' <summary>
     ''' Gets/sets the data processor to use when new data is found.
     ''' </summary>
     ''' <value></value>

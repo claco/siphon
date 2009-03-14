@@ -275,7 +275,7 @@ Imports ChrisLaco.Siphon
                     monitor.Start()
                     Threading.Thread.Sleep(5000)
 
-                    Assert.IsTrue(monitor.Processing, "Processing is true when a worker processor is still running")
+                    Assert.IsTrue(monitor.IsProcessing, "Processing is true when a worker processor is still running")
                     Dim pre As DateTime = DateTime.Now
                     monitor.Stop()
                     Dim post As DateTime = DateTime.Now
