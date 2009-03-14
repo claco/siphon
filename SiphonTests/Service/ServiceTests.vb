@@ -38,7 +38,7 @@ Public Class ServiceTests
         Using service As New SiphonService
             CreateSuccessFile()
 
-            Using schedule = New DailySchedule(DateTime.Now.AddSeconds(2).TimeOfDay)
+            Using schedule = New DailySchedule(DateTime.Now.AddSeconds(7).TimeOfDay)
                 Using processor As New MockProcessor
                     Using monitor As New LocalDirectoryMonitor("TestLocalDirectoryMonitor", TestDirectory.FullName, schedule, processor)
                         AddHandler monitor.ProcessComplete, AddressOf Monitor_ProcessComplete
@@ -50,7 +50,7 @@ Public Class ServiceTests
                         Dim args() As String = {}
                         Dim parameters() As Object = {args}
                         service.GetType.GetMethod("OnStart", Reflection.BindingFlags.NonPublic Or Reflection.BindingFlags.Instance).Invoke(service, parameters)
-                        Threading.Thread.Sleep(3000)
+                        Threading.Thread.Sleep(9000)
                         service.GetType.GetMethod("OnStop", Reflection.BindingFlags.NonPublic Or Reflection.BindingFlags.Instance).Invoke(service, Nothing)
 
                         Assert.AreEqual(1, processor.Count)
@@ -80,7 +80,7 @@ Public Class ServiceTests
                         Dim parameters() As Object = {args}
                         service.GetType.GetMethod("OnStart", Reflection.BindingFlags.NonPublic Or Reflection.BindingFlags.Instance).Invoke(service, parameters)
                         service.GetType.GetMethod("OnPause", Reflection.BindingFlags.NonPublic Or Reflection.BindingFlags.Instance).Invoke(service, Nothing)
-                        Threading.Thread.Sleep(5000)
+                        Threading.Thread.Sleep(3000)
                         Assert.AreEqual(0, processor.Count)
                         service.GetType.GetMethod("OnContinue", Reflection.BindingFlags.NonPublic Or Reflection.BindingFlags.Instance).Invoke(service, Nothing)
                         Threading.Thread.Sleep(4000)
@@ -100,7 +100,7 @@ Public Class ServiceTests
         Using service As New SiphonService
             CreateExceptionFile()
 
-            Using schedule = New DailySchedule(DateTime.Now.AddSeconds(2).TimeOfDay)
+            Using schedule = New DailySchedule(DateTime.Now.AddSeconds(7).TimeOfDay)
                 Using processor As New MockProcessor
                     Using monitor As New LocalDirectoryMonitor("TestLocalDirectoryMonitor", TestDirectory.FullName, schedule, processor)
                         AddHandler monitor.ProcessComplete, AddressOf Monitor_ProcessComplete
@@ -129,7 +129,7 @@ Public Class ServiceTests
         Using service As New SiphonService
             CreateExceptionFile()
 
-            Using schedule = New DailySchedule(DateTime.Now.AddSeconds(2).TimeOfDay)
+            Using schedule = New DailySchedule(DateTime.Now.AddSeconds(7).TimeOfDay)
                 Using processor As New MockProcessor
                     Using monitor As New LocalDirectoryMonitor("TestLocalDirectoryMonitor", TestDirectory.FullName, schedule, processor)
                         Dim newMonitor As LocalDirectoryMonitor = monitor.GetType.Assembly.CreateInstance("ChrisLaco.Siphon.LocalDirectoryMonitor", True, BindingFlags.CreateInstance Or BindingFlags.Static Or BindingFlags.Public Or BindingFlags.NonPublic, Nothing, Nothing, Nothing, Nothing)
@@ -151,7 +151,7 @@ Public Class ServiceTests
         Using service As New SiphonService
             CreateExceptionFile()
 
-            Using schedule = New DailySchedule(DateTime.Now.AddSeconds(2).TimeOfDay)
+            Using schedule = New DailySchedule(DateTime.Now.AddSeconds(7).TimeOfDay)
                 Using processor As New MockProcessor
                     Using monitor As New LocalDirectoryMonitor("TestLocalDirectoryMonitor", TestDirectory.FullName, schedule, processor)
                         Dim newMonitor As LocalDirectoryMonitor = monitor.GetType.Assembly.CreateInstance("ChrisLaco.Siphon.LocalDirectoryMonitor", True, BindingFlags.CreateInstance Or BindingFlags.Static Or BindingFlags.Public Or BindingFlags.NonPublic, Nothing, Nothing, Nothing, Nothing)

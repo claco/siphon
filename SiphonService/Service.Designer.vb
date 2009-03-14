@@ -8,8 +8,15 @@ Partial Class SiphonService
     <System.Diagnostics.DebuggerNonUserCode()> _
     Protected Overrides Sub Dispose(ByVal disposing As Boolean)
         Try
-            If disposing AndAlso components IsNot Nothing Then
-                components.Dispose()
+            If disposing Then
+                If components IsNot Nothing Then
+                    components.Dispose()
+                End If
+
+                If _host IsNot Nothing Then
+                    _host.Close()
+                    _host = Nothing
+                End If
             End If
         Finally
             MyBase.Dispose(disposing)

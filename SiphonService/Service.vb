@@ -11,6 +11,7 @@ Public Class SiphonService
     Private Shared ReadOnly Log As ILog = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod.DeclaringType)
     Private _configuration As SiphonConfigurationSection
     Private _monitors As Collection(Of IDataMonitor)
+    Private _host As ServiceModel.ServiceHost
 
     ''' <summary>
     ''' Gets the Siphon configuration section.
@@ -61,12 +62,25 @@ Public Class SiphonService
     Protected Overrides Sub OnStart(ByVal args() As String)
         Log.Info("Starting Siphon Service")
 
+        Try
+            If _host IsNot Nothing Then
+                _host.Close()
+            Else
+                _host = New ServiceModel.ServiceHost(GetType(SiphonServiceAdministration))
+            End If
+            _host.Open()
+        Catch ex As Exception
+            Log.Error(String.Format("Error starting administration {0}", ex))
+        End Try
+
         For Each monitor As IDataMonitor In Me.Monitors
             Log.InfoFormat("Starting monitor {0}", monitor.Name)
 
             Try
                 monitor.Start()
             Catch ex As Exception
+                _host.Close()
+                _host = Nothing
                 Log.Error(String.Format("Error starting monitor {0}", monitor.Name), ex)
             End Try
         Next
@@ -110,6 +124,13 @@ Public Class SiphonService
     ''' <remarks></remarks>
     Protected Overrides Sub OnStop()
         Log.Info("Stopping Siphon Service")
+
+        If _host IsNot Nothing Then
+            If _host.State = ServiceModel.CommunicationState.Opened Then
+                _host.Close()
+            End If
+            _host = Nothing
+        End If
 
         For Each monitor As IDataMonitor In Me.Monitors
             Log.InfoFormat("Stopping monitor {0}", monitor.Name)
