@@ -15,6 +15,10 @@ Public Class SiphonConsole
     Private _configuration As SiphonConfigurationSection
     Private _monitors As Collection(Of IDataMonitor)
 
+    Private COMMAND_ARG_HELP As String = "help"
+    Private COMMAND_ARG_QUESTION As String = "?"
+    Private COMMAND_ARG_PROCESS As String = "process"
+
     ''' <summary>
     ''' Gets the Siphon configuration section.
     ''' </summary>
@@ -42,15 +46,18 @@ Public Class SiphonConsole
     Public ReadOnly Property Monitors() As Collection(Of IDataMonitor)
         Get
             If _monitors Is Nothing Then
-                Log.Debug("Creating monitors")
+                Try
+                    Log.Debug("Creating monitors")
+                    _monitors = New Collection(Of IDataMonitor)
 
-                _monitors = New Collection(Of IDataMonitor)
+                    For Each monitor As MonitorElement In Me.Configuration.Monitors
+                        Log.DebugFormat("Creating monitor {0}", monitor.Name)
 
-                For Each monitor As MonitorElement In Me.Configuration.Monitors
-                    Log.DebugFormat("Creating monitor {0}", monitor.Name)
-
-                    _monitors.Add(monitor.CreateInstance)
-                Next
+                        _monitors.Add(monitor.CreateInstance)
+                    Next
+                Catch ex As Exception
+                    Log.FatalFormat("Error loading monitors: {0}", ex)
+                End Try
             End If
 
             Return _monitors
@@ -64,30 +71,17 @@ Public Class SiphonConsole
     ''' <remarks></remarks>
     Public Sub Run(ByVal args() As String)
         If args.Length > 0 Then
-            Dim first As String = args(0).Trim.ToLower
+            Dim stack As New Stack(Of String)(args.Reverse)
+            Dim first As String = stack.Pop.Trim.ToLower.Replace("-", "").Replace("/", "")
 
-            If first = "all" Or first = "*" Then
-                Log.Info("Running all monitors")
-
-                For Each monitor As IDataMonitor In Me.Monitors
-                    monitor.Process()
-                Next
-            Else
-                For Each arg As String In args
-                    Dim name As String = arg.Trim
-                    Dim query = From monitor In Me.Monitors Where monitor.Name = name
-
-                    If query.Count = 0 Then
-                        Log.ErrorFormat("Could not find monitor {0}", name)
-                    Else
-                        Log.InfoFormat("Running monitor {0}", query.First.Name)
-
-                        query.First.Process()
-                    End If
-                Next
-            End If
-
-            Environment.ExitCode = 0
+            Select Case first
+                Case COMMAND_ARG_HELP, COMMAND_ARG_QUESTION
+                    Help.Run(Me, stack.ToArray)
+                Case COMMAND_ARG_PROCESS
+                    Process.Run(Me, stack.ToArray)
+                Case Else
+                    Help.Run(Me, stack.ToArray)
+            End Select
         Else
             Environment.ExitCode = 1
 

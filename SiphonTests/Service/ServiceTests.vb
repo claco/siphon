@@ -112,7 +112,7 @@ Public Class ServiceTests
                         Dim args() As String = {}
                         Dim parameters() As Object = {args}
                         service.GetType.GetMethod("OnStart", Reflection.BindingFlags.NonPublic Or Reflection.BindingFlags.Instance).Invoke(service, parameters)
-                        Threading.Thread.Sleep(4000)
+                        Threading.Thread.Sleep(7000)
                         service.GetType.GetMethod("OnStop", Reflection.BindingFlags.NonPublic Or Reflection.BindingFlags.Instance).Invoke(service, Nothing)
 
                         Assert.AreEqual(1, processor.Count)

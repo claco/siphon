@@ -11,7 +11,7 @@ Public MustInherit Class DataProcessor
     Private _disposed As Boolean
 
     ''' <summary>
-    ''' Creates a new monitor schedule instance.
+    ''' Creates a new processor instance.
     ''' </summary>
     ''' <remarks></remarks>
     Protected Sub New()

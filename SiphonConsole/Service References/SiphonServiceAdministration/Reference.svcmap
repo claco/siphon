@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ReferenceGroup xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" ID="4182126b-0ca4-4652-99d1-7d49831e3302" xmlns="urn:schemas-microsoft-com:xml-wcfservicemap">
+  <ClientOptions>
+    <GenerateAsynchronousMethods>false</GenerateAsynchronousMethods>
+    <EnableDataBinding>true</EnableDataBinding>
+    <ExcludedTypes />
+    <ImportXmlTypes>false</ImportXmlTypes>
+    <GenerateInternalTypes>false</GenerateInternalTypes>
+    <GenerateMessageContracts>false</GenerateMessageContracts>
+    <NamespaceMappings />
+    <CollectionMappings />
+    <GenerateSerializableTypes>true</GenerateSerializableTypes>
+    <Serializer>Auto</Serializer>
+    <ReferenceAllAssemblies>true</ReferenceAllAssemblies>
+    <ReferencedAssemblies />
+    <ReferencedDataContractTypes />
+    <ServiceContractMappings />
+  </ClientOptions>
+  <MetadataSources>
+    <MetadataSource Address="http://localhost:8731/ChrisLaco.Siphon.SiphonServiceAdministration/" Protocol="http" SourceId="1" />
+  </MetadataSources>
+  <Metadata>
+    <MetadataFile FileName="item.xsd" MetadataType="Schema" ID="a54082d8-0ad0-4bd7-a136-34371c0d717d" SourceId="1" SourceUrl="http://localhost:8731/ChrisLaco.Siphon.SiphonServiceAdministration/?xsd=xsd1" />
+    <MetadataFile FileName="item1.xsd" MetadataType="Schema" ID="fd232240-c870-4a96-bd01-6342b22e2699" SourceId="1" SourceUrl="http://localhost:8731/ChrisLaco.Siphon.SiphonServiceAdministration/?xsd=xsd0" />
+    <MetadataFile FileName="item.disco" MetadataType="Disco" ID="90ecabdd-caaa-494d-a8aa-af7ad082453c" SourceId="1" SourceUrl="http://localhost:8731/ChrisLaco.Siphon.SiphonServiceAdministration/?disco" />
+    <MetadataFile FileName="SiphonServiceAdministration.wsdl" MetadataType="Wsdl" ID="b5b3eee0-546d-41da-9bdc-d9a42c246c70" SourceId="1" SourceUrl="http://localhost:8731/ChrisLaco.Siphon.SiphonServiceAdministration/?wsdl" />
+  </Metadata>
+  <Extensions>
+    <ExtensionFile FileName="configuration91.svcinfo" Name="configuration91.svcinfo" />
+    <ExtensionFile FileName="configuration.svcinfo" Name="configuration.svcinfo" />
+  </Extensions>
+</ReferenceGroup>

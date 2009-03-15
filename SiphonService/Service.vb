@@ -1,5 +1,6 @@
 Imports System.Collections.ObjectModel
 Imports System.Configuration
+Imports System.ServiceModel
 Imports log4net
 
 ''' <summary>
@@ -40,14 +41,18 @@ Public Class SiphonService
     Public ReadOnly Property Monitors() As Collection(Of IDataMonitor)
         Get
             If _monitors Is Nothing Then
-                Log.Debug("Creating monitors")
-                _monitors = New Collection(Of IDataMonitor)
+                Try
+                    Log.Debug("Creating monitors")
+                    _monitors = New Collection(Of IDataMonitor)
 
-                For Each monitor As MonitorElement In Me.Configuration.Monitors
-                    Log.DebugFormat("Creating monitor {0}", monitor.Name)
+                    For Each monitor As MonitorElement In Me.Configuration.Monitors
+                        Log.DebugFormat("Creating monitor {0}", monitor.Name)
 
-                    _monitors.Add(monitor.CreateInstance)
-                Next
+                        _monitors.Add(monitor.CreateInstance)
+                    Next
+                Catch ex As Exception
+                    Log.FatalFormat("Error loading monitors: {0}", ex)
+                End Try
             End If
 
             Return _monitors
@@ -69,7 +74,7 @@ Public Class SiphonService
                 If _host IsNot Nothing Then
                     _host.Close()
                 Else
-                    _host = New ServiceModel.ServiceHost(GetType(SiphonServiceAdministration))
+                    _host = New ServiceHost(New SiphonServiceAdministration(Me))
                 End If
                 _host.Open()
 

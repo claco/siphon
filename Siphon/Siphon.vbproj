@@ -96,6 +96,7 @@
     <Compile Include="Monitors\ProcessEventArgs.vb" />
     <Compile Include="Monitors\RemoteDirectoryMonitor.vb" />
     <Compile Include="Processors\DataProcessor.vb" />
+    <Compile Include="Processors\DummyProcessor.vb" />
     <Compile Include="Processors\IDataProcessor.vb" />
     <Compile Include="Monitors\IDirectoryMonitor.vb" />
     <Compile Include="Schedules\DailySchedule.vb" />

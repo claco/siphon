@@ -79,6 +79,6 @@ Public Class SiphonConfigurationSection
         Dim types() As String = type.Split(separators, 1)
         Dim assembly As Assembly = assembly.Load(types(1).Trim)
 
-        Return assembly.CreateInstance(types(0).Trim, False, BindingFlags.CreateInstance Or BindingFlags.Static Or BindingFlags.Public Or BindingFlags.NonPublic, Nothing, Nothing, Nothing, Nothing)
+        Return assembly.CreateInstance(types(0).Trim, False, BindingFlags.CreateInstance Or BindingFlags.Instance Or BindingFlags.FlattenHierarchy Or BindingFlags.Public Or BindingFlags.NonPublic, Nothing, Nothing, Nothing, Nothing)
     End Function
 End Class

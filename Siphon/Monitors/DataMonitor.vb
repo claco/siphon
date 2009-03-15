@@ -110,6 +110,8 @@ Public MustInherit Class DataMonitor
         Dim password As String = String.Empty
         Dim domain As String = String.Empty
 
+        Me.Name = config.Name
+
         Dim settings As NameValueConfigurationCollection = config.Settings
         If settings.AllKeys.Contains(SETTING_USERNAME) Then
             userName = settings(SETTING_USERNAME).Value
@@ -185,7 +187,7 @@ Public MustInherit Class DataMonitor
     ''' </summary>
     ''' <remarks></remarks>
     Public Overridable Sub Start() Implements IDataMonitor.Start
-        Log.InfoFormat("Starting Monitor {0}", Me.Name)
+        Log.InfoFormat("Starting monitor {0}", Me.Name)
 
         Me.Validate()
         Me.Timer.Change(Me.GetNextInterval, Timeout.Infinite)
@@ -209,7 +211,7 @@ Public MustInherit Class DataMonitor
     ''' </summary>
     ''' <remarks></remarks>
     Public Overridable Sub Pause() Implements IDataMonitor.Pause
-        Log.InfoFormat("Pausing Monitor {0}", Me.Name)
+        Log.InfoFormat("Pausing monitor {0}", Me.Name)
 
         Me.Timer.Change(Timeout.Infinite, Timeout.Infinite)
         _isRunning = False
@@ -220,7 +222,7 @@ Public MustInherit Class DataMonitor
     ''' </summary>
     ''' <remarks></remarks>
     Public Overridable Sub [Resume]() Implements IDataMonitor.Resume
-        Log.InfoFormat("Resuming Monitor {0}", Me.Name)
+        Log.InfoFormat("Resuming monitor {0}", Me.Name)
 
         Me.Validate()
 
@@ -247,7 +249,7 @@ Public MustInherit Class DataMonitor
         End If
     
         If Me.IsRunning Then
-            Log.InfoFormat("Stopping Monitor {0}", Me.Name)
+            Log.InfoFormat("Stopping monitor {0}", Me.Name)
 
             _isRunning = False
         End If

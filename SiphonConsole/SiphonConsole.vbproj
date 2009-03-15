@@ -50,6 +50,12 @@
     </Reference>
     <Reference Include="System.Data" />
     <Reference Include="System.Deployment" />
+    <Reference Include="System.Runtime.Serialization">
+      <RequiredTargetFramework>3.0</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.ServiceModel">
+      <RequiredTargetFramework>3.0</RequiredTargetFramework>
+    </Reference>
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
@@ -63,6 +69,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Console.vb" />
+    <Compile Include="Help.vb" />
     <Compile Include="My Project\AssemblyInfo.vb" />
     <Compile Include="My Project\Application.Designer.vb">
       <AutoGen>True</AutoGen>
@@ -77,6 +84,12 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
+    </Compile>
+    <Compile Include="Process.vb" />
+    <Compile Include="Service References\SiphonServiceAdministration\Reference.vb">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Reference.svcmap</DependentUpon>
     </Compile>
   </ItemGroup>
   <ItemGroup>
@@ -99,12 +112,36 @@
       <CustomToolNamespace>My</CustomToolNamespace>
       <LastGenOutput>Settings.Designer.vb</LastGenOutput>
     </None>
+    <None Include="Service References\SiphonServiceAdministration\item.xsd" />
+    <None Include="Service References\SiphonServiceAdministration\item1.xsd" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Siphon\Siphon.vbproj">
       <Project>{10245550-B13F-4A23-9BF6-120FD5D3CDA1}</Project>
       <Name>Siphon</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <WCFMetadata Include="Service References\" />
+  </ItemGroup>
+  <ItemGroup>
+    <WCFMetadataStorage Include="Service References\SiphonServiceAdministration\" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Service References\SiphonServiceAdministration\item.disco" />
+    <None Include="Service References\SiphonServiceAdministration\SiphonServiceAdministration.wsdl" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Service References\SiphonServiceAdministration\configuration91.svcinfo" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Service References\SiphonServiceAdministration\configuration.svcinfo" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Service References\SiphonServiceAdministration\Reference.svcmap">
+      <Generator>WCF Proxy Generator</Generator>
+      <LastGenOutput>Reference.vb</LastGenOutput>
+    </None>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

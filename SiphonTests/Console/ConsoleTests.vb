@@ -46,7 +46,7 @@ Public Class ConsoleTests
                     console.Monitors.Clear()
                     console.Monitors.Add(monitor)
 
-                    Dim args() As String = {"all"}
+                    Dim args() As String = {"process", "all"}
                     console.Run(args)
 
                     Assert.AreEqual(1, processor.Count)
@@ -72,7 +72,7 @@ Public Class ConsoleTests
                     console.Monitors.Clear()
                     console.Monitors.Add(monitor)
 
-                    Dim args() As String = {"TestLocalDirectoryMonitor"}
+                    Dim args() As String = {"process", "TestLocalDirectoryMonitor"}
                     console.Run(args)
 
                     Assert.AreEqual(1, processor.Count)
@@ -98,13 +98,13 @@ Public Class ConsoleTests
                     console.Monitors.Clear()
                     console.Monitors.Add(monitor)
 
-                    Dim args() As String = {"Mispelled"}
+                    Dim args() As String = {"process", "Mispelled"}
                     console.Run(args)
 
                     Assert.AreEqual(0, processor.Count)
                     Assert.IsFalse(Me.ProcessComplete)
                     Assert.IsFalse(Me.ProcessFailure)
-                    Assert.AreEqual(0, Environment.ExitCode)
+                    Assert.AreEqual(1, Environment.ExitCode)
                 End Using
             End Using
         End Using
@@ -134,7 +134,7 @@ Public Class ConsoleTests
                         console.Monitors.Clear()
                         console.Monitors.Add(monitor)
 
-                        Dim args() As String = {"all"}
+                        Dim args() As String = {"process", "all"}
                         console.Run(args)
 
                         Assert.AreEqual(1, processor.Count)
