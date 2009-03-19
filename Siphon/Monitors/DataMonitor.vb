@@ -17,6 +17,8 @@ Public MustInherit Class DataMonitor
     Private Const SETTING_USERNAME As String = "Username"
     Private Const SETTING_PASSWORD As String = "Password"
     Private Const SETTING_DOMAIN As String = "Domain"
+    Private Const SETTING_PROCESS_COMPLETE_ACTIONS = "ProcessCompleteActions"
+    Private Const SETTING_PROCESS_FAILURE_ACTIONS = "ProcessFailureActions"
 
     Private _credentials As NetworkCredential = Nothing
     Private _isConnected As Boolean = False
@@ -124,6 +126,13 @@ Public MustInherit Class DataMonitor
             End If
 
             Me.Credentials = New NetworkCredential(userName, password, domain)
+        End If
+
+        If settings.AllKeys.Contains(SETTING_PROCESS_COMPLETE_ACTIONS) Then
+            _processCompleteActions = [Enum].Parse(GetType(DataActions), settings(SETTING_PROCESS_COMPLETE_ACTIONS).Value)
+        End If
+        If settings.AllKeys.Contains(SETTING_PROCESS_FAILURE_ACTIONS) Then
+            _processFailureActions = [Enum].Parse(GetType(DataActions), settings(SETTING_PROCESS_FAILURE_ACTIONS).Value)
         End If
 
         Me.Schedule = config.Schedule.CreateInstance

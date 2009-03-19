@@ -17,9 +17,11 @@ Public Class ConfigurationTests
         REM Test settingss
         Assert.AreEqual("IntervalMonitor", section.Monitors(0).Name)
         Assert.AreEqual("ChrisLaco.Siphon.LocalDirectoryMonitor, Siphon", section.Monitors(0).Type)
-        Assert.AreEqual(2, section.Monitors(0).Settings.Count)
+        Assert.AreEqual(4, section.Monitors(0).Settings.Count)
         Assert.AreEqual("C:\Temp", section.Monitors(0).Settings("Path").Value)
         Assert.AreEqual("*.tmp", section.Monitors(0).Settings("Filter").Value)
+        Assert.AreEqual("Rename, Move", section.Monitors(0).Settings("ProcessCompleteActions").Value)
+        Assert.AreEqual("Delete", section.Monitors(0).Settings("ProcessFailureActions").Value)
         Assert.AreEqual("ChrisLaco.Siphon.IntervalSchedule, Siphon", section.Monitors(0).Schedule.Type)
         Assert.AreEqual("ChrisLaco.Tests.Siphon.MockProcessor, SiphonTests", section.Monitors(0).Processor.Type)
         Assert.AreEqual(New TimeSpan(1, 2, 3, 4), section.Monitors(0).Schedule.Interval.Value)
@@ -62,6 +64,8 @@ Public Class ConfigurationTests
         Assert.AreEqual("*.tmp", DirectCast(monitor, LocalDirectoryMonitor).Filter)
         Assert.AreEqual(New TimeSpan(1, 2, 3, 4), DirectCast(monitor.Schedule, IntervalSchedule).Interval)
         Assert.IsInstanceOfType(GetType(MockProcessor), monitor.Processor)
+        Assert.AreEqual(DataActions.Rename Or DataActions.Move, monitor.ProcessCompleteActions)
+        Assert.AreEqual(DataActions.Delete, monitor.ProcessFailureActions)
 
         monitor = section.Monitors(1).CreateInstance
         Assert.IsInstanceOfType(GetType(FtpDirectoryMonitor), monitor)
