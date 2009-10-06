@@ -1,1 +1,2 @@
 - FTP Move to different server should delete source, upload to remote
+- Added enabled/disable monitor attribute
