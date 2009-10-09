@@ -71,6 +71,18 @@ Public Class ScheduleElement
         End Get
     End Property
 
+    ''' <summary>
+    ''' Gets a collection of schedule exceptions for use by a schedule.
+    ''' </summary>
+    ''' <value></value>
+    ''' <returns>ExceptionElementCollection</returns>
+    ''' <remarks></remarks>
+    <ConfigurationProperty("exceptions")> _
+    Public Overridable ReadOnly Property Exceptions() As ExceptionElementCollection
+        Get
+            Return Me.Item("exceptions")
+        End Get
+    End Property
 
     ''' <summary>
     ''' Gets the settings collection for the current schedule.

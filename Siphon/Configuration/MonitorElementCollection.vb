@@ -20,7 +20,7 @@ Public Class MonitorElementCollection
     ''' <summary>
     ''' Gets a monitor element by index.
     ''' </summary>
-    ''' <param name="i">Integer. The position of the minitor element to return.</param>
+    ''' <param name="i">Integer. The position of the monitor element to return.</param>
     ''' <value></value>
     ''' <returns>MonitorElement</returns>
     ''' <remarks></remarks>

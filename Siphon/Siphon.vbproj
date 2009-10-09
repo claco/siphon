@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProductVersion>9.0.30729</ProductVersion>
+    <ProductVersion>9.0.21022</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{10245550-B13F-4A23-9BF6-120FD5D3CDA1}</ProjectGuid>
     <OutputType>Library</OutputType>
@@ -65,6 +65,8 @@
     <Import Include="System.Linq" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Configuration\ExceptionElement.vb" />
+    <Compile Include="Configuration\ExceptionElementCollection.vb" />
     <Compile Include="Configuration\SiphonConfigurationSection.vb" />
     <Compile Include="Configuration\IntervalElement.vb" />
     <Compile Include="Configuration\MonitorElementCollection.vb" />

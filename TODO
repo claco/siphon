@@ -1,2 +1,3 @@
 - FTP Move to different server should delete source, upload to remote
-- Added enabled/disable monitor attribute
+- Add enabled/disable monitor attribute
+- Add time range exceptions to schedules: Every x minutes, except between 1-2am, etc
