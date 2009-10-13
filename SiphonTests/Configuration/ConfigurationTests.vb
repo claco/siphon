@@ -72,6 +72,7 @@ Public Class ConfigurationTests
         Assert.IsInstanceOfType(GetType(MockProcessor), monitor.Processor)
         Assert.AreEqual(DataActions.Rename Or DataActions.Move, monitor.ProcessCompleteActions)
         Assert.AreEqual(DataActions.Delete, monitor.ProcessFailureActions)
+        Assert.AreEqual(2, monitor.Schedule.Exclusions.Count)
 
         monitor = section.Monitors(1).CreateInstance
         Assert.IsInstanceOfType(GetType(FtpDirectoryMonitor), monitor)

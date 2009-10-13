@@ -30,6 +30,27 @@ Public Class ScheduleExclusion
     End Sub
 
     ''' <summary>
+    ''' Creates a new ScheduleExclusion using strings containing DateTime or TimeSpan formats.
+    ''' </summary>
+    ''' <param name="from">String. The start of the schedules exclusion.</param>
+    ''' <param name="to">String. The end of the schedules exclusion.</param>
+    ''' <remarks>This is used to load an exclusion dynamically from strings read from config.</remarks>
+    Public Sub New(ByVal from As String, ByVal [to] As String)
+        Dim ts As TimeSpan
+        Dim dt As DateTime
+
+        If TimeSpan.TryParse(from, ts) AndAlso TimeSpan.TryParse([to], ts) Then
+            _from = Date.MinValue + TimeSpan.Parse(from)
+            _to = Date.MinValue + TimeSpan.Parse([to])
+        ElseIf DateTime.TryParse(from, dt) AndAlso DateTime.TryParse([to], dt) Then
+            _from = from
+            _to = [to]
+        Else
+            Throw New FormatException("From/To must both be TimeSpan or Datetime parsable strings")
+        End If
+    End Sub
+
+    ''' <summary>
     ''' Returns the next available DateTime, checking if the start is within the current exclusion.
     ''' </summary>
     ''' <param name="start">DateTime. The proposed next date time.</param>

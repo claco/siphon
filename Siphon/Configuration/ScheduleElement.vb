@@ -106,6 +106,10 @@ Public Class ScheduleElement
         Dim schedule As IMonitorSchedule = SiphonConfigurationSection.CreateInstance(Me.Type)
         schedule.Initialize(Me)
 
+        For Each exclusion As ExclusionElement In Me.Exclusions
+            schedule.Exclusions.Add(New ScheduleExclusion(exclusion.From, exclusion.To))
+        Next
+
         Return schedule
     End Function
 

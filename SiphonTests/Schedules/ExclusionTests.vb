@@ -121,4 +121,36 @@ Public Class ExclusionTests
     End Sub
 #End Region
 
+#Region "String Tests"
+
+    <Test(Description:="Can create an exclusion with strings")> _
+    Public Sub CanCreateUsingString()
+        Dim exclusion As New ScheduleExclusion("1:20:00", "2:30:00")
+
+        Assert.IsInstanceOfType(GetType(ScheduleExclusion), exclusion)
+    End Sub
+
+    <Test(Description:="Returns first available DateTime after excluded String range")> _
+    Public Sub ReturnsFirstAvailableDateTimeAfterStringDateTimeRange()
+        Dim from As DateTime = DateTime.Parse("10/10/2010 1:00PM")
+        Dim [to] As DateTime = from.AddHours(1)
+        Dim nextAvailable As DateTime = [to].AddSeconds(1)
+
+        Dim exclusion As New ScheduleExclusion(from.ToString, [to].ToString)
+
+        Assert.AreEqual(nextAvailable, exclusion.NextAvailable(from.AddMinutes(2)))
+    End Sub
+
+    <Test(Description:="Returns first available DateTime after excluded String range")> _
+    Public Sub ReturnsFirstAvailableDateTimeAfterStringTimeSpanRange()
+        Dim start As DateTime = DateTime.Parse("10/10/2010 1:30AM")
+        Dim nextAvailable As DateTime = DateTime.Parse("10/10/2010 2:30:01AM")
+
+        Dim exclusion As New ScheduleExclusion("1:20", "2:30")
+
+        Assert.AreEqual(nextAvailable, exclusion.NextAvailable(start))
+    End Sub
+
+#End Region
+
 End Class
