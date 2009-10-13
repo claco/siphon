@@ -3,14 +3,14 @@ Imports System.ComponentModel
 Imports System.Reflection
 
 ''' <summary>
-''' The configuraton for a schedule exception element.
+''' The configuraton for a schedule exclusion element.
 ''' </summary>
 ''' <remarks></remarks>
-Public Class ExceptionElement
+Public Class ExclusionElement
     Inherits ConfigurationElement
 
     ''' <summary>
-    ''' Creates a new schedule exception element.
+    ''' Creates a new schedule exclusion element.
     ''' </summary>
     ''' <remarks></remarks>
     Public Sub New()
@@ -18,7 +18,7 @@ Public Class ExceptionElement
     End Sub
 
     ''' <summary>
-    ''' Creates a new schedule exception element.
+    ''' Creates a new schedule exclusion element.
     ''' </summary>
     ''' <remarks></remarks>
     Public Sub New(ByVal from As TimeSpan, ByVal [to] As TimeSpan)
@@ -27,7 +27,7 @@ Public Class ExceptionElement
     End Sub
 
     ''' <summary>
-    ''' Creates a new schedule exception element.
+    ''' Creates a new schedule exclusion element.
     ''' </summary>
     ''' <remarks></remarks>
     Public Sub New(ByVal from As DateTime, ByVal [to] As DateTime)
@@ -36,7 +36,7 @@ Public Class ExceptionElement
     End Sub
 
     ''' <summary>
-    ''' Creates a new schedule exception element.
+    ''' Creates a new schedule exclusion element.
     ''' </summary>
     ''' <remarks></remarks>
     Public Sub New(ByVal from As String, ByVal [to] As String)
@@ -45,7 +45,7 @@ Public Class ExceptionElement
     End Sub
 
     ''' <summary>
-    ''' Gets/sets the start time of the schedule interval exception.
+    ''' Gets/sets the start time of the schedule interval exclusion.
     ''' </summary>
     ''' <value></value>
     ''' <returns>String</returns>
@@ -61,7 +61,7 @@ Public Class ExceptionElement
     End Property
 
     ''' <summary>
-    ''' Gets/sets the end time of the schedule interval exception.
+    ''' Gets/sets the end time of the schedule interval exclusion.
     ''' </summary>
     ''' <value></value>
     ''' <returns>String</returns>

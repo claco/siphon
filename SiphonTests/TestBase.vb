@@ -92,7 +92,7 @@ Public Class TestBase
             _testDirectory = value
         End Set
     End Property
- 
+
     Protected Overridable Sub DeleteTestDirectory()
         If _testDirectory IsNot Nothing Then
             TestDirectory.Delete(True)

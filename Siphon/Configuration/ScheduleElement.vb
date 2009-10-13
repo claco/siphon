@@ -72,15 +72,15 @@ Public Class ScheduleElement
     End Property
 
     ''' <summary>
-    ''' Gets a collection of schedule exceptions for use by a schedule.
+    ''' Gets a collection of schedule exclusions for use by a schedule.
     ''' </summary>
     ''' <value></value>
-    ''' <returns>ExceptionElementCollection</returns>
+    ''' <returns>ExclusionElementCollection</returns>
     ''' <remarks></remarks>
-    <ConfigurationProperty("exceptions")> _
-    Public Overridable ReadOnly Property Exceptions() As ExceptionElementCollection
+    <ConfigurationProperty("exclusions")> _
+    Public Overridable ReadOnly Property Exclusions() As ExclusionElementCollection
         Get
-            Return Me.Item("exceptions")
+            Return Me.Item("exclusions")
         End Get
     End Property
 

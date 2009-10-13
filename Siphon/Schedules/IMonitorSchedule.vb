@@ -20,4 +20,12 @@ Public Interface IMonitorSchedule
     ''' <returns>DateTime</returns>
     ''' <remarks></remarks>
     ReadOnly Property NextEvent(ByVal start As DateTime) As DateTime
+
+    ''' <summary>
+    ''' Returns a collection of ScheduleExclusions for the current schedule.
+    ''' </summary>
+    ''' <value></value>
+    ''' <returns>ICollection(Of ScheduleExclusion)</returns>
+    ''' <remarks></remarks>
+    ReadOnly Property Exclusions() As ICollection(Of ScheduleExclusion)
 End Interface

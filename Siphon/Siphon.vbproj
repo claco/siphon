@@ -65,8 +65,8 @@
     <Import Include="System.Linq" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Configuration\ExceptionElement.vb" />
-    <Compile Include="Configuration\ExceptionElementCollection.vb" />
+    <Compile Include="Configuration\ExclusionElement.vb" />
+    <Compile Include="Configuration\ExclusionElementCollection.vb" />
     <Compile Include="Configuration\SiphonConfigurationSection.vb" />
     <Compile Include="Configuration\IntervalElement.vb" />
     <Compile Include="Configuration\MonitorElementCollection.vb" />
@@ -120,6 +120,7 @@
     </Compile>
     <Compile Include="Schedules\IntervalSchedule.vb" />
     <Compile Include="Schedules\MonitorSchedule.vb" />
+    <Compile Include="Schedules\ScheduleExclusion.vb" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="My Project\Resources.resx">

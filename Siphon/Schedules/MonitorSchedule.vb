@@ -1,4 +1,5 @@
 ﻿Imports log4net
+Imports System.Collections.ObjectModel
 
 ''' <summary>
 ''' Base class for monitoring schedules.
@@ -9,6 +10,7 @@ Public MustInherit Class MonitorSchedule
 
     Private Shared ReadOnly Log As ILog = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod.DeclaringType)
     Private _disposed As Boolean
+    Private _exclusions As New Collection(Of ScheduleExclusion)
 
     ''' <summary>
     ''' Creates a new monitor schedule instance.
@@ -33,6 +35,18 @@ Public MustInherit Class MonitorSchedule
     ''' <returns>DateTime</returns>
     ''' <remarks></remarks>
     Public MustOverride ReadOnly Property NextEvent(ByVal start As DateTime) As DateTime Implements IMonitorSchedule.NextEvent
+
+    ''' <summary>
+    ''' Returns a collection of ScheduleExclusions for the current schedule.
+    ''' </summary>
+    ''' <value></value>
+    ''' <returns>ICollection(Of ScheduleExclusion)</returns>
+    ''' <remarks></remarks>
+    Public Overridable ReadOnly Property Exclusions() As System.Collections.Generic.ICollection(Of ScheduleExclusion) Implements IMonitorSchedule.Exclusions
+        Get
+            Return _exclusions
+        End Get
+    End Property
 
     ''' <summary>
     ''' Disposes the current schedule instance.

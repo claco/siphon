@@ -69,7 +69,13 @@ Public Class IntervalSchedule
     ''' <remarks></remarks>
     Public Overrides ReadOnly Property NextEvent(ByVal start As DateTime) As DateTime
         Get
-            Return start.Add(Me.Interval)
+            Dim nextAvailable As DateTime = start.Add(Me.Interval)
+
+            For Each exclusion As ScheduleExclusion In Me.Exclusions
+                nextAvailable = exclusion.NextAvailable(nextAvailable)
+            Next
+
+            Return nextAvailable
         End Get
     End Property
 End Class

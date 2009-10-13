@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProductVersion>9.0.30729</ProductVersion>
+    <ProductVersion>9.0.21022</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{CB1A8317-74C2-479F-B2E8-46470915F83B}</ProjectGuid>
     <OutputType>Library</OutputType>
@@ -123,6 +123,7 @@
     </Compile>
     <Compile Include="Pop3TestBase.vb" />
     <Compile Include="Processors\MockProcessor.vb" />
+    <Compile Include="Schedules\ExclusionTests.vb" />
     <Compile Include="Schedules\ScheduleTests.vb" />
     <Compile Include="Service\ServiceTests.vb" />
     <Compile Include="TestBase.vb" />

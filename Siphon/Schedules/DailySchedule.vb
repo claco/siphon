@@ -68,6 +68,7 @@ Public Class DailySchedule
     Public Overloads Overrides ReadOnly Property NextEvent(ByVal start As DateTime) As DateTime
         Get
             Dim max As New TimeSpan(0, 23, 59, 59, 999)
+            Dim nextAvailable As DateTime
 
             For Each tp As TimeSpan In Me.Times
                 If tp > max Then
@@ -77,15 +78,26 @@ Public Class DailySchedule
                     Log.DebugFormat("Start TimeOfDay {0}", start.TimeOfDay)
 
                     If tp >= start.TimeOfDay And (tp - start.TimeOfDay).TotalSeconds >= 1 Then
-                        Return New DateTime(start.Year, start.Month, start.Day, tp.Hours, tp.Minutes, tp.Seconds)
+                        nextAvailable = New DateTime(start.Year, start.Month, start.Day, tp.Hours, tp.Minutes, tp.Seconds)
+
+                        For Each exclusion As ScheduleExclusion In Me.Exclusions
+                            nextAvailable = exclusion.NextAvailable(nextAvailable)
+                        Next
+
+                        Return nextAvailable
                     End If
                 End If
             Next
 
             Dim tomorow As DateTime = start.AddDays(1)
             Dim time As TimeSpan = Me.Times(0)
+            nextAvailable = New DateTime(tomorow.Year, tomorow.Month, tomorow.Day, time.Hours, time.Minutes, time.Seconds)
 
-            Return New DateTime(tomorow.Year, tomorow.Month, tomorow.Day, time.Hours, time.Minutes, time.Seconds)
+            For Each exclusion As ScheduleExclusion In Me.Exclusions
+                nextAvailable = exclusion.NextAvailable(nextAvailable)
+            Next
+
+            Return nextAvailable
         End Get
     End Property
 End Class

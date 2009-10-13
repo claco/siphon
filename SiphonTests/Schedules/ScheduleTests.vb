@@ -9,6 +9,27 @@ Public Class ScheduleTests
         log4net.Config.XmlConfigurator.Configure()
     End Sub
 
+#Region "Exclusions Tests"
+
+    <Test(Description:="Has collection of exclusions")> _
+    Public Sub HasCollectionOfExclusions()
+        Using schedule As IMonitorSchedule = New IntervalSchedule
+            Assert.IsInstanceOfType(GetType(ICollection(Of ScheduleExclusion)), schedule.Exclusions)
+            Assert.AreEqual(0, schedule.Exclusions.Count)
+        End Using
+    End Sub
+
+    <Test(Description:="Can add eclusions")> _
+    Public Sub CanAddExclusions()
+        Using schedule As IMonitorSchedule = New IntervalSchedule
+            schedule.Exclusions.Add(New ScheduleExclusion(DateTime.Now, DateTime.Now))
+
+            Assert.AreEqual(1, schedule.Exclusions.Count)
+        End Using
+    End Sub
+
+#End Region
+
 #Region "Interval Schedule Tests"
 
     <Test(Description:="Test schedule default")> _
@@ -34,6 +55,36 @@ Public Class ScheduleTests
             Assert.AreEqual(1, ts.Hours, "1 hours in interval")
             Assert.AreEqual(2, ts.Minutes, "2 minutes in interval")
             Assert.AreEqual(3, ts.Seconds, "3 seconds in interval")
+        End Using
+    End Sub
+
+    <Test(Description:="Test schedule with interval with DateTime exclusions")> _
+    Public Sub IntervalScheduleWithDateTimeExclusions()
+        Using schedule As IMonitorSchedule = New IntervalSchedule(New TimeSpan(1, 2, 3))
+            Dim start As DateTime = DateTime.Now
+            Dim from As DateTime = start.AddHours(1)
+            Dim [to] As DateTime = start.AddHours(2)
+
+            schedule.Exclusions.Add(New ScheduleExclusion(from, [to]))
+
+            Dim nextAvailable As DateTime = schedule.NextEvent(start)
+
+            Assert.AreEqual([to].AddSeconds(1), nextAvailable)
+        End Using
+    End Sub
+
+    <Test(Description:="Test schedule with interval with TimeSpan exclusions")> _
+    Public Sub IntervalScheduleWithTimeSpanExclusions()
+        Using schedule As IMonitorSchedule = New IntervalSchedule(New TimeSpan(1, 2, 3))
+            Dim start As DateTime = DateTime.Parse("10/10/2010 1:00AM")
+            Dim from As TimeSpan = TimeSpan.Parse("2:00")
+            Dim [to] As TimeSpan = TimeSpan.Parse("3:00")
+
+            schedule.Exclusions.Add(New ScheduleExclusion(from, [to]))
+
+            Dim nextAvailable As DateTime = schedule.NextEvent(start)
+
+            Assert.AreEqual(DateTime.Parse("10/10/2010 3:00:01AM"), nextAvailable)
         End Using
     End Sub
 
@@ -76,6 +127,36 @@ Public Class ScheduleTests
             ndt = schedule.NextEvent(start)
             Assert.AreEqual(4, ndt.Hour, "Got hour 4")
             Assert.AreEqual(start.AddDays(1).Date, ndt.Date, "Got next day")
+        End Using
+    End Sub
+
+    <Test(Description:="Test schedule with interval with DateTime exclusions")> _
+    Public Sub DailyScheduleWithDateTimeExclusions()
+        Using schedule As IMonitorSchedule = New DailySchedule(New TimeSpan(1, 2, 3))
+            Dim start As DateTime = DateTime.Parse("10/10/2010 12:00AM")
+            Dim from As DateTime = start.AddHours(1)
+            Dim [to] As DateTime = start.AddHours(2)
+
+            schedule.Exclusions.Add(New ScheduleExclusion(from, [to]))
+
+            Dim nextAvailable As DateTime = schedule.NextEvent(start)
+
+            Assert.AreEqual([to].AddSeconds(1), nextAvailable)
+        End Using
+    End Sub
+
+    <Test(Description:="Test schedule with interval with TimeSpan exclusions")> _
+    Public Sub DailyScheduleWithTimeSpanExclusions()
+        Using schedule As IMonitorSchedule = New DailySchedule(New TimeSpan(1, 2, 3))
+            Dim start As DateTime = DateTime.Parse("10/10/2010 1:00AM")
+            Dim from As TimeSpan = TimeSpan.Parse("1:00")
+            Dim [to] As TimeSpan = TimeSpan.Parse("3:00")
+
+            schedule.Exclusions.Add(New ScheduleExclusion(from, [to]))
+
+            Dim nextAvailable As DateTime = schedule.NextEvent(start)
+
+            Assert.AreEqual(DateTime.Parse("10/10/2010 3:00:01AM"), nextAvailable)
         End Using
     End Sub
 

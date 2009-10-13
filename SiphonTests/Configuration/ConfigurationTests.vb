@@ -25,11 +25,11 @@ Public Class ConfigurationTests
         Assert.AreEqual("ChrisLaco.Siphon.IntervalSchedule, Siphon", section.Monitors(0).Schedule.Type)
         Assert.AreEqual("ChrisLaco.Tests.Siphon.MockProcessor, SiphonTests", section.Monitors(0).Processor.Type)
         Assert.AreEqual(New TimeSpan(1, 2, 3, 4), section.Monitors(0).Schedule.Interval.Value)
-        Assert.AreEqual(2, section.Monitors(0).Schedule.Exceptions.Count)
-        Assert.AreEqual("1/1/2007 12:31PM", section.Monitors(0).Schedule.Exceptions(0).From)
-        Assert.AreEqual("1/3/2007 2:31PM", section.Monitors(0).Schedule.Exceptions(0).To)
-        Assert.AreEqual("1:2:3", section.Monitors(0).Schedule.Exceptions(1).From)
-        Assert.AreEqual("2:3:4", section.Monitors(0).Schedule.Exceptions(1).To)
+        Assert.AreEqual(2, section.Monitors(0).Schedule.Exclusions.Count)
+        Assert.AreEqual("1/1/2007 12:31PM", section.Monitors(0).Schedule.Exclusions(0).From)
+        Assert.AreEqual("1/3/2007 2:31PM", section.Monitors(0).Schedule.Exclusions(0).To)
+        Assert.AreEqual("1:2:3", section.Monitors(0).Schedule.Exclusions(1).From)
+        Assert.AreEqual("2:3:4", section.Monitors(0).Schedule.Exclusions(1).To)
 
         Assert.AreEqual("DailyMonitor", section.Monitors(1).Name)
         Assert.AreEqual("ChrisLaco.Siphon.FtpDirectoryMonitor, Siphon", section.Monitors(1).Type)
@@ -41,7 +41,7 @@ Public Class ConfigurationTests
         Assert.AreEqual(New TimeSpan(1, 23, 0), section.Monitors(1).Schedule.Daily(0).Value)
         Assert.AreEqual(New TimeSpan(12, 23, 0), section.Monitors(1).Schedule.Daily(1).Value)
         Assert.AreEqual(New TimeSpan(2, 34, 56), section.Monitors(1).Schedule.Daily(2).Value)
-        Assert.AreEqual(0, section.Monitors(1).Schedule.Exceptions.Count)
+        Assert.AreEqual(0, section.Monitors(1).Schedule.Exclusions.Count)
 
         REM Test schedule create instances
         Dim schedule As IMonitorSchedule = section.Monitors(0).Schedule.CreateInstance
@@ -125,7 +125,7 @@ Public Class ConfigurationTests
         monitor.Schedule.Type = "IntervalSchedule, Siphon"
         monitor.Schedule.Daily.Add(New TimeElement(New TimeSpan(100)))
         monitor.Schedule.Daily.Add(New TimeSpan(200))
-        monitor.Schedule.Exceptions.Add("1:2:3", "4:5:6")
+        monitor.Schedule.Exclusions.Add("1:2:3", "4:5:6")
         section.Monitors.Add(monitor)
 
         config.Sections.Add("siphon", section)
