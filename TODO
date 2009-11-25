@@ -1,2 +1,3 @@
 - FTP Move to different server should delete source, upload to remote
 - Add enabled/disable monitor attribute
+- Add or Create Threaded Monitor to call x number of Processors in each scan
